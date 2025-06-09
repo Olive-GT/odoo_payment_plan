@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Add Payment Plan button to Sale Order form -->
+    <record id="view_order_form_inherit_payment_plan" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.payment.plan</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_view_invoice']" position="after">
+                <button name="action_view_payment_plans" type="object" class="oe_stat_button" icon="fa-money"
+                        attrs="{'invisible': [('payment_plan_count', '=', 0)]}">
+                    <field name="payment_plan_count" widget="statinfo" string="Payment Plans"/>
+                </button>
+            </xpath>
+            <xpath expr="//button[@name='action_confirm']" position="after">
+                <button name="action_create_payment_plan" string="Create Payment Plan" type="object"
+                        attrs="{'invisible': ['|', ('state', 'not in', ['draft', 'sent', 'sale']), ('amount_total', '<=', 0)]}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
