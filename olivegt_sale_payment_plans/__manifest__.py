@@ -18,14 +18,13 @@
         'base',
         'sale_management',
         'account',
-    ],
-    'data': [
+    ],    'data': [
         'security/ir.model.access.csv',
         'data/payment_plan_sequence.xml',
+        'reports/payment_plan_report.xml',
         'wizards/payment_plan_calculator_views.xml',
         'views/payment_plan_views.xml',
         'views/sale_order_views.xml',
-        'reports/payment_plan_report.xml',
     ],
     'demo': [],
     'installable': True,
