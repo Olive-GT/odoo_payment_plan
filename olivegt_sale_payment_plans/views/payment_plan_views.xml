@@ -179,8 +179,11 @@
 
     <!-- Menu items -->
     <menuitem id="menu_payment_plans_root"
-        name="Payment Plans"
-        sequence="50"/>
+          name="Payment Plans"
+          sequence="50"
+          action="action_payment_plans"
+          icon="fa-credit-card" />
+
 
     <menuitem id="menu_payment_plans"
         name="Payment Plans"
