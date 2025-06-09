@@ -35,15 +35,16 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Payment Schedule">
-                            <field name="line_ids" nolabel="1">
+                        <page string="Payment Schedule">                            <field name="line_ids" nolabel="1">
                                 <tree editable="bottom">
                                     <field name="date"/>
                                     <field name="name"/>
                                     <field name="amount"/>
-                                    <field name="currency_id" invisible="1"/>                                    <field name="paid"/>
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="paid"/>
                                     <field name="payment_date"/>
-                                    <field name="payment_reference"/>                                    <button name="mark_as_paid" type="object" string="Mark Paid" icon="fa-solid fa-check" 
+                                    <field name="payment_reference"/>
+                                    <button name="mark_as_paid" type="object" string="Mark Paid" icon="fa-solid fa-check" 
                                            invisible="paid == True"/>
                                     <button name="mark_as_unpaid" type="object" string="Mark Unpaid" icon="fa-solid fa-xmark" 
                                            invisible="paid == False"/>
