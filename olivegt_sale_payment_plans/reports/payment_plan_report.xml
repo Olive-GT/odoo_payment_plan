@@ -3,7 +3,7 @@
     <record id="action_report_payment_plan" model="ir.actions.report">
         <field name="name">Payment Plan</field>
         <field name="model">payment.plan</field>
-        <field name="report_type">pdf</field>
+        <field name="report_type">qweb-pdf</field>
         <field name="report_name">olivegt_sale_payment_plans.report_payment_plan</field>
         <field name="report_file">olivegt_sale_payment_plans.report_payment_plan</field>
         <field name="binding_model_id" ref="model_payment_plan"/>
