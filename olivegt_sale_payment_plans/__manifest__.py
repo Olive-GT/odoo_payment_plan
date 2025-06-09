@@ -15,8 +15,8 @@
     'website': '',
     'license': 'LGPL-3',
     'depends': [
-        'report_xlsx',
         'l10n_gt_aro_accounting', 
+        'report_xlsx',
         'account',
         'base',
         'sale_management',
