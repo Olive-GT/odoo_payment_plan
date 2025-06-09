@@ -8,9 +8,9 @@ class PaymentPlan(models.Model):
     _description = 'Payment Plan'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'id desc'
-
+    
     name = fields.Char('Reference', required=True, copy=False, readonly=True, default=lambda self: _('New'))
-    sale_id = fields.Many2one('sale.order', string='Sale Order', required=True, readonly=True, states={'draft': [('readonly', False)]})
+    sale_id = fields.Many2one('sale.order', string='Sale Order', required=True)
     partner_id = fields.Many2one('res.partner', string='Customer', related='sale_id.partner_id', store=True)
     company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company)
     currency_id = fields.Many2one('res.currency', string='Currency', related='sale_id.currency_id', store=True)

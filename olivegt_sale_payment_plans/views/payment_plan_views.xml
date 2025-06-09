@@ -5,13 +5,17 @@
         <field name="name">payment.plan.form</field>
         <field name="model">payment.plan</field>
         <field name="arch" type="xml">
-            <form>
-                <header>
-                    <button name="action_post" type="object" string="Post" class="oe_highlight" states="draft" />
-                    <button name="action_cancel" type="object" string="Cancel" states="draft,posted" />
-                    <button name="action_draft" type="object" string="Set to Draft" states="canceled" />
-                    <button name="action_calculate_payment_plan" type="object" string="Calculate Payment Plan" states="draft" />
-                    <button name="%(action_report_payment_plan)d" type="action" string="Print" states="draft,posted" class="btn-secondary"/>
+            <form>                <header>
+                    <button name="action_post" type="object" string="Post" class="oe_highlight" 
+                           invisible="state != 'draft'" />
+                    <button name="action_cancel" type="object" string="Cancel" 
+                           invisible="state not in ('draft', 'posted')" />
+                    <button name="action_draft" type="object" string="Set to Draft" 
+                           invisible="state != 'canceled'" />
+                    <button name="action_calculate_payment_plan" type="object" string="Calculate Payment Plan" 
+                           invisible="state != 'draft'" />
+                    <button name="%(action_report_payment_plan)d" type="action" string="Print" 
+                           invisible="state not in ('draft', 'posted')" class="btn-secondary"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,posted,canceled" />
                 </header>
                 <sheet>
@@ -38,12 +42,12 @@
                                     <field name="date"/>
                                     <field name="name"/>
                                     <field name="amount"/>
-                                    <field name="currency_id" invisible="1"/>
-                                    <field name="paid"/>
+                                    <field name="currency_id" invisible="1"/>                                    <field name="paid"/>
                                     <field name="payment_date"/>
-                                    <field name="payment_reference"/>
-                                    <button name="mark_as_paid" type="object" string="Mark Paid" icon="fa-check" attrs="{'invisible': [('paid', '=', True)]}"/>
-                                    <button name="mark_as_unpaid" type="object" string="Mark Unpaid" icon="fa-times" attrs="{'invisible': [('paid', '=', False)]}"/>
+                                    <field name="payment_reference"/>                                    <button name="mark_as_paid" type="object" string="Mark Paid" icon="fa-solid fa-check" 
+                                           invisible="paid == True"/>
+                                    <button name="mark_as_unpaid" type="object" string="Mark Unpaid" icon="fa-solid fa-xmark" 
+                                           invisible="paid == False"/>
                                 </tree>
                             </field>
                             <group class="oe_subtotal_footer">
