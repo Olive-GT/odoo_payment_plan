@@ -15,11 +15,11 @@
     'website': '',
     'license': 'LGPL-3',
     'depends': [
+        'report_xlsx'
+        'l10n_gt_aro_accounting', 
         'account',
         'base',
         'sale_management',
-        'l10n_gt_aro_accounting', 
-        'report_xlsx'
     ],    'data': [
         'security/ir.model.access.csv',
         'data/payment_plan_sequence.xml',
