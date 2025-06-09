@@ -40,7 +40,7 @@
                                 <tree editable="bottom">
                                     <field name="date"/>
                                     <field name="name"/>
-                                    <field name="amount"/>
+                                    <!-- <field name="amount"/> -->
                                     <field name="paid"/>
                                     <field name="payment_date"/>
                                     <field name="payment_reference"/>
