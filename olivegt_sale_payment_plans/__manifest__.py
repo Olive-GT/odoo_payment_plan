@@ -18,6 +18,8 @@
         'base',
         'sale_management',
         'account',
+        'l10n_gt_aro_accounting', 
+        'report_xlsx'
     ],    'data': [
         'security/ir.model.access.csv',
         'data/payment_plan_sequence.xml',
