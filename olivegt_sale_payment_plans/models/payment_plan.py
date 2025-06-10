@@ -77,3 +77,11 @@ class PaymentPlan(models.Model):
                 'default_total_amount': self.sale_id.amount_total,
             }
         }
+    
+    def update_overdue_status(self):
+        """Update overdue days and interest for all lines in this payment plan"""
+        self.ensure_one()
+        if self.line_ids:
+            self.line_ids._compute_overdue_days()
+            self.line_ids._compute_interest_amount()
+        return True

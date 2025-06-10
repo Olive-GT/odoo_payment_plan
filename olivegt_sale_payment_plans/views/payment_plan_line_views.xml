@@ -4,8 +4,7 @@
     <record id="view_payment_plan_line_list" model="ir.ui.view">
         <field name="name">payment.plan.line.list</field>
         <field name="model">payment.plan.line</field>
-        <field name="arch" type="xml">
-            <list editable="bottom">
+        <field name="arch" type="xml">            <list editable="bottom">
                 <field name="date"/>
                 <field name="name"/>
                 <field name="amount"/>
@@ -16,7 +15,10 @@
                 <field name="paid"/>
                 <field name="payment_date"/>
                 <field name="payment_reference"/>
-            </list>        </field>
+                <button name="mark_as_paid" type="object" string="Mark Paid" icon="fa-solid fa-check" invisible="paid"/>
+                <button name="mark_as_unpaid" type="object" string="Mark Unpaid" icon="fa-solid fa-xmark" invisible="not paid"/>
+                <button name="update_overdue_status" type="object" string="Update Status" icon="fa-solid fa-refresh" invisible="paid"/>
+            </list></field>
     </record>
       <!-- Payment Plan Line Form View -->
     <record id="view_payment_plan_line_form" model="ir.ui.view">

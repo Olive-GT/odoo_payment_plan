@@ -47,23 +47,41 @@ class PaymentPlanLine(models.Model):
 
     @api.depends('date', 'paid')
     def _compute_overdue_days(self):
+        # Get current date for overdue calculation
         today = fields.Date.context_today(self)
+        
         for line in self:
-            if line.paid:
+            # Skip computation for records with no date
+            if not line.date:
                 line.overdue_days = 0
-            elif line.date and line.date < today:
-                line.overdue_days = (today - line.date).days
+                continue
+                
+            if line.paid:
+                # Paid lines have no overdue days
+                line.overdue_days = 0
+            elif line.date < today:
+                # Calculate days between due date and today
+                delta = today - line.date
+                line.overdue_days = delta.days
             else:
+                # Future dates have no overdue days
                 line.overdue_days = 0
 
-    @api.depends('overdue_days', 'amount', 'payment_plan_id.interest_rate')
+    @api.depends('overdue_days', 'amount', 'payment_plan_id.interest_rate', 'date', 'paid')
     def _compute_interest_amount(self):
+        today = fields.Date.context_today(self)  # Add current date dependency
+        
         for line in self:
-            if line.paid or line.overdue_days <= 0:
+            if line.paid or not line.date or line.date >= today or line.overdue_days <= 0:
                 line.interest_amount = 0
             else:
                 # Use the interest rate from the payment plan
-                annual_rate = line.payment_plan_id.interest_rate / 100.0  # Convert from percentage
+                if line.payment_plan_id and line.payment_plan_id.interest_rate:
+                    annual_rate = line.payment_plan_id.interest_rate / 100.0  # Convert from percentage
+                else:
+                    # Default interest rate if not set on payment plan
+                    annual_rate = 0.10  # 10% per year as default
+                    
                 daily_rate = annual_rate / 365.0
                 line.interest_amount = line.amount * line.overdue_days * daily_rate
             
@@ -85,3 +103,29 @@ class PaymentPlanLine(models.Model):
             line.paid = False
             line.payment_date = False
             line.payment_reference = False
+            
+    def update_overdue_status(self):
+        """Manually update overdue days and interest calculation"""
+        self._compute_overdue_days()
+        self._compute_interest_amount()
+        return True
+
+    @api.model
+    def _update_overdue_lines(self):
+        """
+        This method is meant to be called from a scheduled action (cron job)
+        to update overdue days and interest on all payment plan lines
+        """
+        # Find all unpaid lines that are overdue
+        today = fields.Date.context_today(self)
+        overdue_lines = self.search([
+            ('paid', '=', False),
+            ('date', '<', today)
+        ])
+        
+        # Force recalculation of overdue days and interest
+        if overdue_lines:
+            overdue_lines._compute_overdue_days()
+            overdue_lines._compute_interest_amount()
+        
+        return True

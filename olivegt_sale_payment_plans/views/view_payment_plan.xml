@@ -12,6 +12,7 @@
                     <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'posted')"/>
                     <button name="action_draft" type="object" string="Set to Draft" invisible="state != 'canceled'"/>
                     <button name="action_calculate_payment_plan" type="object" string="Calculate Payment Plan" invisible="state != 'draft'"/>
+                    <button name="update_overdue_status" type="object" string="Update Overdue Status" class="btn-secondary" invisible="state == 'canceled'"/>
                     <button name="print_payment_plan" type="object" string="Print" invisible="state not in ('draft', 'posted')" class="btn-secondary"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,posted,canceled"/>
                 </header>
@@ -45,6 +46,7 @@
                                     <field name="payment_date"/>
                                     <field name="payment_reference"/>                                    <button name="mark_as_paid" type="object" string="Mark Paid" icon="fa-solid fa-check" invisible="paid"/>
                                     <button name="mark_as_unpaid" type="object" string="Mark Unpaid" icon="fa-solid fa-xmark" invisible="not paid"/>
+                                    <button name="update_overdue_status" type="object" string="Update Status" icon="fa-solid fa-refresh" invisible="paid"/>
                                 </list>                                <form>
                                     <group>
                                         <group>
