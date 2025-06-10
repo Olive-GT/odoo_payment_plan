@@ -7,7 +7,7 @@
         <field name="name">Payment Plans</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">payment.plan</field>
-        <field name="view_mode">tree,form,kanban</field>
+        <field name="view_mode">list,form,kanban</field>
         <field name="view_id" ref="view_payment_plan_tree_simple"/>
         <field name="context">{'search_default_draft': 1}</field>
         <field name="help" type="html">

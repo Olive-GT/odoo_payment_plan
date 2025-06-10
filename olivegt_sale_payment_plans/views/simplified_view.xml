@@ -33,13 +33,13 @@
                             <field name="amount_residual" class="oe_subtotal_footer_separator" widget="monetary"/>
                         </group>
                     </group><notebook>                        <page string="Payment Schedule">                            <field name="line_ids" context="{'default_payment_plan_id': active_id}">
-                                <tree>
+                                <tree string="Payment Plan Lines">
                                     <field name="date"/>
                                     <field name="name"/>
                                     <field name="amount"/>
                                     <field name="paid"/>
                                 </tree>
-                                <form>
+                                <form string="Payment Plan Line">
                                     <group>
                                         <field name="payment_plan_id" invisible="1"/>
                                         <field name="date"/>
@@ -59,9 +59,9 @@
                 </sheet>
             </form>
         </field>
-    </record>    <!-- Simple Tree View -->
+    </record>    <!-- Simple List View -->
     <record id="view_payment_plan_tree_simple" model="ir.ui.view">
-        <field name="name">payment.plan.tree</field>
+        <field name="name">payment.plan.list</field>
         <field name="model">payment.plan</field>
         <field name="arch" type="xml">
             <tree decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'">
