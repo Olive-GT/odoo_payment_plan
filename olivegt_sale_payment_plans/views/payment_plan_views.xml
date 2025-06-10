@@ -8,16 +8,11 @@
             <field name="arch" type="xml">
                 <form>
                     <header>
-                        <button name="action_post" type="object" string="Post" class="oe_highlight" 
-                            invisible="state != 'draft'" />
-                        <button name="action_cancel" type="object" string="Cancel" 
-                            invisible="state not in ('draft', 'posted')" />
-                        <button name="action_draft" type="object" string="Set to Draft" 
-                            invisible="state != 'canceled'" />
-                        <button name="action_calculate_payment_plan" type="object" string="Calculate Payment Plan" 
-                            invisible="state != 'draft'" />
-                        <button name="%(olivegt_sale_payment_plans.action_report_payment_plan)d" type="action" string="Print" 
-                            invisible="state not in ('draft', 'posted')" class="btn-secondary"/>
+                        <button name="action_post" type="object" string="Post" class="oe_highlight" invisible="state != 'draft'" />
+                        <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'posted')" />
+                        <button name="action_draft" type="object" string="Set to Draft" invisible="state != 'canceled'" />
+                        <button name="action_calculate_payment_plan" type="object" string="Calculate Payment Plan" invisible="state != 'draft'" />
+                        <button name="%(olivegt_sale_payment_plans.action_report_payment_plan)d" type="action" string="Print" invisible="state not in ('draft', 'posted')" class="btn-secondary"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,posted,canceled" />
                     </header>
                     <sheet>
@@ -35,9 +30,11 @@
                             <group>
                                 <field name="company_id" groups="base.group_multi_company"/>
                                 <field name="currency_id"/>
-                            </group>
-                        </group>                    <notebook>
-                            <page string="Payment Schedule">                            <field name="line_ids">
+                            </group>                        
+                        </group>
+                        <notebook>
+                            <page string="Payment Schedule">
+                                <field name="line_ids">
                                     <tree editable="bottom">
                                         <field name="date"/>
                                         <field name="name"/>
@@ -45,10 +42,8 @@
                                         <field name="paid"/>
                                         <field name="payment_date"/>
                                         <field name="payment_reference"/>
-                                        <button name="mark_as_paid" type="object" string="Mark Paid" icon="fa-solid fa-check" 
-                                                invisible="paid == True"/>
-                                        <button name="mark_as_unpaid" type="object" string="Mark Unpaid" icon="fa-solid fa-xmark" 
-                                                invisible="paid == False"/>
+                                        <button name="mark_as_paid" type="object" string="Mark Paid" icon="fa-solid fa-check" invisible="paid == True"/>
+                                        <button name="mark_as_unpaid" type="object" string="Mark Unpaid" icon="fa-solid fa-xmark" invisible="paid == False"/>
                                     </tree>
                                 </field>
                                 <group class="oe_subtotal_footer">
@@ -108,7 +103,8 @@
                         <filter string="Customer" name="groupby_partner" context="{'group_by': 'partner_id'}"/>
                         <filter string="Sale Order" name="groupby_sale" context="{'group_by': 'sale_id'}"/>
                         <filter string="Date" name="groupby_date" context="{'group_by': 'date'}"/>
-                    </group>            </search>
+                    </group>
+                </search>
             </field>
         </record>
         

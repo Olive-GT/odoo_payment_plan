@@ -14,11 +14,10 @@
                             <field name="total_amount" widget="monetary"/>
                         </group>
                         <notebook>
-                            <page string="Initial Payment">                            <group>
+                            <page string="Initial Payment">
+                                <group>
                                     <field name="initial_payment"/>
-                                    <field name="initial_amount" widget="monetary" 
-                                        invisible="initial_payment == False"
-                                        required="initial_payment == True"/>
+                                    <field name="initial_amount" widget="monetary" invisible="initial_payment == False" required="initial_payment == True"/>
                                     <field name="initial_date" 
                                         invisible="initial_payment == False"
                                         required="initial_payment == True"/>
@@ -32,14 +31,11 @@
                                     <field name="equal_installments"/>
                                 </group>
                             </page>
-                            <page string="Final Payment">                            <group>
+                            <page string="Final Payment">
+                                <group>
                                     <field name="final_payment"/>
-                                    <field name="final_amount" widget="monetary" 
-                                        invisible="final_payment == False"
-                                        required="final_payment == True"/>
-                                    <field name="final_date" 
-                                        invisible="final_payment == False"
-                                        required="final_payment == True"/>
+                                    <field name="final_amount" widget="monetary" invisible="final_payment == False" required="final_payment == True"/>
+                                    <field name="final_date" invisible="final_payment == False" required="final_payment == True"/>
                                 </group>
                             </page>
                         </notebook>
