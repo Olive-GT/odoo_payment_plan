@@ -1,191 +1,189 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <data>
-        <!-- Payment Plan Form View -->
-        <record id="payment_plan_view_form" model="ir.ui.view">
-            <field name="name">payment.plan.form</field>
-            <field name="model">payment.plan</field>
-            <field name="arch" type="xml">
-                <form>
-                    <header>
-                        <button name="action_post" type="object" string="Post" class="oe_highlight" invisible="state != 'draft'" />
-                        <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'posted')" />
-                        <button name="action_draft" type="object" string="Set to Draft" invisible="state != 'canceled'" />
-                        <button name="action_calculate_payment_plan" type="object" string="Calculate Payment Plan" invisible="state != 'draft'" />
-                        <button name="%(olivegt_sale_payment_plans.action_report_payment_plan)d" type="action" string="Print" invisible="state not in ('draft', 'posted')" class="btn-secondary"/>
-                        <field name="state" widget="statusbar" statusbar_visible="draft,posted,canceled" />
-                    </header>
-                    <sheet>
-                        <div class="oe_title">
-                            <h1>
-                                <field name="name" readonly="1"/>
-                            </h1>
-                        </div>
-                        <group>
-                            <group>
-                                <field name="sale_id"/>
-                                <field name="partner_id"/>
-                                <field name="date"/>
-                            </group>
-                            <group>
-                                <field name="company_id" groups="base.group_multi_company"/>
-                                <field name="currency_id"/>
-                            </group>                        
-                        </group>
-                        <notebook>
-                            <page string="Payment Schedule">
-                                <field name="line_ids">
-                                    <tree editable="bottom">
-                                        <field name="date"/>
-                                        <field name="name"/>
-                                        <field name="amount"/>
-                                        <field name="paid"/>
-                                        <field name="payment_date"/>
-                                        <field name="payment_reference"/>
-                                        <button name="mark_as_paid" type="object" string="Mark Paid" icon="fa-solid fa-check" invisible="paid == True"/>
-                                        <button name="mark_as_unpaid" type="object" string="Mark Unpaid" icon="fa-solid fa-xmark" invisible="paid == False"/>
-                                    </tree>
-                                </field>
-                                <group class="oe_subtotal_footer">
-                                    <field name="total_amount" widget="monetary"/>
-                                    <field name="amount_paid" widget="monetary"/>
-                                    <field name="amount_residual" class="oe_subtotal_footer_separator" widget="monetary"/>
-                                    <field name="currency_id" invisible="1"/>
-                                </group>
-                            </page>
-                            <page string="Notes">
-                                <field name="notes" nolabel="1"/>
-                            </page>
-                        </notebook>
-                    </sheet>
-                    <div class="oe_chatter">
-                        <field name="message_follower_ids" widget="mail_followers"/>
-                        <field name="activity_ids" widget="mail_activity"/>
-                        <field name="message_ids" widget="mail_thread"/>
+    <!-- Payment Plan Form View -->
+    <record id="payment_plan_view_form" model="ir.ui.view">
+        <field name="name">payment.plan.form</field>
+        <field name="model">payment.plan</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_post" type="object" string="Post" class="oe_highlight" invisible="state != 'draft'" />
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'posted')" />
+                    <button name="action_draft" type="object" string="Set to Draft" invisible="state != 'canceled'" />
+                    <button name="action_calculate_payment_plan" type="object" string="Calculate Payment Plan" invisible="state != 'draft'" />
+                    <button name="%(olivegt_sale_payment_plans.action_report_payment_plan)d" type="action" string="Print" invisible="state not in ('draft', 'posted')" class="btn-secondary"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,posted,canceled" />
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
                     </div>
-                </form>
-            </field>
-        </record>
-
-        <!-- Payment Plan Tree View -->
-        <record id="payment_plan_view_tree" model="ir.ui.view">
-            <field name="name">payment.plan.tree</field>
-            <field name="model">payment.plan</field>
-            <field name="arch" type="xml">
-                <tree decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'">
-                    <field name="name"/>
-                    <field name="sale_id"/>
-                    <field name="partner_id"/>
-                    <field name="date"/>
-                    <field name="total_amount"/>
-                    <field name="amount_paid"/>
-                    <field name="amount_residual"/>
-                    <field name="state"/>
-                    <field name="currency_id" invisible="1"/>
-                </tree>
-            </field>
-        </record>
-
-        <!-- Payment Plan Search View -->
-        <record id="payment_plan_view_search" model="ir.ui.view">
-            <field name="name">payment.plan.search</field>
-            <field name="model">payment.plan</field>
-            <field name="arch" type="xml">
-                <search>
-                    <field name="name"/>
-                    <field name="sale_id"/>
-                    <field name="partner_id"/>
-                    <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
-                    <filter string="Posted" name="posted" domain="[('state','=','posted')]"/>
-                    <filter string="Canceled" name="canceled" domain="[('state','=','canceled')]"/>
-                    <group expand="0" string="Group By">
-                        <filter string="Status" name="groupby_state" context="{'group_by': 'state'}"/>
-                        <filter string="Customer" name="groupby_partner" context="{'group_by': 'partner_id'}"/>
-                        <filter string="Sale Order" name="groupby_sale" context="{'group_by': 'sale_id'}"/>
-                        <filter string="Date" name="groupby_date" context="{'group_by': 'date'}"/>
+                    <group>
+                        <group>
+                            <field name="sale_id"/>
+                            <field name="partner_id"/>
+                            <field name="date"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="currency_id"/>
+                        </group>                        
                     </group>
-                </search>
-            </field>
-        </record>
-        
-        <!-- Payment Plan Kanban View -->
-        <record id="payment_plan_view_kanban" model="ir.ui.view">
-            <field name="name">payment.plan.kanban</field>
-            <field name="model">payment.plan</field>
-            <field name="arch" type="xml">
-                <kanban default_group_by="state" class="o_kanban_small_column" sample="1">
-                    <field name="name"/>
-                    <field name="state"/>
-                    <field name="partner_id"/>
-                    <field name="sale_id"/>
-                    <field name="total_amount"/>
-                    <field name="amount_paid"/>
-                    <field name="amount_residual"/>
-                    <templates>
-                        <t t-name="kanban-box">
-                            <div t-attf-class="oe_kanban_global_click">
-                                <div class="oe_kanban_card">
-                                    <div class="oe_kanban_details">
-                                        <strong class="o_kanban_record_title">
-                                            <field name="name"/>
-                                        </strong>
-                                        <div class="o_kanban_record_subtitle">
-                                            <span><field name="partner_id"/></span>
+                    <notebook>
+                        <page string="Payment Schedule">
+                            <field name="line_ids">
+                                <tree editable="bottom">
+                                    <field name="date"/>
+                                    <field name="name"/>
+                                    <field name="amount"/>
+                                    <field name="paid"/>
+                                    <field name="payment_date"/>
+                                    <field name="payment_reference"/>
+                                    <button name="mark_as_paid" type="object" string="Mark Paid" icon="fa-solid fa-check" invisible="paid == True"/>
+                                    <button name="mark_as_unpaid" type="object" string="Mark Unpaid" icon="fa-solid fa-xmark" invisible="paid == False"/>
+                                </tree>
+                            </field>
+                            <group class="oe_subtotal_footer">
+                                <field name="total_amount" widget="monetary"/>
+                                <field name="amount_paid" widget="monetary"/>
+                                <field name="amount_residual" class="oe_subtotal_footer_separator" widget="monetary"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                        </page>
+                        <page string="Notes">
+                            <field name="notes" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Payment Plan Tree View -->
+    <record id="payment_plan_view_tree" model="ir.ui.view">
+        <field name="name">payment.plan.tree</field>
+        <field name="model">payment.plan</field>
+        <field name="arch" type="xml">
+            <tree decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'">
+                <field name="name"/>
+                <field name="sale_id"/>
+                <field name="partner_id"/>
+                <field name="date"/>
+                <field name="total_amount"/>
+                <field name="amount_paid"/>
+                <field name="amount_residual"/>
+                <field name="state"/>
+                <field name="currency_id" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Payment Plan Search View -->
+    <record id="payment_plan_view_search" model="ir.ui.view">
+        <field name="name">payment.plan.search</field>
+        <field name="model">payment.plan</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="sale_id"/>
+                <field name="partner_id"/>
+                <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+                <filter string="Posted" name="posted" domain="[('state','=','posted')]"/>
+                <filter string="Canceled" name="canceled" domain="[('state','=','canceled')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="groupby_state" context="{'group_by': 'state'}"/>
+                    <filter string="Customer" name="groupby_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Sale Order" name="groupby_sale" context="{'group_by': 'sale_id'}"/>
+                    <filter string="Date" name="groupby_date" context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- Payment Plan Kanban View -->
+    <record id="payment_plan_view_kanban" model="ir.ui.view">
+        <field name="name">payment.plan.kanban</field>
+        <field name="model">payment.plan</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column" sample="1">
+                <field name="name"/>
+                <field name="state"/>
+                <field name="partner_id"/>
+                <field name="sale_id"/>
+                <field name="total_amount"/>
+                <field name="amount_paid"/>
+                <field name="amount_residual"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_global_click">
+                            <div class="oe_kanban_card">
+                                <div class="oe_kanban_details">
+                                    <strong class="o_kanban_record_title">
+                                        <field name="name"/>
+                                    </strong>
+                                    <div class="o_kanban_record_subtitle">
+                                        <span><field name="partner_id"/></span>
+                                    </div>
+                                    <div class="o_kanban_record_bottom">
+                                        <div class="oe_kanban_bottom_left">
+                                            <span>Sale: <field name="sale_id"/></span>
                                         </div>
-                                        <div class="o_kanban_record_bottom">
-                                            <div class="oe_kanban_bottom_left">
-                                                <span>Sale: <field name="sale_id"/></span>
-                                            </div>
-                                            <div class="oe_kanban_bottom_right">
-                                                <field name="total_amount" widget="monetary"/>
-                                            </div>
+                                        <div class="oe_kanban_bottom_right">
+                                            <field name="total_amount" widget="monetary"/>
                                         </div>
-                                        <div class="o_kanban_record_bottom">
-                                            <div class="progress" style="margin-bottom: 0;">
-                                                <t t-set="progress" t-value="record.amount_paid.raw_value / record.total_amount.raw_value * 100 if record.total_amount.raw_value else 0"/>
-                                                <div class="progress-bar bg-success" role="progressbar" t-att-style="'width: ' + String(progress) + '%'" t-att-aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100">
-                                                    <t t-esc="Math.round(progress)"/>%
-                                                </div>
+                                    </div>
+                                    <div class="o_kanban_record_bottom">
+                                        <div class="progress" style="margin-bottom: 0;">
+                                            <t t-set="progress" t-value="record.amount_paid.raw_value / record.total_amount.raw_value * 100 if record.total_amount.raw_value else 0"/>
+                                            <div class="progress-bar bg-success" role="progressbar" t-att-style="'width: ' + String(progress) + '%'" t-att-aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100">
+                                                <t t-esc="Math.round(progress)"/>%
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </t>
-                    </templates>
-                </kanban>
-            </field>
-        </record>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
 
-        <!-- Action to open payment plans -->
-        <record id="action_payment_plans" model="ir.actions.act_window">
-            <field name="name">Payment Plans</field>
-            <field name="type">ir.actions.act_window</field>
-            <field name="res_model">payment.plan</field>
-            <field name="view_mode">kanban,tree,form</field>
-            <field name="context">{'search_default_draft': 1}</field>
-            <field name="help" type="html">
-                <p class="o_view_nocontent_smiling_face">
-                    Create your first payment plan
-                </p>
-                <p>
-                    Payment plans allow you to schedule payments for your customers.
-                </p>
-            </field>
-        </record>
+    <!-- Action to open payment plans -->
+    <record id="action_payment_plans" model="ir.actions.act_window">
+        <field name="name">Payment Plans</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">payment.plan</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="context">{'search_default_draft': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first payment plan
+            </p>
+            <p>
+                Payment plans allow you to schedule payments for your customers.
+            </p>
+        </field>
+    </record>
 
-        <!-- Menu items -->
-        <menuitem id="menu_payment_plans_root"
-            name="Payment Plans"
-            sequence="50"
-            action="action_payment_plans"
-            icon="fa-credit-card" />
+    <!-- Menu items -->
+    <menuitem id="menu_payment_plans_root"
+        name="Payment Plans"
+        sequence="50"
+        action="action_payment_plans"
+        icon="fa-credit-card" />
 
 
-        <menuitem id="menu_payment_plans"
-            name="Payment Plans"
-            parent="menu_payment_plans_root"
-            action="action_payment_plans"
-            sequence="10"/>
-    </data>
+    <menuitem id="menu_payment_plans"
+        name="Payment Plans"
+        parent="menu_payment_plans_root"
+        action="action_payment_plans"
+        sequence="10"/>
 </odoo>
