@@ -24,12 +24,26 @@ class PaymentPlanLine(models.Model):
     @api.depends('payment_plan_id.line_ids.amount', 'payment_plan_id.line_ids.paid')
     def _compute_running_balance(self):
         for line in self:
-            previous_lines = line.payment_plan_id.line_ids.filtered(
-                lambda l: l.date <= line.date and l.id <= line.id
-            )
-            paid_amount = sum(previous_lines.filtered(lambda l: l.paid).mapped('amount'))
-            total_amount = sum(previous_lines.mapped('amount'))
-            line.running_balance = total_amount - paid_amount
+            # Skip computation for new records with no date
+            if not line.date:
+                line.running_balance = 0
+                continue
+                
+            # Handle both saved and new records
+            try:
+                # For saved records, use date and id for ordering
+                previous_lines = line.payment_plan_id.line_ids.filtered(
+                    lambda l: l.date and l.date <= line.date
+                )
+                paid_amount = sum(previous_lines.filtered(lambda l: l.paid).mapped('amount'))
+                total_amount = sum(previous_lines.mapped('amount'))
+                line.running_balance = total_amount - paid_amount
+            except TypeError:
+                # If comparing NewId objects fails, just include all lines
+                previous_lines = line.payment_plan_id.line_ids
+                paid_amount = sum(previous_lines.filtered(lambda l: l.paid).mapped('amount'))
+                total_amount = sum(previous_lines.mapped('amount'))
+                line.running_balance = total_amount - paid_amount
 
     @api.depends('date', 'paid')
     def _compute_overdue_days(self):
