@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<!-- <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <!-- Add Payment Plan button to Sale Order form -->
     <record id="view_order_form_inherit_payment_plan" model="ir.ui.view">
@@ -17,3 +17,4 @@
         </field>
     </record>
 </odoo>
+ -->
