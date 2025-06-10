@@ -18,9 +18,7 @@
                                 <group>
                                     <field name="initial_payment"/>
                                     <field name="initial_amount" widget="monetary" invisible="initial_payment == False" required="initial_payment == True"/>
-                                    <field name="initial_date" 
-                                        invisible="initial_payment == False"
-                                        required="initial_payment == True"/>
+                                    <field name="initial_date" invisible="initial_payment == False" required="initial_payment == True"/>
                                 </group>
                             </page>
                             <page string="Installments">

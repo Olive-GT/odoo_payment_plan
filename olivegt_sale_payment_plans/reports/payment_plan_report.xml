@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
-    <!-- Payment Plan Report -->
+        <!-- Payment Plan Report -->
         <record id="action_report_payment_plan" model="ir.actions.report">
             <field name="name">Payment Plan</field>
             <field name="model">payment.plan</field>
@@ -44,7 +44,8 @@
                                 <thead>
                                     <tr>
                                         <th>Due Date</th>
-                                        <th>Description</th>                                    <th class="text-end">Amount</th>
+                                        <th>Description</th>
+                                        <th class="text-end">Amount</th>
                                         <th class="text-center">Status</th>
                                         <th>Payment Date</th>
                                         <th>Reference</th>
@@ -54,10 +55,12 @@
                                     <t t-foreach="o.line_ids.sorted(key=lambda l: l.date)" t-as="line">
                                         <tr>
                                             <td><span t-field="line.date"/></td>
-                                            <td><span t-field="line.name"/></td>                                        <td class="text-end">
+                                            <td><span t-field="line.name"/></td>
+                                            <td class="text-end">
                                                 <span t-field="line.amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                             </td>
-                                            <td class="text-center">                                            <span t-if="line.paid" class="badge bg-success">Paid</span>
+                                            <td class="text-center">
+                                                <span t-if="line.paid" class="badge bg-success">Paid</span>
                                                 <span t-else="" class="badge bg-info">Pending</span>
                                             </td>
                                             <td><span t-field="line.payment_date"/></td>
@@ -66,7 +69,8 @@
                                     </t>
                                 </tbody>
                                 <tfoot>
-                                    <tr>                                    <td colspan="2" class="text-end"><strong>Total</strong></td>
+                                    <tr>
+                                        <td colspan="2" class="text-end"><strong>Total</strong></td>
                                         <td class="text-end"><strong t-field="o.total_amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
                                         <td colspan="3"></td>
                                     </tr>
