@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-<data>
-    <!-- Payment Plan Line List View -->
+<data>    <!-- Payment Plan Line List View -->
     <record id="view_payment_plan_line_list" model="ir.ui.view">
         <field name="name">payment.plan.line.list</field>
         <field name="model">payment.plan.line</field>
@@ -10,26 +9,37 @@
                 <field name="date"/>
                 <field name="name"/>
                 <field name="amount"/>
+                <field name="running_balance"/>
+                <field name="overdue_days"/>
+                <field name="interest_amount"/>
+                <field name="total_with_interest"/>
                 <field name="paid"/>
                 <field name="payment_date"/>
                 <field name="payment_reference"/>
             </list>        </field>
     </record>
-    
-    <!-- Payment Plan Line Form View -->
+      <!-- Payment Plan Line Form View -->
     <record id="view_payment_plan_line_form" model="ir.ui.view">
         <field name="name">payment.plan.line.form</field>
         <field name="model">payment.plan.line</field>
         <field name="arch" type="xml">
             <form>
                 <group>
-                    <field name="payment_plan_id"/>
-                    <field name="date"/>
-                    <field name="name"/>
-                    <field name="amount"/>
-                    <field name="paid"/>
-                    <field name="payment_date" invisible="paid == False"/>
-                    <field name="payment_reference" invisible="paid == False"/>
+                    <group>
+                        <field name="payment_plan_id"/>
+                        <field name="date"/>
+                        <field name="name"/>
+                        <field name="amount"/>
+                        <field name="running_balance"/>
+                    </group>
+                    <group>
+                        <field name="overdue_days" attrs="{'invisible': [('overdue_days', '=', 0)]}"/>
+                        <field name="interest_amount" attrs="{'invisible': [('interest_amount', '=', 0)]}"/>
+                        <field name="total_with_interest"/>
+                        <field name="paid"/>
+                        <field name="payment_date" invisible="paid == False"/>
+                        <field name="payment_reference" invisible="paid == False"/>
+                    </group>
                 </group>
             </form>        </field>
     </record>

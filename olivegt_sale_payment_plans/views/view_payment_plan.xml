@@ -27,18 +27,21 @@
                             <field name="sale_id"/>
                             <field name="partner_id"/>
                             <field name="date"/>
-                        </group>
-                        <group>
+                        </group>                        <group>
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="currency_id"/>
+                            <field name="interest_rate"/>
                         </group>
                     </group>                    <notebook>
                         <page string="Payment Schedule">
-                            <field name="line_ids" context="{'default_payment_plan_id': id}">
-                                <list editable="bottom">
+                            <field name="line_ids" context="{'default_payment_plan_id': id}">                                <list editable="bottom">
                                     <field name="date"/>
                                     <field name="name"/>
                                     <field name="amount"/>
+                                    <field name="running_balance"/>
+                                    <field name="overdue_days"/>
+                                    <field name="interest_amount"/>
+                                    <field name="total_with_interest"/>
                                     <field name="paid"/>
                                     <field name="payment_date"/>
                                     <field name="payment_reference"/>
@@ -46,20 +49,29 @@
                                     <button name="mark_as_unpaid" type="object" string="Mark Unpaid" icon="fa-solid fa-xmark" invisible="paid == False"/>
                                 </list>                                <form>
                                     <group>
-                                        <field name="payment_plan_id" invisible="1"/>
-                                        <field name="date"/>
-                                        <field name="name"/>
-                                        <field name="amount"/>
-                                        <field name="paid"/>
-                                        <field name="payment_date" invisible="paid == False"/>
-                                        <field name="payment_reference" invisible="paid == False"/>
+                                        <group>
+                                            <field name="payment_plan_id" invisible="1"/>
+                                            <field name="date"/>
+                                            <field name="name"/>
+                                            <field name="amount"/>
+                                            <field name="running_balance"/>
+                                        </group>
+                                        <group>
+                                            <field name="overdue_days" attrs="{'invisible': [('overdue_days', '=', 0)]}"/>
+                                            <field name="interest_amount" attrs="{'invisible': [('interest_amount', '=', 0)]}"/>
+                                            <field name="total_with_interest"/>
+                                            <field name="paid"/>
+                                            <field name="payment_date" invisible="paid == False"/>
+                                            <field name="payment_reference" invisible="paid == False"/>
+                                        </group>
                                     </group>
                                 </form>
-                            </field>
-                            <group class="oe_subtotal_footer">
+                            </field>                            <group class="oe_subtotal_footer">
                                 <field name="total_amount" widget="monetary"/>
                                 <field name="amount_paid" widget="monetary"/>
-                                <field name="amount_residual" class="oe_subtotal_footer_separator" widget="monetary"/>
+                                <field name="amount_residual" widget="monetary"/>
+                                <field name="total_interest" widget="monetary" attrs="{'invisible': [('total_interest', '=', 0)]}"/>
+                                <field name="total_with_interest" class="oe_subtotal_footer_separator" widget="monetary"/>
                                 <field name="currency_id" invisible="1"/>
                             </group>
                         </page>
@@ -73,8 +85,7 @@
     <record id="view_payment_plan_list" model="ir.ui.view">
         <field name="name">payment.plan.list</field>
         <field name="model">payment.plan</field>
-        <field name="arch" type="xml">
-            <list decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'">
+        <field name="arch" type="xml">            <list decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'" decoration-danger="total_interest > 0">
                 <field name="name"/>
                 <field name="sale_id"/>
                 <field name="partner_id"/>
@@ -82,6 +93,8 @@
                 <field name="total_amount"/>
                 <field name="amount_paid"/>
                 <field name="amount_residual"/>
+                <field name="total_interest"/>
+                <field name="total_with_interest"/>
                 <field name="state"/>
                 <field name="currency_id" invisible="1"/>
             </list>

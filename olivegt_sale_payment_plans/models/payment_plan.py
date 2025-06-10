@@ -23,6 +23,10 @@ class PaymentPlan(models.Model):
     total_amount = fields.Monetary(string='Total Amount', compute='_compute_amounts', store=True)
     amount_paid = fields.Monetary(string='Amount Paid', compute='_compute_amounts', store=True)
     amount_residual = fields.Monetary(string='Amount Due', compute='_compute_amounts', store=True)
+    total_interest = fields.Monetary(string='Total Interest', compute='_compute_amounts', store=True)
+    total_with_interest = fields.Monetary(string='Total with Interest', compute='_compute_amounts', store=True)
+    interest_rate = fields.Float(string='Annual Interest Rate (%)', default=10.0, 
+                               help="Annual interest rate for overdue payments")
     notes = fields.Text('Notes')
 
     @api.model_create_multi
@@ -32,12 +36,14 @@ class PaymentPlan(models.Model):
                 vals['name'] = self.env['ir.sequence'].next_by_code('payment.plan') or _('New')
         return super().create(vals_list)
     
-    @api.depends('line_ids.amount', 'line_ids.paid')
+    @api.depends('line_ids.amount', 'line_ids.paid', 'line_ids.interest_amount')
     def _compute_amounts(self):
         for plan in self:
             plan.total_amount = sum(plan.line_ids.mapped('amount'))
             plan.amount_paid = sum(plan.line_ids.filtered(lambda l: l.paid).mapped('amount'))
             plan.amount_residual = plan.total_amount - plan.amount_paid
+            plan.total_interest = sum(plan.line_ids.mapped('interest_amount'))
+            plan.total_with_interest = plan.total_amount + plan.total_interest
 
     def action_post(self):
         for plan in self:

@@ -1,6 +1,6 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
-from datetime import datetime
+from datetime import datetime, date
 
 
 class PaymentPlanLine(models.Model):
@@ -16,6 +16,48 @@ class PaymentPlanLine(models.Model):
     paid = fields.Boolean('Paid', default=False)
     payment_date = fields.Date('Payment Date')
     payment_reference = fields.Char('Payment Reference')
+    running_balance = fields.Monetary('Running Balance', compute='_compute_running_balance', store=True)
+    overdue_days = fields.Integer('Overdue Days', compute='_compute_overdue_days', store=True)
+    interest_amount = fields.Monetary('Interest', compute='_compute_interest_amount', store=True)
+    total_with_interest = fields.Monetary('Total with Interest', compute='_compute_interest_amount', store=True)
+
+    @api.depends('payment_plan_id.line_ids.amount', 'payment_plan_id.line_ids.paid')
+    def _compute_running_balance(self):
+        for line in self:
+            previous_lines = line.payment_plan_id.line_ids.filtered(
+                lambda l: l.date <= line.date and l.id <= line.id
+            )
+            paid_amount = sum(previous_lines.filtered(lambda l: l.paid).mapped('amount'))
+            total_amount = sum(previous_lines.mapped('amount'))
+            line.running_balance = total_amount - paid_amount
+
+    @api.depends('date', 'paid')
+    def _compute_overdue_days(self):
+        today = fields.Date.context_today(self)
+        for line in self:
+            if line.paid:
+                line.overdue_days = 0
+            elif line.date and line.date < today:
+                line.overdue_days = (today - line.date).days
+            else:
+                line.overdue_days = 0
+
+    @api.depends('overdue_days', 'amount')
+    def _compute_interest_amount(self):
+        # Default interest rate of 10% per year, converted to daily rate
+        default_daily_rate = 0.10 / 365
+        
+        for line in self:
+            if line.paid or line.overdue_days <= 0:
+                line.interest_amount = 0
+            else:
+                company = line.payment_plan_id.company_id
+                # Get the company's configured interest rate or use default
+                # This assumes you might add a configuration field later
+                daily_rate = getattr(company, 'late_payment_interest_rate', default_daily_rate) / 365
+                line.interest_amount = line.amount * line.overdue_days * daily_rate
+            
+            line.total_with_interest = line.amount + line.interest_amount
 
     @api.constrains('amount')
     def _check_amount(self):
