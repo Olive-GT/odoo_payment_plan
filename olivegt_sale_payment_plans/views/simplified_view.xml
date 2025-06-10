@@ -1,21 +1,4 @@
-<?    <!-- Simple List View -->
-    <record id="view_payment_plan_list_simple" model="ir.ui.view">
-        <field name="name">payment.plan.list</field>
-        <field name="model">payment.plan</field>
-        <field name="arch" type="xml">
-            <list decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'">
-                <field name="name"/>
-                <field name="sale_id"/>
-                <field name="partner_id"/>
-                <field name="date"/>
-                <field name="total_amount"/>
-                <field name="amount_paid"/>
-                <field name="amount_residual"/>
-                <field name="state"/>
-                <field name="currency_id" invisible="1"/>
-            </list>
-        </field>
-    </record>encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <!-- Simple List View -->
     <record id="view_payment_plan_list_simple" model="ir.ui.view">
@@ -40,7 +23,9 @@
     <record id="view_payment_plan_form_simple" model="ir.ui.view">
         <field name="name">payment.plan.form</field>
         <field name="model">payment.plan</field>
-        <field name="arch" type="xml">            <form>                <header>
+        <field name="arch" type="xml">
+            <form>
+                <header>
                     <button name="action_post" type="object" string="Post" class="btn btn-primary" invisible="state != 'draft'"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'posted')"/>
                     <button name="action_draft" type="object" string="Set to Draft" invisible="state != 'canceled'"/>
@@ -66,7 +51,11 @@
                             <field name="total_amount" widget="monetary"/>
                             <field name="amount_paid" widget="monetary"/>
                             <field name="amount_residual" class="oe_subtotal_footer_separator" widget="monetary"/>
-                        </group>                    </group><notebook>                        <page string="Payment Schedule">                            <field name="line_ids" context="{'default_payment_plan_id': id}">
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Payment Schedule">
+                            <field name="line_ids" context="{'default_payment_plan_id': id}">
                                 <list>
                                     <field name="date"/>
                                     <field name="name"/>
@@ -74,7 +63,8 @@
                                     <field name="paid"/>
                                 </list>
                                 <form>
-                                    <group>                                        <field name="payment_plan_id" invisible="1"/>
+                                    <group>
+                                        <field name="payment_plan_id" invisible="1"/>
                                         <field name="date"/>
                                         <field name="name"/>
                                         <field name="amount"/>
@@ -91,7 +81,8 @@
                     </notebook>
                 </sheet>
             </form>
-        </field>    </record>
+        </field>
+    </record>
 
     <!-- Simple Search View -->
     <record id="view_payment_plan_search_simple" model="ir.ui.view">
