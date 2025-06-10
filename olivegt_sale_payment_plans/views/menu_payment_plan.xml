@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright 2025 Olive GT -->
 <!-- License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl). -->
-<odoo>
-
-    <!-- Action to open payment plans -->
+<odoo>    <!-- Action to open payment plans -->
     <record id="action_payment_plans" model="ir.actions.act_window">
         <field name="name">Payment Plans</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">payment.plan</field>
         <field name="view_mode">kanban,tree,form</field>
-        <field name="context">{'search_default_draft': 1}</field>
+        <field name="view_id" ref="olivegt_sale_payment_plans.view_payment_plan_kanban"/>        <field name="search_view_id" ref="olivegt_sale_payment_plans.view_payment_plan_search"/>        <field name="context">{'search_default_draft': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Create your first payment plan

@@ -4,7 +4,7 @@
 <odoo>
 
     <!-- Payment Plan Form View -->
-    <record id="payment_plan_view_form" model="ir.ui.view">
+    <record id="view_payment_plan_form" model="ir.ui.view">
         <field name="name">payment.plan.form</field>
         <field name="model">payment.plan</field>
         <field name="arch" type="xml">
@@ -32,10 +32,9 @@
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="currency_id"/>
                         </group>                        
-                    </group>
-                    <notebook>
+                    </group>                    <notebook>
                         <page string="Payment Schedule">
-                            <field name="line_ids">
+                            <field name="line_ids" context="{'default_payment_plan_id': active_id}">
                                 <tree editable="bottom">
                                     <field name="date"/>
                                     <field name="name"/>
@@ -46,6 +45,17 @@
                                     <button name="mark_as_paid" type="object" string="Mark Paid" icon="fa-solid fa-check" invisible="paid == True"/>
                                     <button name="mark_as_unpaid" type="object" string="Mark Unpaid" icon="fa-solid fa-xmark" invisible="paid == False"/>
                                 </tree>
+                                <form>
+                                    <group>
+                                        <field name="payment_plan_id" invisible="1"/>
+                                        <field name="date"/>
+                                        <field name="name"/>
+                                        <field name="amount"/>
+                                        <field name="paid"/>
+                                        <field name="payment_date" attrs="{'invisible': [('paid', '=', False)]}"/>
+                                        <field name="payment_reference" attrs="{'invisible': [('paid', '=', False)]}"/>
+                                    </group>
+                                </form>
                             </field>
                             <group class="oe_subtotal_footer">
                                 <field name="total_amount" widget="monetary"/>
@@ -66,10 +76,8 @@
                 </div>
             </form>
         </field>
-    </record>
-
-    <!-- Payment Plan Tree View -->
-    <record id="payment_plan_view_tree" model="ir.ui.view">
+    </record>    <!-- Payment Plan Tree View -->
+    <record id="view_payment_plan_tree" model="ir.ui.view">
         <field name="name">payment.plan.tree</field>
         <field name="model">payment.plan</field>
         <field name="arch" type="xml">
@@ -85,10 +93,8 @@
                 <field name="currency_id" invisible="1"/>
             </tree>
         </field>
-    </record>
-
-    <!-- Payment Plan Search View -->
-    <record id="payment_plan_view_search" model="ir.ui.view">
+    </record>    <!-- Payment Plan Search View -->
+    <record id="view_payment_plan_search" model="ir.ui.view">
         <field name="name">payment.plan.search</field>
         <field name="model">payment.plan</field>
         <field name="arch" type="xml">
@@ -108,9 +114,8 @@
             </search>
         </field>
     </record>
-    
-    <!-- Payment Plan Kanban View -->
-    <record id="payment_plan_view_kanban" model="ir.ui.view">
+      <!-- Payment Plan Kanban View -->
+    <record id="view_payment_plan_kanban" model="ir.ui.view">
         <field name="name">payment.plan.kanban</field>
         <field name="model">payment.plan</field>
         <field name="arch" type="xml">
