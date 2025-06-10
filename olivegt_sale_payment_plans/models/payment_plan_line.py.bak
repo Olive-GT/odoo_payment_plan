@@ -36,12 +36,11 @@ class PaymentPlanLine(models.Model):
         today = fields.Date.context_today(self)
         for line in self:
             if line.paid:
-                line.overdue_days = 0
-            elif line.date and line.date < today:
+                line.overdue_days = 0            elif line.date and line.date < today:
                 line.overdue_days = (today - line.date).days
             else:
                 line.overdue_days = 0
-
+                
     @api.depends('overdue_days', 'amount', 'payment_plan_id.interest_rate')
     def _compute_interest_amount(self):
         for line in self:
