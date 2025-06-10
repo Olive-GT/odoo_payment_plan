@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- Basi    <!-- Simple List View -->
+    <!-- Simple List View -->
     <record id="view_payment_plan_list_simple" model="ir.ui.view">
         <field name="name">payment.plan.list</field>
         <field name="model">payment.plan</field>
@@ -17,12 +17,14 @@
                 <field name="currency_id" invisible="1"/>
             </list>
         </field>
-    </record><record id="view_payment_plan_form_simple" model="ir.ui.view">
+    </record>
+    
+    <!-- Basic Form View -->
+    <record id="view_payment_plan_form_simple" model="ir.ui.view">
         <field name="name">payment.plan.form</field>
         <field name="model">payment.plan</field>
-        <field name="arch" type="xml">            <form>
-                <header>
-                    <button name="action_post" type="object" string="Post" class="oe_highlight" invisible="state != 'draft'"/>
+        <field name="arch" type="xml">            <form>                <header>
+                    <button name="action_post" type="object" string="Post" class="btn btn-primary" invisible="state != 'draft'"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'posted')"/>
                     <button name="action_draft" type="object" string="Set to Draft" invisible="state != 'canceled'"/>
                     <button name="action_calculate_payment_plan" type="object" string="Calculate Payment Plan" invisible="state != 'draft'"/>
@@ -56,14 +58,13 @@
                                     <field name="paid"/>
                                 </list>
                                 <form>
-                                    <group>
-                                        <field name="payment_plan_id" invisible="1"/>
+                                    <group>                                        <field name="payment_plan_id" invisible="1"/>
                                         <field name="date"/>
                                         <field name="name"/>
                                         <field name="amount"/>
                                         <field name="paid"/>
-                                        <field name="payment_date" attrs="{'invisible': [('paid', '=', False)]}"/>
-                                        <field name="payment_reference" attrs="{'invisible': [('paid', '=', False)]}"/>
+                                        <field name="payment_date" invisible="paid == False"/>
+                                        <field name="payment_reference" invisible="paid == False"/>
                                     </group>
                                 </form>
                             </field>
