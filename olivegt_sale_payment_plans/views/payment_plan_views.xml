@@ -157,11 +157,10 @@
     </record>
 
     <!-- Action to open payment plans -->
-    <record id="action_payment_plans" model="ir.actions.act_window">
-        <field name="name">Payment Plans</field>
+    <record id="action_payment_plans" model="ir.actions.act_window">        <field name="name">Payment Plans</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">payment.plan</field>
-        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="context">{'search_default_draft': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

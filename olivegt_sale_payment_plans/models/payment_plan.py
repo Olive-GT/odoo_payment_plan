@@ -6,7 +6,6 @@ from datetime import datetime
 class PaymentPlan(models.Model):
     _name = 'payment.plan'
     _description = 'Payment Plan'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'id desc'
     
     name = fields.Char('Reference', required=True, copy=False, readonly=True, default=lambda self: _('New'))
