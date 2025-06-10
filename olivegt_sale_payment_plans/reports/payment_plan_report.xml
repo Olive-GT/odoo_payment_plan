@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<odoo>    
-<!-- Payment Plan Report -->
+<odoo>
     <data>
+    <!-- Payment Plan Report -->
         <record id="action_report_payment_plan" model="ir.actions.report">
             <field name="name">Payment Plan</field>
             <field name="model">payment.plan</field>
