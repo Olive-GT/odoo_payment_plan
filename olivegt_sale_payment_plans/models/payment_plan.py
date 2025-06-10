@@ -44,11 +44,15 @@ class PaymentPlan(models.Model):
         for plan in self:
             if plan.state == 'draft':
                 plan.state = 'posted'
-
+                
     def action_cancel(self):
         for plan in self:
             if plan.state != 'canceled':
                 plan.state = 'canceled'
+                
+    def print_payment_plan(self):
+        self.ensure_one()
+        return self.env.ref('olivegt_sale_payment_plans.action_report_payment_plan').report_action(self)
     
     def action_draft(self):
         for plan in self:

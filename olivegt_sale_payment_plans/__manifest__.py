@@ -20,11 +20,11 @@
         'sale_management',
     ],    'data': [
         'security/ir.model.access.csv',
+        'data/payment_plan_sequence.xml',
+        'reports/payment_plan_report.xml',
         'views/view_payment_plan.xml',
         'views/menu_payment_plan.xml',
         'views/sale_order_views.xml',
-        'data/payment_plan_sequence.xml',
-        'reports/payment_plan_report.xml',
         'wizards/payment_plan_calculator_views.xml',
     ],
     'demo': [],

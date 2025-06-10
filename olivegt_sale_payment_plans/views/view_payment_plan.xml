@@ -9,12 +9,11 @@
         <field name="model">payment.plan</field>
         <field name="arch" type="xml">
             <form>
-                <header>
-                    <button name="action_post" type="object" string="Post" class="oe_highlight" invisible="state != 'draft'"/>
+                <header>                    <button name="action_post" type="object" string="Post" class="oe_highlight" invisible="state != 'draft'"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'posted')"/>
                     <button name="action_draft" type="object" string="Set to Draft" invisible="state != 'canceled'"/>
                     <button name="action_calculate_payment_plan" type="object" string="Calculate Payment Plan" invisible="state != 'draft'"/>
-                    <button name="%(olivegt_sale_payment_plans.action_report_payment_plan)d" type="action" string="Print" invisible="state not in ('draft', 'posted')" class="btn-secondary"/>
+                    <button name="print_payment_plan" type="object" string="Print" invisible="state not in ('draft', 'posted')" class="btn-secondary"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,posted,canceled"/>
                 </header>
                 <sheet>
