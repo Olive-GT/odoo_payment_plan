@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<odoo>    <!-- Payment Plan Line List View -->
+<odoo>
+    <!-- Payment Plan Line List View -->
     <record id="view_payment_plan_line_list" model="ir.ui.view">
         <field name="name">payment.plan.line.list</field>
         <field name="model">payment.plan.line</field>
         <field name="arch" type="xml">
-            <tree editable="bottom">
+            <list editable="bottom">
                 <field name="date"/>
                 <field name="name"/>
                 <field name="amount"/>
                 <field name="paid"/>
                 <field name="payment_date"/>
                 <field name="payment_reference"/>
-            </tree>
+            </list>
         </field>
     </record>
 

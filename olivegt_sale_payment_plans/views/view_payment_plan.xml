@@ -34,7 +34,7 @@
                         </group>                        
                     </group>                    <notebook>
                         <page string="Payment Schedule">                            <field name="line_ids" context="{'default_payment_plan_id': active_id}">
-                                <tree string="Payment Lines" editable="bottom">
+                                <list editable="bottom">
                                     <field name="date"/>
                                     <field name="name"/>
                                     <field name="amount"/>
@@ -43,8 +43,8 @@
                                     <field name="payment_reference"/>
                                     <button name="mark_as_paid" type="object" string="Mark Paid" icon="fa-solid fa-check" invisible="paid == True"/>
                                     <button name="mark_as_unpaid" type="object" string="Mark Unpaid" icon="fa-solid fa-xmark" invisible="paid == False"/>
-                                </tree>
-                                <form string="Payment Line">
+                                </list>
+                                <form>
                                     <group>
                                         <field name="payment_plan_id" invisible="1"/>
                                         <field name="date"/>
@@ -80,7 +80,7 @@
         <field name="name">payment.plan.list</field>
         <field name="model">payment.plan</field>
         <field name="arch" type="xml">
-            <tree decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'">
+            <list decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'">
                 <field name="name"/>
                 <field name="sale_id"/>
                 <field name="partner_id"/>
@@ -90,7 +90,7 @@
                 <field name="amount_residual"/>
                 <field name="state"/>
                 <field name="currency_id" invisible="1"/>
-            </tree>
+            </list>
         </field>
     </record><!-- Payment Plan Search View -->
     <record id="view_payment_plan_search" model="ir.ui.view">

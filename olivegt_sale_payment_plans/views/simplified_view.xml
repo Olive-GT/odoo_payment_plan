@@ -5,7 +5,7 @@
         <field name="name">payment.plan.list</field>
         <field name="model">payment.plan</field>
         <field name="arch" type="xml">
-            <tree decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'">
+            <list decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'">
                 <field name="name"/>
                 <field name="sale_id"/>
                 <field name="partner_id"/>
@@ -15,9 +15,9 @@
                 <field name="amount_residual"/>
                 <field name="state"/>
                 <field name="currency_id" invisible="1"/>
-            </tree>
+            </list>
         </field>
-    </record>   <record id="view_payment_plan_form_simple" model="ir.ui.view">
+    </record><record id="view_payment_plan_form_simple" model="ir.ui.view">
         <field name="name">payment.plan.form</field>
         <field name="model">payment.plan</field>
         <field name="arch" type="xml">            <form>
@@ -49,13 +49,13 @@
                             <field name="amount_residual" class="oe_subtotal_footer_separator" widget="monetary"/>
                         </group>
                     </group><notebook>                        <page string="Payment Schedule">                            <field name="line_ids" context="{'default_payment_plan_id': active_id}">
-                                <tree string="Payment Plan Lines">
+                                <list>
                                     <field name="date"/>
                                     <field name="name"/>
                                     <field name="amount"/>
                                     <field name="paid"/>
-                                </tree>
-                                <form string="Payment Plan Line">
+                                </list>
+                                <form>
                                     <group>
                                         <field name="payment_plan_id" invisible="1"/>
                                         <field name="date"/>
