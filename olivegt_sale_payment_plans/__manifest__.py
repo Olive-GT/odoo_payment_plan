@@ -18,10 +18,10 @@
         'account',
         'base',
         'sale_management',
-    ],
-    'data': [
+    ],    'data': [
         'security/ir.model.access.csv',
-        'views/payment_plan_views.xml',
+        'views/view_payment_plan.xml',
+        'views/menu_payment_plan.xml',
         'views/sale_order_views.xml',
         'data/payment_plan_sequence.xml',
         'reports/payment_plan_report.xml',
