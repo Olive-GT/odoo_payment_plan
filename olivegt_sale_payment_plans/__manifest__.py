@@ -21,11 +21,11 @@
     ],
     'data': [
         'security/ir.model.access.csv',
+        'views/payment_plan_views.xml',
+        'views/sale_order_views.xml',
         'data/payment_plan_sequence.xml',
         'reports/payment_plan_report.xml',
         'wizards/payment_plan_calculator_views.xml',
-        'views/payment_plan_views.xml',
-        'views/sale_order_views.xml',
     ],
     'demo': [],
     'installable': True,
