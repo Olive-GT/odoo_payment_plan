@@ -1,4 +1,4 @@
-<!-- <?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>    <!-- Payment Plan Report -->
     <record id="action_report_payment_plan" model="ir.actions.report">
         <field name="name">Payment Plan</field>
@@ -81,4 +81,3 @@
         </t>
     </template>
 </odoo>
- -->

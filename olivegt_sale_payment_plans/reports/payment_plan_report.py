@@ -1,4 +1,4 @@
-""" from odoo import models, api
+from odoo import models, api
 
 
 class PaymentPlanReport(models.AbstractModel):
@@ -13,4 +13,3 @@ class PaymentPlanReport(models.AbstractModel):
             'doc_model': 'payment.plan',
             'docs': docs,
         }
- """

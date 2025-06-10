@@ -1,4 +1,4 @@
-<!-- <?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <!-- Payment Plan Form View -->
     <record id="payment_plan_view_form" model="ir.ui.view">
@@ -191,4 +191,3 @@
         action="action_payment_plans"
         sequence="10"/>
 </odoo>
- -->
