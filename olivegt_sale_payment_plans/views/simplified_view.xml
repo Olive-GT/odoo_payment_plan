@@ -1,7 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- Basic Form View -->
-    <record id="view_payment_plan_form_simple" model="ir.ui.view">
+    <!-- Basi    <!-- Simple List View -->
+    <record id="view_payment_plan_list_simple" model="ir.ui.view">
+        <field name="name">payment.plan.list</field>
+        <field name="model">payment.plan</field>
+        <field name="arch" type="xml">
+            <tree decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'">
+                <field name="name"/>
+                <field name="sale_id"/>
+                <field name="partner_id"/>
+                <field name="date"/>
+                <field name="total_amount"/>
+                <field name="amount_paid"/>
+                <field name="amount_residual"/>
+                <field name="state"/>
+                <field name="currency_id" invisible="1"/>
+            </tree>
+        </field>
+    </record>   <record id="view_payment_plan_form_simple" model="ir.ui.view">
         <field name="name">payment.plan.form</field>
         <field name="model">payment.plan</field>
         <field name="arch" type="xml">            <form>

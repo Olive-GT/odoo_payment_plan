@@ -76,7 +76,7 @@
             </form>
         </field>
     </record>    <!-- Payment Plan List View -->
-    <record id="view_payment_plan_tree" model="ir.ui.view">
+    <record id="view_payment_plan_list" model="ir.ui.view">
         <field name="name">payment.plan.list</field>
         <field name="model">payment.plan</field>
         <field name="arch" type="xml">
