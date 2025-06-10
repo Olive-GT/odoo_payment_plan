@@ -31,14 +31,13 @@
                         <field name="name"/>
                         <field name="amount"/>
                         <field name="running_balance"/>
-                    </group>
-                    <group>
-                        <field name="overdue_days" attrs="{'invisible': [('overdue_days', '=', 0)]}"/>
-                        <field name="interest_amount" attrs="{'invisible': [('interest_amount', '=', 0)]}"/>
+                    </group>                    <group>
+                        <field name="overdue_days" invisible="overdue_days == 0"/>
+                        <field name="interest_amount" invisible="interest_amount == 0"/>
                         <field name="total_with_interest"/>
                         <field name="paid"/>
-                        <field name="payment_date" invisible="paid == False"/>
-                        <field name="payment_reference" invisible="paid == False"/>
+                        <field name="payment_date" invisible="not paid"/>
+                        <field name="payment_reference" invisible="not paid"/>
                     </group>
                 </group>
             </form>        </field>

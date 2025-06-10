@@ -40,21 +40,15 @@ class PaymentPlanLine(models.Model):
             elif line.date and line.date < today:
                 line.overdue_days = (today - line.date).days
             else:
-                line.overdue_days = 0
-
-    @api.depends('overdue_days', 'amount')
+                line.overdue_days = 0    @api.depends('overdue_days', 'amount', 'payment_plan_id.interest_rate')
     def _compute_interest_amount(self):
-        # Default interest rate of 10% per year, converted to daily rate
-        default_daily_rate = 0.10 / 365
-        
         for line in self:
             if line.paid or line.overdue_days <= 0:
                 line.interest_amount = 0
             else:
-                company = line.payment_plan_id.company_id
-                # Get the company's configured interest rate or use default
-                # This assumes you might add a configuration field later
-                daily_rate = getattr(company, 'late_payment_interest_rate', default_daily_rate) / 365
+                # Use the interest rate from the payment plan
+                annual_rate = line.payment_plan_id.interest_rate / 100.0  # Convert from percentage
+                daily_rate = annual_rate / 365.0
                 line.interest_amount = line.amount * line.overdue_days * daily_rate
             
             line.total_with_interest = line.amount + line.interest_amount

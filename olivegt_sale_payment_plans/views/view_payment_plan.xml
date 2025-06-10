@@ -7,8 +7,7 @@
         <field name="name">payment.plan.form</field>
         <field name="model">payment.plan</field>
         <field name="arch" type="xml">
-            <form>
-                <header>
+            <form>                <header>
                     <button name="action_post" type="object" string="Post" class="btn btn-primary" invisible="state != 'draft'"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'posted')"/>
                     <button name="action_draft" type="object" string="Set to Draft" invisible="state != 'canceled'"/>
@@ -44,9 +43,8 @@
                                     <field name="total_with_interest"/>
                                     <field name="paid"/>
                                     <field name="payment_date"/>
-                                    <field name="payment_reference"/>
-                                    <button name="mark_as_paid" type="object" string="Mark Paid" icon="fa-solid fa-check" invisible="paid == True"/>
-                                    <button name="mark_as_unpaid" type="object" string="Mark Unpaid" icon="fa-solid fa-xmark" invisible="paid == False"/>
+                                    <field name="payment_reference"/>                                    <button name="mark_as_paid" type="object" string="Mark Paid" icon="fa-solid fa-check" invisible="paid"/>
+                                    <button name="mark_as_unpaid" type="object" string="Mark Unpaid" icon="fa-solid fa-xmark" invisible="not paid"/>
                                 </list>                                <form>
                                     <group>
                                         <group>
@@ -55,14 +53,13 @@
                                             <field name="name"/>
                                             <field name="amount"/>
                                             <field name="running_balance"/>
-                                        </group>
-                                        <group>
-                                            <field name="overdue_days" attrs="{'invisible': [('overdue_days', '=', 0)]}"/>
-                                            <field name="interest_amount" attrs="{'invisible': [('interest_amount', '=', 0)]}"/>
+                                        </group>                                        <group>
+                                            <field name="overdue_days" invisible="overdue_days == 0"/>
+                                            <field name="interest_amount" invisible="interest_amount == 0"/>
                                             <field name="total_with_interest"/>
                                             <field name="paid"/>
-                                            <field name="payment_date" invisible="paid == False"/>
-                                            <field name="payment_reference" invisible="paid == False"/>
+                                            <field name="payment_date" invisible="not paid"/>
+                                            <field name="payment_reference" invisible="not paid"/>
                                         </group>
                                     </group>
                                 </form>
@@ -70,7 +67,7 @@
                                 <field name="total_amount" widget="monetary"/>
                                 <field name="amount_paid" widget="monetary"/>
                                 <field name="amount_residual" widget="monetary"/>
-                                <field name="total_interest" widget="monetary" attrs="{'invisible': [('total_interest', '=', 0)]}"/>
+                                <field name="total_interest" widget="monetary" invisible="total_interest == 0"/>
                                 <field name="total_with_interest" class="oe_subtotal_footer_separator" widget="monetary"/>
                                 <field name="currency_id" invisible="1"/>
                             </group>
