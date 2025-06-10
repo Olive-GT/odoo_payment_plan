@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+<data>
     <record id="payment_plan_calculator_wizard_view_form" model="ir.ui.view">
         <field name="name">payment.plan.calculator.wizard.form</field>
         <field name="model">payment.plan.calculator.wizard</field>
@@ -40,7 +41,7 @@
                     <button name="calculate_payment_plan" string="Calculate" type="object" class="btn-primary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
                 </footer>
-            </form>
-        </field>
+            </form>        </field>
     </record>
+</data>
 </odoo>

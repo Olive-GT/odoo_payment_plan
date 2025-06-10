@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+<data>
     <record id="view_order_form_inherit_payment_plan" model="ir.ui.view">
         <field name="name">sale.order.form.inherit.payment.plan</field>
         <field name="model">sale.order</field>
@@ -11,8 +12,8 @@
                 </button>
             </xpath>
             <xpath expr="//button[@name='action_confirm']" position="after">
-                <button name="action_create_payment_plan" string="Create Payment Plan" type="object" invisible="state not in ('draft', 'sent', 'sale') or amount_total <= 0"/>
-            </xpath>
+                <button name="action_create_payment_plan" string="Create Payment Plan" type="object" invisible="state not in ('draft', 'sent', 'sale') or amount_total <= 0"/>            </xpath>
         </field>
     </record>
+</data>
 </odoo>

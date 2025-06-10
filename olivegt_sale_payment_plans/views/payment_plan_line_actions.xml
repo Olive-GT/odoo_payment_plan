@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+<data>
     <!-- Action for payment plan lines -->
     <record id="action_payment_plan_lines" model="ir.actions.act_window">
         <field name="name">Payment Plan Lines</field>
@@ -17,4 +18,5 @@
         <field name="view_mode">list,form</field>
         <field name="view_id" ref="view_payment_plan_line_list"/>
     </record>
+</data>
 </odoo>

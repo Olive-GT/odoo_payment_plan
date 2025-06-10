@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+<data>
     <!-- Simple List View -->
     <record id="view_payment_plan_list_simple" model="ir.ui.view">
         <field name="name">payment.plan.list</field>
@@ -102,7 +103,7 @@
                     <filter string="Sale Order" name="groupby_sale" context="{'group_by': 'sale_id'}"/>
                     <filter string="Date" name="groupby_date" context="{'group_by': 'date'}"/>
                 </group>
-            </search>
-        </field>
+            </search>        </field>
     </record>
+</data>
 </odoo>

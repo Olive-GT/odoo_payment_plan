@@ -2,8 +2,8 @@
 <!-- Copyright 2025 Olive GT -->
 <!-- License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl). -->
 <odoo>
-
-    <!-- Payment Plan Form View -->    <record id="view_payment_plan_form" model="ir.ui.view">
+<data>
+    <!-- Payment Plan Form View --><record id="view_payment_plan_form" model="ir.ui.view">
         <field name="name">payment.plan.form</field>
         <field name="model">payment.plan</field>
         <field name="arch" type="xml">
@@ -159,7 +159,7 @@
                     </t>
                 </templates>
             </kanban>
-        </field>
-    </record>
+        </field>    </record>
 
+</data>
 </odoo>

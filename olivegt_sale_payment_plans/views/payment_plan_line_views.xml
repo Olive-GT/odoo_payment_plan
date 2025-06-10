@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+<data>
     <!-- Payment Plan Line List View -->
     <record id="view_payment_plan_line_list" model="ir.ui.view">
         <field name="name">payment.plan.line.list</field>
@@ -30,7 +31,7 @@
                     <field name="payment_date" invisible="paid == False"/>
                     <field name="payment_reference" invisible="paid == False"/>
                 </group>
-            </form>
-        </field>
+            </form>        </field>
     </record>
+</data>
 </odoo>

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright 2025 Olive GT -->
-<!-- License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl). -->
 <odoo>
+<data>
     <!-- Action to open payment plans -->
     <record id="action_payment_plans" model="ir.actions.act_window">
         <field name="name">Payment Plans</field>
@@ -20,9 +19,26 @@
         </field>
     </record>
 
-    <!-- Menu items -->
-    <menuitem id="menu_payment_plans_root" name="Payment Plans" sequence="50" icon="fa-credit-card" />
+    <!-- Root Menu -->
+    <menuitem 
+        id="menu_payment_plans_root" 
+        name="Payment Plans" 
+        sequence="50" 
+        web_icon="olivegt_sale_payment_plans,static/description/icon.png" />
     
-    <menuitem id="menu_payment_plans" name="Payment Plans" parent="menu_payment_plans_root" action="action_payment_plans" sequence="10"/>
-    <menuitem id="menu_payment_plan_lines" name="Payment Lines" parent="menu_payment_plans_root" action="action_all_payment_plan_lines" sequence="20"/>
+    <!-- Sub Menus -->
+    <menuitem 
+        id="menu_payment_plans" 
+        name="Payment Plans" 
+        parent="menu_payment_plans_root" 
+        action="action_payment_plans" 
+        sequence="10"/>
+    
+    <menuitem 
+        id="menu_payment_plan_lines" 
+        name="Payment Lines" 
+        parent="menu_payment_plans_root" 
+        action="action_all_payment_plan_lines" 
+        sequence="20"/>
+</data>
 </odoo>
