@@ -22,7 +22,9 @@ class SaleOrder(models.Model):
             'context': {
                 'default_sale_id': self.id,
             },
-        }    def action_view_payment_plans(self):
+        }
+        
+    def action_view_payment_plans(self):
         self.ensure_one()
         return {
             'name': _('Payment Plans'),
