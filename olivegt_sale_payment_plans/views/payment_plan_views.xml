@@ -41,11 +41,10 @@
                                     <field name="interest_amount" sum="Total Interest"/>
                                     <field name="total_with_interest" sum="Total with Interest"/>
                                     <field name="paid"/>
-                                    <field name="payment_date"/>
-                                    <field name="payment_reference"/>
-                                    <button name="mark_as_paid" type="object" string="Mark Paid" icon="fa-solid fa-check" invisible="paid == True"/>
-                                    <button name="mark_as_unpaid" type="object" string="Mark Unpaid" icon="fa-solid fa-xmark" invisible="paid == False"/>
-                                    <button name="update_overdue_status" type="object" string="Update Status" icon="fa-solid fa-refresh" invisible="paid == True"/>
+                                    <field name="payment_date"/>                                    <field name="payment_reference"/>
+                                    <button name="mark_as_paid" type="object" string="" title="Mark as Paid" icon="fa-solid fa-check" invisible="paid == True" class="btn-sm"/>
+                                    <button name="mark_as_unpaid" type="object" string="" title="Mark as Unpaid" icon="fa-solid fa-xmark" invisible="paid == False" class="btn-sm"/>
+                                    <button name="update_overdue_status" type="object" string="" title="Update Status" icon="fa-solid fa-refresh" invisible="paid == True" class="btn-sm"/>
                                 </tree>
                             </field>
                             <group class="oe_subtotal_footer">

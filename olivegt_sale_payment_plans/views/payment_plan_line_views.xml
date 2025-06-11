@@ -13,11 +13,10 @@
                 <field name="interest_amount"/>
                 <field name="total_with_interest"/>
                 <field name="paid"/>
-                <field name="payment_date"/>
-                <field name="payment_reference"/>
-                <button name="mark_as_paid" type="object" string="Mark Paid" icon="fa-solid fa-check" invisible="paid"/>
-                <button name="mark_as_unpaid" type="object" string="Mark Unpaid" icon="fa-solid fa-xmark" invisible="not paid"/>
-                <button name="update_overdue_status" type="object" string="Update Status" icon="fa-solid fa-refresh" invisible="paid"/>
+                <field name="payment_date"/>                <field name="payment_reference"/>
+                <button name="mark_as_paid" type="object" string="" title="Mark as Paid" icon="fa-solid fa-check" invisible="paid" class="btn-sm"/>
+                <button name="mark_as_unpaid" type="object" string="" title="Mark as Unpaid" icon="fa-solid fa-xmark" invisible="not paid" class="btn-sm"/>
+                <button name="update_overdue_status" type="object" string="" title="Update Status" icon="fa-solid fa-refresh" invisible="paid" class="btn-sm"/>
             </list></field>
     </record>
       <!-- Payment Plan Line Form View -->
