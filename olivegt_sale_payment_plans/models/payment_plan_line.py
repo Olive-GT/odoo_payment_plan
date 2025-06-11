@@ -494,7 +494,7 @@ class PaymentPlanLine(models.Model):
             'name': _('Payment Allocations'),
             'type': 'ir.actions.act_window',
             'res_model': 'payment.plan.line.allocation',
-            'view_mode': 'tree,form',
+            'view_mode': 'list,form',
             'domain': [('payment_plan_line_id', '=', self.id)],
             'context': {
                 'default_payment_plan_line_id': self.id,

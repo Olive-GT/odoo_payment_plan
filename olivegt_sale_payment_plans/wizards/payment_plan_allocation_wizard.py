@@ -83,13 +83,12 @@ class PaymentPlanLineAllocationWizard(models.TransientModel):
         
         # Create the allocations
         allocations = self.env['payment.plan.line.allocation'].create(allocation_vals)
-        
-        # Show the created allocations
+          # Show the created allocations
         action = {
             'name': _('Created Allocations'),
             'type': 'ir.actions.act_window',
             'res_model': 'payment.plan.line.allocation',
-            'view_mode': 'tree,form',
+            'view_mode': 'list,form',
             'domain': [('id', 'in', allocations.ids)],
         }
         
