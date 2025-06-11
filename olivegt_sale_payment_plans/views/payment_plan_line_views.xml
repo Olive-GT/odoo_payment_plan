@@ -4,7 +4,7 @@
     <record id="view_payment_plan_line_list" model="ir.ui.view">
         <field name="name">payment.plan.line.list</field>
         <field name="model">payment.plan.line</field>
-        <field name="arch" type="xml">            <list editable="bottom">                <field name="date"/>
+        <field name="arch" type="xml">            <tree editable="bottom">                <field name="date"/>
                 <field name="name"/>
                 <field name="amount" widget="monetary"/>
                 <field name="running_balance" widget="monetary"/>
@@ -36,8 +36,8 @@
                         <field name="interest_amount" invisible="interest_amount == 0" widget="monetary"/>
                         <field name="total_with_interest" widget="monetary"/>
                         <field name="paid"/>
-                        <field name="payment_date" invisible="not paid"/>
-                        <field name="payment_reference" invisible="not paid"/>
+                        <field name="payment_date"/>
+                        <field name="payment_reference"/>
                     </group>
                 </group>
             </form>        </field>

@@ -5,8 +5,7 @@
     <record id="view_payment_plan_list_simple" model="ir.ui.view">
         <field name="name">payment.plan.list</field>
         <field name="model">payment.plan</field>
-        <field name="arch" type="xml">
-            <list decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'">
+        <field name="arch" type="xml">            <tree decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'">
                 <field name="name"/>
                 <field name="sale_id"/>
                 <field name="partner_id"/>
@@ -55,14 +54,13 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Payment Schedule">
-                            <field name="line_ids" context="{'default_payment_plan_id': id}">                                <list>
+                        <page string="Payment Schedule">                            <field name="line_ids" context="{'default_payment_plan_id': id}">                                <tree>
                                     <field name="date"/>
                                     <field name="name"/>
                                     <field name="amount" widget="monetary"/>
                                     <field name="paid"/>
                                     <field name="currency_id" invisible="1"/>
-                                </list>                                <form>
+                                </tree><form>
                                     <group>
                                         <field name="payment_plan_id" invisible="1"/>
                                         <field name="date"/>

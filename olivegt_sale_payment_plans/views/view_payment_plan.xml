@@ -26,16 +26,15 @@
                         <group>
                             <field name="sale_id"/>
                             <field name="partner_id"/>
-                            <field name="date"/>                        </group>                        <group>
-                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="date"/>                        </group>                        <group>                            <field name="company_id" groups="base.group_multi_company"/>
                             <field name="currency_id"/>
                             <field name="interest_calculation_method" widget="radio"/>
-                            <field name="interest_rate" attrs="{'invisible': [('interest_calculation_method', '!=', 'percentage')]}"/>
-                            <field name="fixed_interest_amount" attrs="{'invisible': [('interest_calculation_method', '!=', 'fixed')]}" widget="monetary"/>
+                            <field name="interest_rate" invisible="interest_calculation_method != 'percentage'"/>
+                            <field name="fixed_interest_amount" invisible="interest_calculation_method != 'fixed'" widget="monetary"/>
                         </group>
                     </group>                    <notebook>
                         <page string="Payment Schedule">
-                            <field name="line_ids" context="{'default_payment_plan_id': id}">                                <list editable="bottom">                                    <field name="date"/>
+                            <field name="line_ids" context="{'default_payment_plan_id': id}">                                <tree editable="bottom">                                    <field name="date"/>
                                     <field name="name"/>
                                     <field name="amount" widget="monetary"/>
                                     <field name="running_balance" widget="monetary"/>
@@ -84,7 +83,7 @@
     <record id="view_payment_plan_list" model="ir.ui.view">
         <field name="name">payment.plan.list</field>
         <field name="model">payment.plan</field>
-        <field name="arch" type="xml">            <list decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'" decoration-danger="total_interest > 0">                <field name="name"/>
+        <field name="arch" type="xml">            <tree decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'" decoration-danger="total_interest > 0">                <field name="name"/>
                 <field name="sale_id"/>
                 <field name="partner_id"/>
                 <field name="date"/>

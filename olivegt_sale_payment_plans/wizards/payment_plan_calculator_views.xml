@@ -14,9 +14,8 @@
                     </group>
                     <notebook>
                         <page string="Initial Payment">
-                            <group>                                <field name="initial_payment"/>
-                                <field name="initial_amount" widget="monetary" invisible="not initial_payment" required="initial_payment"/>
-                                <field name="initial_date" invisible="not initial_payment" required="initial_payment"/>
+                            <group>                                <field name="initial_payment"/>                                <field name="initial_amount" widget="monetary" invisible="not initial_payment" required="initial_payment == True"/>
+                                <field name="initial_date" invisible="not initial_payment" required="initial_payment == True"/>
                             </group>
                         </page>
                         <page string="Installments">
@@ -28,9 +27,8 @@
                             </group>
                         </page>
                         <page string="Final Payment">
-                            <group>                                <field name="final_payment"/>
-                                <field name="final_amount" widget="monetary" invisible="not final_payment" required="final_payment"/>
-                                <field name="final_date" invisible="not final_payment" required="final_payment"/>
+                            <group>                                <field name="final_payment"/>                                <field name="final_amount" widget="monetary" invisible="not final_payment" required="final_payment == True"/>
+                                <field name="final_date" invisible="not final_payment" required="final_payment == True"/>
                             </group>
                         </page>
                     </notebook>
