@@ -22,6 +22,18 @@ class PaymentPlanLine(models.Model):
     overdue_days = fields.Integer('Overdue Days', compute='_compute_overdue_days', store=True, readonly=False)
     interest_amount = fields.Monetary('Interest', compute='_compute_interest_amount', store=True, readonly=False)
     total_with_interest = fields.Monetary('Total with Interest', compute='_compute_total_with_interest', store=True)
+    
+    # Allocation fields
+    allocation_ids = fields.One2many('payment.plan.line.allocation', 'payment_plan_line_id', 
+                                   string='Account Move Allocations')
+    allocated_amount = fields.Monetary('Allocated Amount', compute='_compute_allocated_amount', store=True,
+                                    help="Total amount allocated to this line from accounting entries")
+    unallocated_amount = fields.Monetary('Unallocated Amount', compute='_compute_allocated_amount', store=True,
+                                     help="Remaining amount that needs allocation")
+    allocation_count = fields.Integer('Allocation Count', compute='_compute_allocated_amount', store=True)
+    account_move_ids = fields.Many2many('account.move', string='Related Account Moves',
+                                    compute='_compute_account_moves', store=False)
+    is_fully_allocated = fields.Boolean('Fully Allocated', compute='_compute_allocated_amount', store=True)
 
     @api.depends('payment_plan_id.line_ids.amount', 'payment_plan_id.line_ids.paid')
     def _compute_running_balance(self):
@@ -151,6 +163,13 @@ class PaymentPlanLine(models.Model):
             
             # Now mark as paid, preserving the interest calculation
             line.paid = True
+            
+            # If this was called directly (not from allocation update), update payment reference
+            if not line.payment_reference and line.is_fully_allocated:
+                # Get the references from the allocations
+                move_refs = line.allocation_ids.mapped('account_move_id.name')
+                if move_refs:
+                    line.payment_reference = ', '.join(move_refs)
             
             # Force direct database update to ensure interest values are preserved
             self.env.cr.execute("""
@@ -435,10 +454,56 @@ class PaymentPlanLine(models.Model):
                 months_passed = days / 30.0  # Approximate months
                 if months_passed < 1:
                     # Less than a month - prorate the fixed amount
-                    interest_amount = self.payment_plan_id.fixed_interest_amount
+                    interest_amount = self.payment_plan_id.fixed_interest_amount * months_passed
                 else:
                     # Round up for complete months
                     complete_months = math.ceil(months_passed)
                     interest_amount = self.payment_plan_id.fixed_interest_amount * complete_months
         
         return interest_amount
+
+    @api.depends('allocation_ids', 'allocation_ids.amount', 'amount')
+    def _compute_allocated_amount(self):
+        """Compute the total allocated amount"""
+        for line in self:
+            line.allocated_amount = sum(line.allocation_ids.mapped('amount'))
+            line.unallocated_amount = line.amount - line.allocated_amount
+            line.allocation_count = len(line.allocation_ids)
+            line.is_fully_allocated = line.unallocated_amount <= 0
+    
+    @api.depends('allocation_ids', 'allocation_ids.account_move_id')
+    def _compute_account_moves(self):
+        """Compute the related account moves"""
+        for line in self:
+            line.account_move_ids = line.allocation_ids.mapped('account_move_id')
+            
+    def _update_payment_status_from_allocations(self):
+        """Update the payment status based on allocated amount"""
+        for line in self:
+            if line.is_fully_allocated and not line.paid:
+                # Line is now fully allocated, mark as paid
+                line.mark_as_paid(respect_manual_edits=True)
+            elif not line.is_fully_allocated and line.paid and line.allocated_amount <= 0:
+                # Line is no longer fully allocated and has no allocations, mark as unpaid
+                line.mark_as_unpaid(respect_manual_edits=True)
+                
+    def action_view_allocations(self):
+        """Open the allocations related to this payment plan line"""
+        self.ensure_one()
+        action = {
+            'name': _('Payment Allocations'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'payment.plan.line.allocation',
+            'view_mode': 'tree,form',
+            'domain': [('payment_plan_line_id', '=', self.id)],
+            'context': {
+                'default_payment_plan_line_id': self.id,
+                'default_payment_plan_id': self.payment_plan_id.id,
+            }
+        }
+        if len(self.allocation_ids) == 1:
+            action.update({
+                'view_mode': 'form',
+                'res_id': self.allocation_ids.id,
+            })
+        return action
