@@ -54,12 +54,11 @@
         <field name="view_mode">form</field>
         <field name="target">new</field>
         <field name="context">{}</field>
-    </record>
-      <!-- Add action to payment plan form view -->
+    </record>    <!-- Add action to payment plan form view -->
     <record id="payment_plan_form_view_allocation_button" model="ir.ui.view">
         <field name="name">payment.plan.form.allocation.button</field>
         <field name="model">payment.plan</field>
-        <field name="inherit_id" ref="payment_plan_view_form"/>
+        <field name="inherit_id" ref="view_payment_plan_form"/>
         <field name="arch" type="xml">
             <header position="inside">                <button name="%(action_payment_plan_line_allocation_wizard)d" 
                         type="action" 
