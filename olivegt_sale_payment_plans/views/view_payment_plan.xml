@@ -47,7 +47,7 @@
                                     <button name="mark_as_paid" type="object" string="" title="Mark as Paid" icon="fa-check" invisible="paid" class="btn-sm"/>
                                     <button name="mark_as_unpaid" type="object" string="" title="Mark as Unpaid" icon="fa-times" invisible="not paid" class="btn-sm"/>
                                     <button name="update_overdue_status" type="object" string="" title="Update Status" icon="fa-refresh" invisible="paid" class="btn-sm"/>
-                                </list>                                <form>
+                                </tree><form>
                                     <group>
                                         <group>
                                             <field name="payment_plan_id" invisible="1"/>                                            <field name="date"/>
@@ -82,8 +82,7 @@
     </record>    <!-- Payment Plan List View -->
     <record id="view_payment_plan_list" model="ir.ui.view">
         <field name="name">payment.plan.list</field>
-        <field name="model">payment.plan</field>
-        <field name="arch" type="xml">            <tree decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'" decoration-danger="total_interest > 0">                <field name="name"/>
+        <field name="model">payment.plan</field>        <field name="arch" type="xml">            <tree decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'" decoration-danger="total_interest > 0">                <field name="name"/>
                 <field name="sale_id"/>
                 <field name="partner_id"/>
                 <field name="date"/>
@@ -94,7 +93,7 @@
                 <field name="total_with_interest" widget="monetary"/>
                 <field name="state"/>
                 <field name="currency_id" invisible="1"/>
-            </list>
+            </tree>
         </field>
     </record><!-- Payment Plan Search View -->
     <record id="view_payment_plan_search" model="ir.ui.view">
