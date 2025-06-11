@@ -57,17 +57,8 @@
                         <field name="is_fully_allocated" invisible="1"/>
                     </group>
                     
-                    <notebook>
-                        <page string="Allocations" attrs="{'invisible': [('allocation_ids', '=', [])]}">
-                            <field name="allocation_ids" readonly="1">
-                                <tree>
-                                    <field name="allocation_date"/>
-                                    <field name="account_move_id"/>
-                                    <field name="account_move_line_id"/>
-                                    <field name="amount" widget="monetary"/>
-                                    <field name="currency_id" invisible="1"/>
-                                </tree>
-                            </field>
+                    <notebook>                        <page string="Allocations" attrs="{'invisible': [('allocation_ids', '=', [])]}">
+                            <field name="allocation_ids" readonly="1"/>
                         </page>
                         <page string="Account Moves" attrs="{'invisible': [('account_move_ids', '=', [])]}">
                             <field name="account_move_ids" widget="many2many" readonly="1">
