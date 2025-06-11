@@ -31,22 +31,26 @@ class PaymentPlanLine(models.Model):
                 line.running_balance = 0
                 continue
                 
-            # Handle both saved and new records
-            try:
-                # For saved records, use date and id for ordering
-                previous_lines = line.payment_plan_id.line_ids.filtered(
-                    lambda l: l.date and (l.date < line.date or 
-                                         (l.date == line.date and l.id <= line.id))
-                )
-                paid_amount = sum(previous_lines.filtered(lambda l: l.paid).mapped('amount'))
-                total_amount = sum(previous_lines.mapped('amount'))
-                line.running_balance = total_amount - paid_amount
-            except TypeError:
-                # If comparing NewId objects fails, just include all lines
-                previous_lines = line.payment_plan_id.line_ids
-                paid_amount = sum(previous_lines.filtered(lambda l: l.paid).mapped('amount'))
-                total_amount = sum(previous_lines.mapped('amount'))
-                line.running_balance = total_amount - paid_amount
+            # Use sorted lines to ensure consistent order regardless of ID
+            sorted_lines = line.payment_plan_id.line_ids.sorted(key=lambda l: (l.date or fields.Date.today(), l.id or 0))
+            
+            # Calculate running balance up to current line's position
+            total_amount = 0
+            paid_amount = 0
+            
+            for payment_line in sorted_lines:
+                if payment_line == line:
+                    break
+                if payment_line.date:  # Only include lines with dates
+                    total_amount += payment_line.amount
+                    if payment_line.paid:
+                        paid_amount += payment_line.amount
+            
+            # Add current line's amount to the total
+            total_amount += line.amount
+            
+            # Set the running balance
+            line.running_balance = total_amount - paid_amount
 
     @api.depends('date', 'payment_date', 'paid')
     def _compute_overdue_days(self):
