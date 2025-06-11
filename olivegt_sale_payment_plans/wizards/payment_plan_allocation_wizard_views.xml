@@ -62,12 +62,11 @@
         <field name="model">payment.plan</field>
         <field name="inherit_id" ref="olivegt_sale_payment_plans.payment_plan_view_form"/>
         <field name="arch" type="xml">
-            <header position="inside">
-                <button name="%(action_payment_plan_line_allocation_wizard)d" 
+            <header position="inside">                <button name="%(action_payment_plan_line_allocation_wizard)d" 
                         type="action" 
                         string="Allocate Payments" 
                         class="btn-secondary" 
-                        attrs="{'invisible': [('state', '!=', 'posted')]}"
+                        invisible="state != 'posted'"
                         context="{'default_payment_plan_id': active_id}"/>
             </header>
         </field>
