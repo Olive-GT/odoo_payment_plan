@@ -127,9 +127,9 @@ class PaymentPlanLineAllocationWizardLine(models.TransientModel):
     _name = 'payment.plan.line.allocation.wizard.line'
     _description = 'Payment Plan Line Allocation Wizard Line'
     _order = 'date'
-    
     wizard_id = fields.Many2one('payment.plan.line.allocation.wizard', string='Wizard', required=True, 
-                              ondelete='cascade')    payment_plan_line_id = fields.Many2one('payment.plan.line', string='Payment Plan Line', required=True)
+                              ondelete='cascade')
+    payment_plan_line_id = fields.Many2one('payment.plan.line', string='Payment Plan Line', required=True)
     date = fields.Date('Due Date', related='payment_plan_line_id.date', readonly=True)
     name = fields.Char('Description', related='payment_plan_line_id.name', readonly=True)
     currency_id = fields.Many2one('res.currency', related='wizard_id.currency_id', readonly=True)
