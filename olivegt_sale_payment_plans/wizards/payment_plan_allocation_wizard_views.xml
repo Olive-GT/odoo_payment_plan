@@ -59,13 +59,12 @@
         <field name="name">payment.plan.form.allocation.button</field>
         <field name="model">payment.plan</field>
         <field name="inherit_id" ref="view_payment_plan_form"/>
-        <field name="arch" type="xml">
-            <header position="inside">                <button name="%(action_payment_plan_line_allocation_wizard)d" 
+        <field name="arch" type="xml">            <header position="inside">                <button name="%(action_payment_plan_line_allocation_wizard)d" 
                         type="action" 
                         string="Allocate Payments" 
                         class="btn-secondary" 
                         invisible="state != 'posted'"
-                        context="{'default_payment_plan_id': active_id}"/>
+                        context="{'default_payment_plan_id': id}"/>
             </header>
         </field>
     </record>
