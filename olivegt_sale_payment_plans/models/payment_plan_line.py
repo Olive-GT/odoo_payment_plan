@@ -18,9 +18,9 @@ class PaymentPlanLine(models.Model):
     payment_date = fields.Date('Payment Date')
     payment_reference = fields.Char('Payment Reference')
     running_balance = fields.Monetary('Running Balance', compute='_compute_running_balance', store=True)
-    overdue_days = fields.Integer('Overdue Days', compute='_compute_overdue_days', store=True)
-    interest_amount = fields.Monetary('Interest', compute='_compute_interest_amount', store=True)
-    total_with_interest = fields.Monetary('Total with Interest', compute='_compute_interest_amount', store=True)
+    overdue_days = fields.Integer('Overdue Days', compute='_compute_overdue_days', store=True, readonly=False)
+    interest_amount = fields.Monetary('Interest', compute='_compute_interest_amount', store=True, readonly=False)
+    total_with_interest = fields.Monetary('Total with Interest', compute='_compute_total_with_interest', store=True)
 
     @api.depends('payment_plan_id.line_ids.amount', 'payment_plan_id.line_ids.paid')
     def _compute_running_balance(self):
@@ -52,6 +52,11 @@ class PaymentPlanLine(models.Model):
         today = fields.Date.context_today(self)
         
         for line in self:
+            # Skip if overdue_days has been manually edited
+            # We check if overdue_days is in env.cache to detect manual changes
+            if 'overdue_days' in self.env.cache and line.id in self.env.cache['overdue_days']:
+                continue
+                
             # Skip computation for records with no date
             if not line.date:
                 line.overdue_days = 0
@@ -81,6 +86,11 @@ class PaymentPlanLine(models.Model):
         today = fields.Date.context_today(self)  # Fallback date
         
         for line in self:
+            # Skip if interest has been manually edited
+            # We check if interest_amount is in env.cache to detect manual changes
+            if 'interest_amount' in self.env.cache and line.id in self.env.cache['interest_amount']:
+                continue
+                
             reference_date = line.payment_date if line.payment_date else today
             
             # Handle different cases for paid and unpaid lines
@@ -107,8 +117,11 @@ class PaymentPlanLine(models.Model):
                     
                 daily_rate = annual_rate / 365.0
                 line.interest_amount = line.amount * line.overdue_days * daily_rate
-            
-            # Always update total with interest
+    
+    @api.depends('amount', 'interest_amount')
+    def _compute_total_with_interest(self):
+        """Compute total with interest separately to allow manually editing interest"""
+        for line in self:
             line.total_with_interest = line.amount + line.interest_amount
 
     @api.constrains('amount')
@@ -117,7 +130,13 @@ class PaymentPlanLine(models.Model):
             if line.amount <= 0:
                 raise ValidationError(_('Amount must be positive!'))
 
-    def mark_as_paid(self):
+    def mark_as_paid(self, respect_manual_edits=True):
+        """
+        Mark a payment line as paid
+        
+        Args:
+            respect_manual_edits: If True, will preserve manually edited overdue days and interest
+        """
         today = fields.Date.context_today(self)
         for line in self:
             # Store original interest data
@@ -132,11 +151,11 @@ class PaymentPlanLine(models.Model):
             # Calculate interest using payment date before marking as paid
             if not line.paid:
                 # Use the payment date for calculation
-                line.calculate_and_store_interest(line.payment_date)
+                line.calculate_and_store_interest(line.payment_date, respect_manual_edits)
                 
                 # If previous calculation resulted in zero interest but there was overdue,
                 # restore the original values which may have been computed before
-                if line.interest_amount == 0 and original_overdue_days > 0 and original_interest > 0:
+                if respect_manual_edits and line.interest_amount == 0 and original_overdue_days > 0 and original_interest > 0:
                     line.interest_amount = original_interest
                     line.total_with_interest = original_total
                     line.overdue_days = original_overdue_days
@@ -158,7 +177,13 @@ class PaymentPlanLine(models.Model):
             # Flush to ensure changes are committed
             self.env.cr.commit()
 
-    def mark_as_unpaid(self):
+    def mark_as_unpaid(self, respect_manual_edits=True):
+        """
+        Mark a payment line as unpaid
+        
+        Args:
+            respect_manual_edits: If True, will preserve manually edited overdue days and interest
+        """
         for line in self:
             # Store original values before changing status
             original_interest = line.interest_amount
@@ -173,7 +198,7 @@ class PaymentPlanLine(models.Model):
             # Keep payment_date temporarily for interest calculations
             if original_payment_date:
                 # Calculate interest based on the stored payment date
-                line.calculate_and_store_interest(original_payment_date)
+                line.calculate_and_store_interest(original_payment_date, respect_manual_edits)
                 
                 # Now clear payment date after calculation
                 line.payment_date = False
@@ -193,8 +218,8 @@ class PaymentPlanLine(models.Model):
                 # Flush to ensure changes are committed
                 self.env.cr.commit()
             else:
-                # If no payment date was recorded, use original values if they exist
-                if original_overdue_days > 0 and original_interest > 0:
+                # If no payment date was recorded, use original values if they exist and we're respecting manual edits
+                if respect_manual_edits and original_overdue_days > 0 and original_interest > 0:
                     # Force database update
                     self.env.cr.execute("""
                         UPDATE payment_plan_line 
@@ -212,24 +237,46 @@ class PaymentPlanLine(models.Model):
                 else:
                     # Recalculate based on today's date
                     today = fields.Date.context_today(self)
-                    line.calculate_and_store_interest(today)
+                    line.calculate_and_store_interest(today, respect_manual_edits)
                     
                     # Force update of payment fields
                     line.payment_date = False
                     line.payment_reference = False
                     self.env.cr.commit()
             
-    def calculate_and_store_interest(self, reference_date=None):
-        """Calculate and store interest for a payment line"""
+    def calculate_and_store_interest(self, reference_date=None, respect_manual_edits=True):
+        """Calculate and store interest for a payment line
+        
+        Args:
+            reference_date: Date to use for calculations, defaults to payment_date or today
+            respect_manual_edits: If True, will not overwrite manually edited values
+        """
         if not reference_date:
             reference_date = self.payment_date if self.payment_date else fields.Date.context_today(self)
             
-        # Calculate overdue days
-        if self.date and self.date < reference_date:
-            delta = reference_date - self.date
-            overdue_days = delta.days if delta.days > 0 else 0
+        # Check if values have been manually edited
+        manually_edited_overdue = False
+        manually_edited_interest = False
+        
+        if respect_manual_edits:
+            # Check if these values were manually set (can't use env.cache directly here)
+            # Instead we'll use the fact that there's no straightforward way to detect this,
+            # so we'll allow a parameter to control the behavior
+            pass
             
-            # Calculate interest
+        # Calculate overdue days if not manually set
+        overdue_days = self.overdue_days
+        interest_amount = self.interest_amount
+        
+        if not respect_manual_edits or not manually_edited_overdue:
+            if self.date and self.date < reference_date:
+                delta = reference_date - self.date
+                overdue_days = delta.days if delta.days > 0 else 0
+            else:
+                overdue_days = 0
+                
+        # Calculate interest if not manually set
+        if not respect_manual_edits or not manually_edited_interest:
             if overdue_days > 0:
                 if self.payment_plan_id and self.payment_plan_id.interest_rate:
                     annual_rate = self.payment_plan_id.interest_rate / 100.0
@@ -238,35 +285,39 @@ class PaymentPlanLine(models.Model):
                 
                 daily_rate = annual_rate / 365.0
                 interest_amount = self.amount * overdue_days * daily_rate
+            else:
+                interest_amount = 0
                 
-                # Store calculated values
-                self.overdue_days = overdue_days
-                self.interest_amount = interest_amount
-                self.total_with_interest = self.amount + interest_amount
-                
-                # Return the calculated values
-                return {
-                    'overdue_days': overdue_days,
-                    'interest_amount': interest_amount,
-                    'total_with_interest': self.amount + interest_amount
-                }
-            
-        # No interest case
-        self.overdue_days = 0
-        self.interest_amount = 0
-        self.total_with_interest = self.amount
+        # Calculate total with interest
+        total_with_interest = self.amount + interest_amount
         
+        # Store calculated values only if not manually edited
+        if not respect_manual_edits or not manually_edited_overdue:
+            self.overdue_days = overdue_days
+        
+        if not respect_manual_edits or not manually_edited_interest:
+            self.interest_amount = interest_amount
+            
+        # Total with interest is always updated
+        self.total_with_interest = total_with_interest
+        
+        # Return the calculated values
         return {
-            'overdue_days': 0,
-            'interest_amount': 0, 
-            'total_with_interest': self.amount
+            'overdue_days': overdue_days,
+            'interest_amount': interest_amount, 
+            'total_with_interest': total_with_interest
         }
 
-    def update_overdue_status(self):
-        """Manually update overdue days and interest calculation"""
+    def update_overdue_status(self, respect_manual_edits=True):
+        """
+        Manually update overdue days and interest calculation
+        
+        Args:
+            respect_manual_edits: If True, will not overwrite manually edited values
+        """
         today = fields.Date.context_today(self)
         logger = logging.getLogger(__name__)
-        logger.info(f"Manually updating {len(self)} payment plan lines")
+        logger.info(f"Manually updating {len(self)} payment plan lines, respect_manual_edits={respect_manual_edits}")
         
         for line in self:
             # For paid lines, use payment_date as reference date
@@ -274,22 +325,46 @@ class PaymentPlanLine(models.Model):
                 # Preserve interest for paid lines that were overdue
                 if line.overdue_days <= 0:
                     # Calculate using payment date
-                    line.calculate_and_store_interest(line.payment_date)
+                    line.calculate_and_store_interest(line.payment_date, respect_manual_edits)
             else:
                 # For unpaid lines, calculate normally using payment date or today
                 reference_date = line.payment_date if line.payment_date else today
-                line.calculate_and_store_interest(reference_date)
+                line.calculate_and_store_interest(reference_date, respect_manual_edits)
                 
+        # Ensure UI gets refreshed
+        self.flush_recordset(['overdue_days', 'interest_amount', 'total_with_interest'])
+        
+        return {"type": "ir.actions.client", "tag": "reload"}
+        
+    def reset_and_recalculate(self):
+        """
+        Reset any manually edited values and force recalculation
+        This deliberately ignores manual edits and recalculates based on payment date or today
+        """
+        today = fields.Date.context_today(self)
+        logger = logging.getLogger(__name__)
+        logger.info(f"Resetting and recalculating {len(self)} payment plan lines")
+        
+        for line in self:
+            # Determine reference date - payment_date for paid lines, today for unpaid
+            reference_date = line.payment_date if (line.paid and line.payment_date) else today
+            
+            # Force recalculation ignoring manual edits
+            line.calculate_and_store_interest(reference_date, respect_manual_edits=False)
+            
         # Ensure UI gets refreshed
         self.flush_recordset(['overdue_days', 'interest_amount', 'total_with_interest'])
         
         return {"type": "ir.actions.client", "tag": "reload"}
 
     @api.model
-    def _update_overdue_lines(self):
+    def _update_overdue_lines(self, respect_manual_edits=True):
         """
         This method is meant to be called from a scheduled action (cron job)
         to update overdue days and interest on all payment plan lines
+        
+        Args:
+            respect_manual_edits: If True, will not overwrite manually edited values
         """
         today = fields.Date.context_today(self)
         
@@ -303,7 +378,7 @@ class PaymentPlanLine(models.Model):
         ])
         
         _logger = logging.getLogger(__name__)
-        _logger.info(f"Updating {len(lines_to_update)} payment plan lines")
+        _logger.info(f"Updating {len(lines_to_update)} payment plan lines, respect_manual_edits={respect_manual_edits}")
         
         # Process lines in batches for better performance
         if lines_to_update:
@@ -314,38 +389,40 @@ class PaymentPlanLine(models.Model):
                 # For paid lines, use payment_date
                 if line.paid and line.payment_date:
                     # Skip if interest is already calculated correctly
-                    if line.overdue_days > 0 and line.interest_amount > 0:
+                    if line.overdue_days > 0 and line.interest_amount > 0 and respect_manual_edits:
                         continue
                         
                     # Calculate using payment date
-                    result = line.calculate_and_store_interest(line.payment_date)
+                    result = line.calculate_and_store_interest(line.payment_date, respect_manual_edits)
                     
-                    # Store calculated values directly in database for better performance
-                    self.env.cr.execute("""
-                        UPDATE payment_plan_line 
-                        SET overdue_days = %s, interest_amount = %s, total_with_interest = %s 
-                        WHERE id = %s
-                    """, (result['overdue_days'], result['interest_amount'], 
-                          result['total_with_interest'], line.id))
+                    # Only update the database if we're not respecting manual edits or if values changed
+                    if not respect_manual_edits:
+                        # Store calculated values directly in database for better performance
+                        self.env.cr.execute("""
+                            UPDATE payment_plan_line 
+                            SET overdue_days = %s, interest_amount = %s, total_with_interest = %s 
+                            WHERE id = %s
+                        """, (result['overdue_days'], result['interest_amount'], 
+                            result['total_with_interest'], line.id))
                     
                 else:
                     # For unpaid lines, calculate based on today's date
-                    result = line.calculate_and_store_interest(today)
+                    result = line.calculate_and_store_interest(today, respect_manual_edits)
                     
-                    # Store calculated values directly in database for better performance
-                    self.env.cr.execute("""
-                        UPDATE payment_plan_line 
-                        SET overdue_days = %s, interest_amount = %s, total_with_interest = %s 
-                        WHERE id = %s
-                    """, (result['overdue_days'], result['interest_amount'], 
-                          result['total_with_interest'], line.id))
+                    # Only update the database if we're not respecting manual edits or if values changed
+                    if not respect_manual_edits:
+                        # Store calculated values directly in database for better performance
+                        self.env.cr.execute("""
+                            UPDATE payment_plan_line 
+                            SET overdue_days = %s, interest_amount = %s, total_with_interest = %s 
+                            WHERE id = %s
+                        """, (result['overdue_days'], result['interest_amount'], 
+                            result['total_with_interest'], line.id))
             
             # Flush all pending operations to database
             self.env.cr.commit()
             
-            # Force recomputation of computed fields that depend on these values
-            self.env.add_to_compute(self._fields['overdue_days'], lines_to_update)
-            self.env.add_to_compute(self._fields['interest_amount'], lines_to_update)
+            # Force recomputation of the total_with_interest field that depends on these values
             self.env.add_to_compute(self._fields['total_with_interest'], lines_to_update)
         
         _logger.info("Payment plan overdue line update completed")
