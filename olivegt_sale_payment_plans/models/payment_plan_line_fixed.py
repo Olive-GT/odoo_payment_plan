@@ -64,10 +64,37 @@ class PaymentPlanLine(models.Model):
     def mark_as_paid(self):
         for line in self:
             line.paid = True
-            line.payment_date = fields.Date.context_today(self)
-
-    def mark_as_unpaid(self):
+            line.payment_date = fields.Date.context_today(self)    def mark_as_unpaid(self):
         for line in self:
             line.paid = False
             line.payment_date = False
             line.payment_reference = False
+            
+    def update_overdue_status(self):
+        """Manually update overdue days and interest calculation"""
+        self._compute_overdue_days()
+        self._compute_interest_amount()
+        return True
+
+    @api.model
+    def _update_overdue_lines(self):
+        """
+        This method is meant to be called from a scheduled action (cron job)
+        to update overdue days and interest on all payment plan lines
+        """
+        # Find all unpaid lines that are overdue
+        today = fields.Date.context_today(self)
+        overdue_lines = self.search([
+            ('paid', '=', False),
+            ('date', '<', today)
+        ])
+        
+        # Force recalculation of overdue days and interest
+        if overdue_lines:
+            overdue_lines._compute_overdue_days()
+            overdue_lines._compute_interest_amount()
+            
+            # Invalidate the cache to ensure the UI reflects the changes
+            self.env.cache.invalidate()
+        
+        return True
