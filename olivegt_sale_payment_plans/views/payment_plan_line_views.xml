@@ -3,8 +3,7 @@
 <data>    <!-- Payment Plan Line List View -->
     <record id="view_payment_plan_line_list" model="ir.ui.view">
         <field name="name">payment.plan.line.list</field>
-        <field name="model">payment.plan.line</field>
-        <field name="arch" type="xml">            <tree editable="bottom">                <field name="date"/>
+        <field name="model">payment.plan.line</field>        <field name="arch" type="xml">            <list editable="bottom">                <field name="date"/>
                 <field name="name"/>
                 <field name="amount" widget="monetary"/>
                 <field name="running_balance" widget="monetary"/>
@@ -17,7 +16,7 @@
                 <field name="currency_id" invisible="1"/>                <button name="mark_as_paid" type="object" string="" title="Mark as Paid" icon="fa-check" invisible="paid" class="btn-sm"/>
                 <button name="mark_as_unpaid" type="object" string="" title="Mark as Unpaid" icon="fa-times" invisible="not paid" class="btn-sm"/>
                 <button name="update_overdue_status" type="object" string="" title="Update Status" icon="fa-refresh" invisible="paid" class="btn-sm"/>
-            </tree></field>
+            </list></field>
     </record>
       <!-- Payment Plan Line Form View -->
     <record id="view_payment_plan_line_form" model="ir.ui.view">
