@@ -37,17 +37,24 @@
                             <field name="currency_id" invisible="1"/>
                         </group>
                     </group>
-                    <notebook>
-                        <page string="Payment Schedule">                            <field name="line_ids">
-                                <list editable="bottom" decoration-danger="overdue_days > 0 and not paid" decoration-success="paid">                                    <field name="date"/>
+                    <notebook>                        <page string="Payment Schedule">                            <field name="line_ids">                                <list editable="bottom" decoration-danger="overdue_days > 0 and not paid" decoration-success="paid" decoration-muted="is_fully_allocated" decoration-info="allocation_percentage > 0 and allocation_percentage < 1">                                    <field name="date"/>
                                     <field name="name"/>
-                                    <field name="amount" widget="monetary"/>
+                                    <field name="amount" widget="monetary" sum="Total Amount"/>
+                                    <field name="allocated_amount" widget="monetary" sum="Total Allocated"/>
+                                    <field name="unallocated_amount" widget="monetary" sum="Total Unallocated"/>
+                                    <field name="allocation_percentage" widget="percentage" string="% Allocated"/>
+                                    <field name="running_balance" widget="monetary"/>
                                     <field name="overdue_days"/>
                                     <field name="interest_amount" sum="Total Interest" widget="monetary"/>
                                     <field name="total_with_interest" sum="Total with Interest" widget="monetary"/>
                                     <field name="paid"/>
+                                    <field name="is_fully_allocated" invisible="1"/>
+                                    <field name="allocation_count" string="# Alloc"/>
                                     <field name="payment_date"/>
-                                    <field name="currency_id" invisible="1"/><field name="payment_reference"/>                                    <button name="mark_as_paid" type="object" string="" title="Mark as Paid" icon="fa-check" invisible="paid == True" class="btn-sm"/>
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="payment_reference"/>
+                                    <button name="action_view_allocations" type="object" string="" title="View Allocations" icon="fa-money" invisible="allocation_count == 0" class="btn-sm"/>                                    
+                                    <button name="mark_as_paid" type="object" string="" title="Mark as Paid" icon="fa-check" invisible="paid == True" class="btn-sm"/>
                                     <button name="mark_as_unpaid" type="object" string="" title="Mark as Unpaid" icon="fa-times" invisible="paid == False" class="btn-sm"/>
                                     <button name="update_overdue_status" type="object" string="" title="Update Status" icon="fa-refresh" invisible="paid == True" class="btn-sm"/>
                                 </list>

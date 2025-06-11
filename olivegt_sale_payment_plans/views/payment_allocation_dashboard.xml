@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Payment Plan Allocation Dashboard -->
+    <record id="view_payment_plan_allocation_dashboard" model="ir.ui.view">
+        <field name="name">payment.plan.allocation.dashboard</field>
+        <field name="model">payment.plan</field>
+        <field name="arch" type="xml">
+            <form string="Payment Plan Allocation Dashboard" create="false" edit="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(olivegt_sale_payment_plans.action_payment_plan_line_allocation_wizard)d" 
+                                type="action" 
+                                string="Create New Allocation" 
+                                class="oe_stat_button"
+                                icon="fa-plus" 
+                                context="{'default_payment_plan_id': id}"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="sale_id" readonly="1"/>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="date" readonly="1"/>
+                            <field name="state" readonly="1"/>
+                            <field name="currency_id" readonly="1" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="total_amount" widget="monetary"/>
+                            <field name="amount_paid" widget="monetary"/>
+                            <field name="amount_residual" class="oe_subtotal_footer_separator" widget="monetary"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Payment Lines and Allocations">
+                            <div class="alert alert-info" role="alert">
+                                <p><strong>Allocation Summary:</strong></p>
+                                <p>This dashboard shows the allocation status of each payment line. Lines highlighted in:
+                                <ul>
+                                    <li><span class="text-success">Green</span>: Fully paid lines</li>
+                                    <li><span class="text-info">Blue</span>: Partially allocated lines</li>
+                                    <li><span class="text-danger">Red</span>: Overdue lines with no or partial allocations</li>
+                                </ul>
+                                </p>
+                            </div>
+                            <field name="line_ids" readonly="1">
+                                <tree decoration-success="paid" decoration-danger="overdue_days > 0 and not paid" decoration-info="allocation_percentage > 0 and allocation_percentage < 1 and not paid">
+                                    <field name="date"/>
+                                    <field name="name"/>
+                                    <field name="amount" widget="monetary" sum="Total Amount"/>
+                                    <field name="allocated_amount" widget="monetary" sum="Total Allocated"/>
+                                    <field name="unallocated_amount" widget="monetary" sum="Total Unallocated"/>
+                                    <field name="allocation_percentage" widget="percentage" string="% Allocated"/>
+                                    <field name="allocation_count" string="# Allocations"/>
+                                    <field name="is_fully_allocated" string="Fully Allocated"/>
+                                    <field name="paid"/>
+                                    <field name="payment_date"/>
+                                    <field name="payment_reference"/>
+                                    <field name="currency_id" invisible="1"/>
+                                    <button name="action_view_allocations" type="object" string="View" title="View Allocations" class="btn btn-link" invisible="allocation_count == 0"/>
+                                    <button name="%(olivegt_sale_payment_plans.action_payment_plan_line_allocation_wizard)d" 
+                                           type="action" 
+                                           string="Allocate" 
+                                           title="Create Allocation for this Line" 
+                                           class="btn btn-link" 
+                                           context="{'default_payment_plan_id': parent.id, 'preselect_line': id}"/>
+                                </tree>
+                            </field>
+                        </page>
+                        
+                        <page string="Allocation Details">
+                            <field name="line_ids" invisible="1"/>
+                            <field name="line_ids.allocation_ids" readonly="1">
+                                <tree>
+                                    <field name="payment_plan_line_id"/>
+                                    <field name="account_move_id"/>
+                                    <field name="account_move_line_id"/>
+                                    <field name="allocation_date"/>
+                                    <field name="amount" widget="monetary" sum="Total Allocated"/>
+                                    <field name="notes"/>
+                                    <field name="currency_id" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                          <page string="Allocation Statistics">
+                            <group>
+                                <group string="Payment Plan Status">
+                                    <field name="total_amount" widget="monetary"/>
+                                    <field name="amount_paid" widget="monetary"/>
+                                    <field name="amount_residual" widget="monetary"/>
+                                </group>
+                                <group string="Allocation Statistics">
+                                    <field name="line_count"/>
+                                    <field name="fully_allocated_lines_count"/>
+                                    <field name="partially_allocated_lines_count"/>
+                                    <field name="unallocated_lines_count"/>
+                                    <field name="allocation_progress" widget="percentage"/>
+                                </group>
+                            </group>
+                            
+                            <!-- Visual Progress Bar -->
+                            <div class="mt16">
+                                <h3>Allocation Progress</h3>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" t-att-style="'width: ' + str(allocation_progress * 100) + '%'" t-att-aria-valuenow="allocation_progress * 100" aria-valuemin="0" aria-valuemax="100">
+                                        <t t-esc="int(allocation_progress * 100)"/>%
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Allocation Distribution -->
+                            <div class="row mt16">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h3>Line Allocation Status</h3>
+                                        </div>
+                                        <div class="card-body">
+                                            <ul class="list-group list-group-flush">
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    Fully Allocated Lines
+                                                    <span class="badge badge-primary badge-pill"><field name="fully_allocated_lines_count"/></span>
+                                                </li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    Partially Allocated Lines
+                                                    <span class="badge badge-info badge-pill"><field name="partially_allocated_lines_count"/></span>
+                                                </li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    Unallocated Lines
+                                                    <span class="badge badge-danger badge-pill"><field name="unallocated_lines_count"/></span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Payment Plan Allocation Dashboard Action -->
+    <record id="action_payment_plan_allocation_dashboard" model="ir.actions.act_window">
+        <field name="name">Allocation Dashboard</field>
+        <field name="res_model">payment.plan</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_payment_plan_allocation_dashboard"/>
+        <field name="domain">[('state', '=', 'posted')]</field>
+        <field name="target">current</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No posted payment plans found
+            </p>
+            <p>
+                This dashboard provides a detailed view of payment plan allocations.
+            </p>
+        </field>
+    </record>
+
+    <!-- Add menu item for dashboard -->
+    <menuitem id="menu_payment_plan_allocation_dashboard"
+              name="Allocation Dashboard"
+              parent="menu_payment_plans_root"
+              action="action_payment_plan_allocation_dashboard"
+              sequence="15"/>
+</odoo>

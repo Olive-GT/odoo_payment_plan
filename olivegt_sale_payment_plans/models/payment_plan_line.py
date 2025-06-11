@@ -34,8 +34,10 @@ class PaymentPlanLine(models.Model):
     account_move_ids = fields.Many2many('account.move', string='Related Account Moves',
                                     compute='_compute_account_moves', store=False)
     is_fully_allocated = fields.Boolean('Fully Allocated', compute='_compute_allocated_amount', store=True)
+    allocation_percentage = fields.Float('Allocation %', compute='_compute_allocated_amount', store=True,
+                                     help="Percentage of this line that has been allocated")
 
-    @api.depends('payment_plan_id.line_ids.amount', 'payment_plan_id.line_ids.paid')
+    @api.depends('payment_plan_id.line_ids.amount', 'payment_plan_id.line_ids.paid', 'payment_plan_id.line_ids.allocated_amount')
     def _compute_running_balance(self):
         for line in self:
             # Skip computation for new records with no date
@@ -49,6 +51,7 @@ class PaymentPlanLine(models.Model):
             # Calculate running balance up to current line's position
             total_amount = 0
             paid_amount = 0
+            allocated_amount = 0
             
             for payment_line in sorted_lines:
                 if payment_line == line:
@@ -57,12 +60,15 @@ class PaymentPlanLine(models.Model):
                     total_amount += payment_line.amount
                     if payment_line.paid:
                         paid_amount += payment_line.amount
+                    else:
+                        # Consider partial allocations for unpaid lines
+                        allocated_amount += payment_line.allocated_amount
             
             # Add current line's amount to the total
             total_amount += line.amount
             
-            # Set the running balance
-            line.running_balance = total_amount - paid_amount
+            # Set the running balance - consider both paid lines and partial allocations
+            line.running_balance = total_amount - paid_amount - allocated_amount
 
     @api.depends('date', 'payment_date', 'paid')
     def _compute_overdue_days(self):
@@ -464,12 +470,19 @@ class PaymentPlanLine(models.Model):
 
     @api.depends('allocation_ids', 'allocation_ids.amount', 'amount')
     def _compute_allocated_amount(self):
-        """Compute the total allocated amount"""
+        """Compute the total allocated amount and related statistics"""
         for line in self:
             line.allocated_amount = sum(line.allocation_ids.mapped('amount'))
             line.unallocated_amount = line.amount - line.allocated_amount
             line.allocation_count = len(line.allocation_ids)
             line.is_fully_allocated = line.unallocated_amount <= 0
+            
+            # Calculate allocation percentage
+            if line.amount > 0:
+                line.allocation_percentage = line.allocated_amount / line.amount
+            else:
+                line.allocation_percentage = 0.0
+            line.allocation_percentage = (line.allocated_amount / line.amount) * 100 if line.amount > 0 else 0
     
     @api.depends('allocation_ids', 'allocation_ids.account_move_id')
     def _compute_account_moves(self):
@@ -491,7 +504,7 @@ class PaymentPlanLine(models.Model):
         """Open the allocations related to this payment plan line"""
         self.ensure_one()
         action = {
-            'name': _('Payment Allocations'),
+            'name': _('Payment Allocations for %s') % self.name or _('Line'),
             'type': 'ir.actions.act_window',
             'res_model': 'payment.plan.line.allocation',
             'view_mode': 'list,form',
@@ -499,7 +512,27 @@ class PaymentPlanLine(models.Model):
             'context': {
                 'default_payment_plan_line_id': self.id,
                 'default_payment_plan_id': self.payment_plan_id.id,
-            }
+                'search_default_groupby_account_move': 1,
+            },
+            'help': """
+                <p class="o_view_nocontent_smiling_face">
+                    No allocations for this payment plan line
+                </p>
+                <p>
+                    <strong>Line Information:</strong><br/>
+                    Total Amount: %s %s<br/>
+                    Allocated Amount: %s %s (%s%%)<br/>
+                    Unallocated Amount: %s %s
+                </p>
+            """ % (
+                self.amount,
+                self.currency_id.symbol,
+                self.allocated_amount,
+                self.currency_id.symbol,
+                round(self.allocation_percentage * 100, 2),
+                self.unallocated_amount,
+                self.currency_id.symbol
+            )
         }
         if len(self.allocation_ids) == 1:
             action.update({

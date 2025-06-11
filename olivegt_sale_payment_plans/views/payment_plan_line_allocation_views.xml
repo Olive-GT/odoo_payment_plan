@@ -11,6 +11,7 @@
                 <field name="account_move_line_id"/>
                 <field name="allocation_date"/>
                 <field name="amount" sum="Total Allocated" widget="monetary"/>
+                <field name="notes"/>
                 <field name="currency_id" invisible="1"/>
             </list>
         </field>

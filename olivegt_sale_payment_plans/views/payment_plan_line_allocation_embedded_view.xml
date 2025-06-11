@@ -8,7 +8,8 @@
                 <field name="allocation_date"/>
                 <field name="account_move_id"/>
                 <field name="account_move_line_id"/>
-                <field name="amount" widget="monetary"/>
+                <field name="amount" widget="monetary" sum="Total Allocated"/>
+                <field name="notes"/>
                 <field name="currency_id" invisible="1"/>
             </list>
         </field>

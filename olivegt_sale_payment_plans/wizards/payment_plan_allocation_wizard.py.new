@@ -11,20 +11,23 @@ class PaymentPlanLineAllocationWizard(models.TransientModel):
     currency_id = fields.Many2one('res.currency', related='payment_plan_id.currency_id', readonly=True)
     
     # Account move to allocate from
-    account_move_id = fields.Many2one('account.move', string='Accounting Entry', 
-                                    domain="[('state', '=', 'posted'), ('partner_id', '=', partner_id)]",
-                                    required=True)
-    account_move_line_id = fields.Many2one('account.move.line', string='Account Move Line',
-                                         domain="[('move_id', '=', account_move_id)]")
+    account_move_id = fields.Many2one(
+        'account.move', 
+        string='Accounting Entry', 
+        domain="[('state', '=', 'posted'), ('partner_id', '=', partner_id)]",
+        required=True
+    )
+    account_move_line_id = fields.Many2one(
+        'account.move.line',
+        string='Account Move Line',
+        domain="[('move_id', '=', account_move_id)]"
+    )
     account_move_amount = fields.Monetary('Entry Amount', related='account_move_id.amount_total', readonly=True)
-    allocation_remaining = fields.Monetary('Remaining to Allocate', compute='_compute_allocation_remaining')
-    allocation_used = fields.Monetary('Amount Used', compute='_compute_allocation_remaining')
-    allocation_percentage = fields.Float('Allocated %', compute='_compute_allocation_remaining')
+    allocation_remaining = fields.Monetary('Remaining to Allocate', compute='_compute_allocation_stats')
+    allocation_used = fields.Monetary('Amount Used', compute='_compute_allocation_stats')
+    allocation_percentage = fields.Float('Allocation Complete', compute='_compute_allocation_stats')
     
-    # Preselected line from context
-    preselect_line_id = fields.Many2one('payment.plan.line', string='Preselected Line')
-    
-    # Allocation options
+    # Allocation strategy options
     allocation_strategy = fields.Selection([
         ('manual', 'Manual Allocation'),
         ('oldest_first', 'Oldest Due First'),
@@ -32,15 +35,19 @@ class PaymentPlanLineAllocationWizard(models.TransientModel):
         ('proportional', 'Proportional Distribution')
     ], string='Allocation Strategy', default='manual', required=True,
        help="How to distribute the amount among payment lines")
-      # Allocation lines
+    
+    # Allocation lines
     allocation_date = fields.Date('Allocation Date', default=fields.Date.context_today, required=True)
-    allocation_line_ids = fields.One2many('payment.plan.line.allocation.wizard.line', 'wizard_id', 
-                                        string='Allocation Lines')
+    allocation_line_ids = fields.One2many(
+        'payment.plan.line.allocation.wizard.line', 
+        'wizard_id', 
+        string='Allocation Lines'
+    )
     notes = fields.Text('Notes')
     
     @api.depends('account_move_amount', 'allocation_line_ids.amount_to_allocate')
-    def _compute_allocation_remaining(self):
-        """Compute remaining amount to allocate and usage statistics"""
+    def _compute_allocation_stats(self):
+        """Compute allocation statistics"""
         for wizard in self:
             allocated = sum(line.amount_to_allocate for line in wizard.allocation_line_ids)
             wizard.allocation_used = allocated
@@ -77,11 +84,98 @@ class PaymentPlanLineAllocationWizard(models.TransientModel):
                 }))
                 
             self.allocation_line_ids = vals_list
+
+            # Check for preselected line
+            preselect_line_id = self.env.context.get('preselect_line')
+            if preselect_line_id:
+                for line in self.allocation_line_ids:
+                    if line.payment_plan_line_id.id == preselect_line_id:
+                        line.amount_to_allocate = min(line.unallocated_amount, self.account_move_amount)
+                        break
     
     @api.onchange('account_move_id')
     def _onchange_account_move(self):
         """Clear the account move line when the account move changes"""
         self.account_move_line_id = False
+    
+    @api.onchange('allocation_strategy')
+    def _onchange_allocation_strategy(self):
+        """Apply the selected allocation strategy"""
+        if not self.allocation_strategy or self.allocation_strategy == 'manual':
+            return
+        
+        if self.allocation_strategy == 'oldest_first':
+            self.apply_oldest_first_strategy()
+        elif self.allocation_strategy == 'newest_first':
+            self.apply_newest_first_strategy()
+        elif self.allocation_strategy == 'proportional':
+            self.apply_proportional_strategy()
+    
+    def apply_oldest_first_strategy(self):
+        """Allocate to oldest lines first"""
+        remaining = self.account_move_amount
+        
+        # Reset all allocations
+        for line in self.allocation_line_ids:
+            line.amount_to_allocate = 0
+        
+        # Sort lines by date, oldest first
+        sorted_lines = self.allocation_line_ids.sorted(key=lambda l: l.date or fields.Date.today())
+        
+        # Allocate to each line in order until we run out
+        for line in sorted_lines:
+            if remaining <= 0:
+                break
+            
+            amount = min(line.unallocated_amount, remaining)
+            line.amount_to_allocate = amount
+            remaining -= amount
+    
+    def apply_newest_first_strategy(self):
+        """Allocate to newest lines first"""
+        remaining = self.account_move_amount
+        
+        # Reset all allocations
+        for line in self.allocation_line_ids:
+            line.amount_to_allocate = 0
+        
+        # Sort lines by date, newest first
+        sorted_lines = self.allocation_line_ids.sorted(key=lambda l: l.date or fields.Date.today(), reverse=True)
+        
+        # Allocate to each line in order until we run out
+        for line in sorted_lines:
+            if remaining <= 0:
+                break
+            
+            amount = min(line.unallocated_amount, remaining)
+            line.amount_to_allocate = amount
+            remaining -= amount
+    
+    def apply_proportional_strategy(self):
+        """Distribute allocation proportionally across all lines"""
+        total_unallocated = sum(line.unallocated_amount for line in self.allocation_line_ids)
+        
+        if total_unallocated <= 0:
+            return
+        
+        # Reset all allocations
+        for line in self.allocation_line_ids:
+            line.amount_to_allocate = 0
+        
+        # Calculate and set the proportional amount for each line
+        remaining = self.account_move_amount
+        total_allocated = 0
+        
+        for i, line in enumerate(self.allocation_line_ids):
+            # For the last line, allocate the remaining amount to avoid rounding errors
+            if i == len(self.allocation_line_ids) - 1:
+                line.amount_to_allocate = min(line.unallocated_amount, remaining)
+            else:
+                proportion = line.unallocated_amount / total_unallocated
+                amount = min(line.unallocated_amount, round(self.account_move_amount * proportion, 2))
+                line.amount_to_allocate = amount
+                remaining -= amount
+                total_allocated += amount
     
     def action_allocate(self):
         """Create allocations based on wizard data"""
@@ -111,7 +205,8 @@ class PaymentPlanLineAllocationWizard(models.TransientModel):
         
         # Create the allocations
         allocations = self.env['payment.plan.line.allocation'].create(allocation_vals)
-          # Show the created allocations
+        
+        # Show the created allocations
         action = {
             'name': _('Created Allocations'),
             'type': 'ir.actions.act_window',
@@ -128,8 +223,13 @@ class PaymentPlanLineAllocationWizardLine(models.TransientModel):
     _description = 'Payment Plan Line Allocation Wizard Line'
     _order = 'date'
     
-    wizard_id = fields.Many2one('payment.plan.line.allocation.wizard', string='Wizard', required=True, 
-                              ondelete='cascade')    payment_plan_line_id = fields.Many2one('payment.plan.line', string='Payment Plan Line', required=True)
+    wizard_id = fields.Many2one(
+        'payment.plan.line.allocation.wizard', 
+        string='Wizard', 
+        required=True, 
+        ondelete='cascade'
+    )
+    payment_plan_line_id = fields.Many2one('payment.plan.line', string='Payment Plan Line', required=True)
     date = fields.Date('Due Date', related='payment_plan_line_id.date', readonly=True)
     name = fields.Char('Description', related='payment_plan_line_id.name', readonly=True)
     currency_id = fields.Many2one('res.currency', related='wizard_id.currency_id', readonly=True)
@@ -140,20 +240,20 @@ class PaymentPlanLineAllocationWizardLine(models.TransientModel):
     amount_to_allocate = fields.Monetary('Allocate', required=True, default=0.0)
     allocation_percentage = fields.Float('Allocation %', compute='_compute_allocation_percentage', store=True)
     
-    @api.depends('amount_to_allocate', 'amount_total')
+    @api.depends('amount_to_allocate', 'amount_total', 'allocated_amount')
     def _compute_allocation_percentage(self):
         """Calculate what percentage of the line is being allocated"""
         for line in self:
             if line.amount_total > 0:
                 total_allocated = line.allocated_amount + line.amount_to_allocate
-                line.allocation_percentage = total_allocated / line.amount_total
+                line.allocation_percentage = (total_allocated / line.amount_total) * 100
             else:
                 line.allocation_percentage = 0
     
     def _set_max_allocation(self):
         """Set the maximum allocation amount"""
         for line in self:
-            line.amount_to_allocate = line.unallocated_amount
+            line.amount_to_allocate = min(line.unallocated_amount, line.wizard_id.allocation_remaining + line.amount_to_allocate)
         return {'type': 'ir.actions.client', 'tag': 'reload'}
     
     @api.onchange('amount_to_allocate')

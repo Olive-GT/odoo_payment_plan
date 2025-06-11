@@ -47,13 +47,18 @@
                             <field name="payment_date"/>
                             <field name="payment_reference"/>
                         </group>
-                    </group>
-                      <!-- Allocation information -->
+                    </group>                      <!-- Allocation information -->
                     <field name="allocation_ids" invisible="1"/>
-                    <group string="Payment Allocations" invisible="not allocation_ids">
-                        <field name="allocated_amount" widget="monetary"/>
-                        <field name="unallocated_amount" widget="monetary"/>
-                        <field name="is_fully_allocated" invisible="1"/>
+                    <group string="Payment Allocations">
+                        <group>
+                            <field name="allocated_amount" widget="monetary"/>
+                            <field name="unallocated_amount" widget="monetary"/>
+                            <field name="is_fully_allocated"/>
+                        </group>
+                        <group>
+                            <field name="allocation_count"/>
+                            <field name="payment_reference" attrs="{'invisible': [('allocation_count', '=', 0)]}"/>
+                        </group>
                     </group>
                     
                     <notebook>                        <page string="Allocations" invisible="not allocation_ids">

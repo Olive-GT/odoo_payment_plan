@@ -36,6 +36,13 @@ class PaymentPlan(models.Model):
                                          help="Fixed amount to charge per month for overdue payments")
     notes = fields.Text('Notes')
 
+    # Allocation statistics
+    line_count = fields.Integer(string='Total Lines', compute='_compute_allocation_statistics')
+    fully_allocated_lines_count = fields.Integer(string='Fully Allocated Lines', compute='_compute_allocation_statistics')
+    partially_allocated_lines_count = fields.Integer(string='Partially Allocated Lines', compute='_compute_allocation_statistics')
+    unallocated_lines_count = fields.Integer(string='Unallocated Lines', compute='_compute_allocation_statistics')
+    allocation_progress = fields.Float(string='Allocation Progress', compute='_compute_allocation_statistics')
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -51,6 +58,30 @@ class PaymentPlan(models.Model):
             plan.amount_residual = plan.total_amount - plan.amount_paid
             plan.total_interest = sum(plan.line_ids.mapped('interest_amount'))
             plan.total_with_interest = plan.total_amount + plan.total_interest
+
+    @api.depends('line_ids.allocated_amount', 'line_ids.is_fully_allocated')
+    def _compute_allocation_statistics(self):
+        """Compute statistics for allocation dashboard"""
+        for plan in self:
+            plan.line_count = len(plan.line_ids)
+            
+            plan.fully_allocated_lines_count = len(plan.line_ids.filtered(lambda l: l.is_fully_allocated))
+            
+            # Lines with some allocation but not fully allocated
+            partially_allocated_lines = plan.line_ids.filtered(
+                lambda l: not l.is_fully_allocated and l.allocated_amount > 0
+            )
+            plan.partially_allocated_lines_count = len(partially_allocated_lines)
+            
+            # Lines with no allocations
+            plan.unallocated_lines_count = len(plan.line_ids.filtered(lambda l: l.allocated_amount <= 0))
+            
+            # Calculate overall allocation progress as percentage
+            if plan.total_amount > 0:
+                total_allocated = sum(plan.line_ids.mapped('allocated_amount'))
+                plan.allocation_progress = total_allocated / plan.total_amount
+            else:
+                plan.allocation_progress = 0.0
 
     def action_post(self):
         for plan in self:
