@@ -25,8 +25,15 @@ class PaymentPlan(models.Model):
     amount_residual = fields.Monetary(string='Amount Due', compute='_compute_amounts', store=True)
     total_interest = fields.Monetary(string='Total Interest', compute='_compute_amounts', store=True)
     total_with_interest = fields.Monetary(string='Total with Interest', compute='_compute_amounts', store=True)
-    interest_rate = fields.Float(string='Annual Interest Rate (%)', default=10.0, 
-                               help="Annual interest rate for overdue payments")
+    interest_calculation_method = fields.Selection([
+        ('percentage', 'Monthly Percentage'),
+        ('fixed', 'Fixed Monthly Amount')
+    ], string='Interest Calculation Method', default='percentage', required=True,
+       help="Method used to calculate interest on overdue payments")
+    interest_rate = fields.Float(string='Monthly Interest Rate (%)', default=1.0, 
+                               help="Monthly interest rate for overdue payments (calculated daily)")
+    fixed_interest_amount = fields.Monetary(string='Fixed Monthly Interest Amount', default=0.0,
+                                         help="Fixed amount to charge per month for overdue payments")
     notes = fields.Text('Notes')
 
     @api.model_create_multi

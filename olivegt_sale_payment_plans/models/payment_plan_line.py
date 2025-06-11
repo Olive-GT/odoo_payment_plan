@@ -2,6 +2,7 @@
 from odoo.exceptions import ValidationError
 from datetime import datetime, date
 import logging
+import math
 
 
 class PaymentPlanLine(models.Model):
@@ -93,21 +94,13 @@ class PaymentPlanLine(models.Model):
                 # Only if the stored interest_amount is zero, calculate it
                 if not line.interest_amount:
                     delta_days = (line.payment_date - line.date).days
-                    if delta_days > 0 and line.payment_plan_id and line.payment_plan_id.interest_rate:
-                        annual_rate = line.payment_plan_id.interest_rate / 100.0
-                        daily_rate = annual_rate / 365.0
-                        line.interest_amount = line.amount * delta_days * daily_rate
+                    if delta_days > 0:
+                        # Use calculate_interest_for_days helper method
+                        line.interest_amount = line._calculate_interest_for_days(delta_days)
                 # If interest amount is already set, keep it (from mark_as_paid)
             else:
                 # For unpaid lines or special cases, calculate interest normally
-                if line.payment_plan_id and line.payment_plan_id.interest_rate:
-                    annual_rate = line.payment_plan_id.interest_rate / 100.0  # Convert from percentage
-                else:
-                    # Default interest rate if not set on payment plan
-                    annual_rate = 0.10  # 10% per year as default
-                    
-                daily_rate = annual_rate / 365.0
-                line.interest_amount = line.amount * line.overdue_days * daily_rate
+                line.interest_amount = line._calculate_interest_for_days(line.overdue_days)
     
     @api.depends('amount', 'interest_amount')
     def _compute_total_with_interest(self):
@@ -255,13 +248,7 @@ class PaymentPlanLine(models.Model):
         # Calculate interest based on calculated overdue days
         calculated_interest_amount = 0
         if calculated_overdue_days > 0:
-            if self.payment_plan_id and self.payment_plan_id.interest_rate:
-                annual_rate = self.payment_plan_id.interest_rate / 100.0
-            else:
-                annual_rate = 0.10  # Default 10%
-            
-            daily_rate = annual_rate / 365.0
-            calculated_interest_amount = self.amount * calculated_overdue_days * daily_rate
+            calculated_interest_amount = self._calculate_interest_for_days(calculated_overdue_days)
             
         # Determine which values to use based on respect_manual_edits flag
         # If respect_manual_edits is True and we have existing values, keep them
@@ -409,3 +396,44 @@ class PaymentPlanLine(models.Model):
         
         _logger.info("Payment plan overdue line update completed")
         return True
+
+    def _calculate_interest_for_days(self, days):
+        """Helper method to calculate interest consistently
+        
+        Args:
+            days: Number of days to calculate interest for
+            
+        Returns:
+            interest_amount: Calculated interest amount
+        """
+        interest_amount = 0
+        
+        if days <= 0 or not self.payment_plan_id:
+            return 0
+            
+        # Different calculation methods based on payment plan configuration
+        if self.payment_plan_id.interest_calculation_method == 'percentage':
+            # Monthly percentage method - calculated daily
+            if self.payment_plan_id.interest_rate:
+                monthly_rate = self.payment_plan_id.interest_rate / 100.0  # Convert percentage to decimal
+                daily_rate = monthly_rate / 30.0  # Approximate days in a month
+                interest_amount = self.amount * days * daily_rate
+            else:
+                # Default 1% monthly if not set
+                daily_rate = (1.0 / 100.0) / 30.0
+                interest_amount = self.amount * days * daily_rate
+        
+        elif self.payment_plan_id.interest_calculation_method == 'fixed':
+            # Fixed monthly amount method
+            if self.payment_plan_id.fixed_interest_amount:
+                # Calculate how many months have passed (including partial months)
+                months_passed = days / 30.0  # Approximate months
+                if months_passed < 1:
+                    # Less than a month - prorate the fixed amount
+                    interest_amount = self.payment_plan_id.fixed_interest_amount * months_passed
+                else:
+                    # Round up for complete months
+                    complete_months = math.ceil(months_passed)
+                    interest_amount = self.payment_plan_id.fixed_interest_amount * complete_months
+        
+        return interest_amount

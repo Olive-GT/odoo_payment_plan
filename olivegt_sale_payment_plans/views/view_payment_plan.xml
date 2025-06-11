@@ -26,11 +26,12 @@
                         <group>
                             <field name="sale_id"/>
                             <field name="partner_id"/>
-                            <field name="date"/>
-                        </group>                        <group>
+                            <field name="date"/>                        </group>                        <group>
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="currency_id"/>
-                            <field name="interest_rate"/>
+                            <field name="interest_calculation_method" widget="radio"/>
+                            <field name="interest_rate" attrs="{'invisible': [('interest_calculation_method', '!=', 'percentage')]}"/>
+                            <field name="fixed_interest_amount" attrs="{'invisible': [('interest_calculation_method', '!=', 'fixed')]}" widget="monetary"/>
                         </group>
                     </group>                    <notebook>
                         <page string="Payment Schedule">
