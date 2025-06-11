@@ -1,6 +1,7 @@
 ﻿from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 from datetime import datetime, date
+import logging
 
 
 class PaymentPlanLine(models.Model):
@@ -45,9 +46,9 @@ class PaymentPlanLine(models.Model):
                 total_amount = sum(previous_lines.mapped('amount'))
                 line.running_balance = total_amount - paid_amount
 
-    @api.depends('date', 'paid')
+    @api.depends('date', 'payment_date', 'paid')
     def _compute_overdue_days(self):
-        # Get current date for overdue calculation
+        # Get current date as fallback for unpaid lines
         today = fields.Date.context_today(self)
         
         for line in self:
@@ -56,23 +57,33 @@ class PaymentPlanLine(models.Model):
                 line.overdue_days = 0
                 continue
                 
-            if line.paid:
-                # Paid lines have no overdue days
+            if line.paid and line.payment_date:
+                # For paid lines, calculate days between due date and payment date
+                delta = line.payment_date - line.date
+                line.overdue_days = delta.days if delta.days > 0 else 0
+            elif line.paid:
+                # Paid lines with no payment date recorded have no overdue days
                 line.overdue_days = 0
+            elif line.payment_date:
+                # For unpaid lines with payment_date set (unusual case, but handle it)
+                delta = line.payment_date - line.date
+                line.overdue_days = delta.days if delta.days > 0 else 0
             elif line.date < today:
-                # Calculate days between due date and today
+                # Only if no payment_date is available, use today as reference
                 delta = today - line.date
                 line.overdue_days = delta.days
             else:
                 # Future dates have no overdue days
                 line.overdue_days = 0
 
-    @api.depends('overdue_days', 'amount', 'payment_plan_id.interest_rate', 'date', 'paid')
+    @api.depends('overdue_days', 'amount', 'payment_plan_id.interest_rate', 'date', 'paid', 'payment_date')
     def _compute_interest_amount(self):
-        today = fields.Date.context_today(self)  # Add current date dependency
+        today = fields.Date.context_today(self)  # Fallback date
         
         for line in self:
-            if line.paid or not line.date or line.date >= today or line.overdue_days <= 0:
+            reference_date = line.payment_date if line.payment_date else today
+            
+            if line.paid or not line.date or line.date >= reference_date or line.overdue_days <= 0:
                 line.interest_amount = 0
             else:
                 # Use the interest rate from the payment plan
@@ -96,7 +107,9 @@ class PaymentPlanLine(models.Model):
     def mark_as_paid(self):
         for line in self:
             line.paid = True
-            line.payment_date = fields.Date.context_today(self)
+            # Only set payment_date if it's not already set
+            if not line.payment_date:
+                line.payment_date = fields.Date.context_today(self)
 
     def mark_as_unpaid(self):
         for line in self:
@@ -106,9 +119,40 @@ class PaymentPlanLine(models.Model):
             
     def update_overdue_status(self):
         """Manually update overdue days and interest calculation"""
-        self._compute_overdue_days()
-        self._compute_interest_amount()
-        return True
+        today = fields.Date.context_today(self)
+        logger = logging.getLogger(__name__)
+        logger.info(f"Manually updating {len(self)} payment plan lines")
+        
+        for line in self:
+            # Skip paid lines with payment_date already set
+            if line.paid and line.payment_date:
+                continue
+                
+            reference_date = line.payment_date if line.payment_date else today
+                
+            # Update overdue days
+            if line.date and line.date < reference_date:
+                delta = reference_date - line.date
+                line.overdue_days = delta.days
+                
+                # Update interest
+                if line.payment_plan_id and line.payment_plan_id.interest_rate:
+                    annual_rate = line.payment_plan_id.interest_rate / 100.0
+                else:
+                    annual_rate = 0.10  # Default 10%
+                
+                daily_rate = annual_rate / 365.0
+                line.interest_amount = line.amount * line.overdue_days * daily_rate
+                line.total_with_interest = line.amount + line.interest_amount
+            else:
+                line.overdue_days = 0
+                line.interest_amount = 0
+                line.total_with_interest = line.amount
+                
+        # Ensure UI gets refreshed
+        self.flush_recordset(['overdue_days', 'interest_amount', 'total_with_interest'])
+        
+        return {"type": "ir.actions.client", "tag": "reload"}
 
     @api.model
     def _update_overdue_lines(self):
@@ -116,16 +160,63 @@ class PaymentPlanLine(models.Model):
         This method is meant to be called from a scheduled action (cron job)
         to update overdue days and interest on all payment plan lines
         """
-        # Find all unpaid lines that are overdue
         today = fields.Date.context_today(self)
-        overdue_lines = self.search([
+        
+        # Get all lines to process - both unpaid lines and paid lines that might need recalculation
+        lines_to_update = self.search([
+            '|',
             ('paid', '=', False),
-            ('date', '<', today)
+            '&',
+            ('paid', '=', True),
+            ('payment_date', '!=', False),
         ])
         
-        # Force recalculation of overdue days and interest
-        if overdue_lines:
-            overdue_lines._compute_overdue_days()
-            overdue_lines._compute_interest_amount()
+        _logger = logging.getLogger(__name__)
+        _logger.info(f"Updating {len(lines_to_update)} payment plan lines")
         
+        # For explicit field recomputation
+        if lines_to_update:
+            # Mark the records as needing recomputation
+            self.env.add_to_compute(self._fields['overdue_days'], lines_to_update)
+            self.env.add_to_compute(self._fields['interest_amount'], lines_to_update)
+            self.env.add_to_compute(self._fields['total_with_interest'], lines_to_update)
+            
+            # Force recomputation using the compute methods that now respect payment_date
+            lines_to_update._compute_overdue_days()
+            lines_to_update._compute_interest_amount()
+            
+            # Handle lines needing direct database updates
+            for line in lines_to_update:
+                reference_date = line.payment_date if line.payment_date else today
+                
+                # Only process if due date is past reference date
+                if line.date and line.date < reference_date:
+                    delta = reference_date - line.date
+                    overdue_days = delta.days if delta.days > 0 else 0
+                    
+                    # Interest calculation
+                    interest_amount = 0
+                    # Only calculate interest for unpaid lines or paid lines that were overdue
+                    if not line.paid or (line.paid and overdue_days > 0):
+                        if line.payment_plan_id and line.payment_plan_id.interest_rate:
+                            annual_rate = line.payment_plan_id.interest_rate / 100.0
+                        else:
+                            annual_rate = 0.10  # Default 10%
+                        
+                        daily_rate = annual_rate / 365.0
+                        interest_amount = line.amount * overdue_days * daily_rate
+                        
+                    total_with_interest = line.amount + interest_amount
+                    
+                    # Update database directly
+                    self.env.cr.execute("""
+                        UPDATE payment_plan_line 
+                        SET overdue_days = %s, interest_amount = %s, total_with_interest = %s 
+                        WHERE id = %s
+                    """, (overdue_days, interest_amount, total_with_interest, line.id))
+            
+            # Flush all pending operations
+            self.env.cr.commit()
+        
+        _logger.info("Payment plan overdue line update completed")
         return True

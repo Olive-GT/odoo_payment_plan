@@ -50,6 +50,12 @@ class PaymentPlan(models.Model):
             if plan.state == 'draft':
                 plan.state = 'posted'
                 
+    def action_update_overdue(self):
+        """Update overdue days and interest for all lines in this payment plan"""
+        for plan in self:
+            plan.line_ids.update_overdue_status()
+        return True
+                
     def action_cancel(self):
         for plan in self:
             if plan.state != 'canceled':
