@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- Payment Plan Line Allocation Embedded Tree View -->
-    <record id="view_payment_plan_line_allocation_embedded_tree" model="ir.ui.view">
-        <field name="name">payment.plan.line.allocation.embedded.tree</field>
+    <!-- Payment Plan Line Allocation Embedded Tree View -->    <record id="view_payment_plan_line_allocation_embedded_list" model="ir.ui.view">
+        <field name="name">payment.plan.line.allocation.embedded.list</field>
         <field name="model">payment.plan.line.allocation</field>
         <field name="arch" type="xml">
-            <tree string="Allocations">
+            <list string="Allocations">
                 <field name="allocation_date"/>
                 <field name="account_move_id"/>
                 <field name="account_move_line_id"/>
                 <field name="amount" widget="monetary"/>
                 <field name="currency_id" invisible="1"/>
-            </tree>
+            </list>
         </field>
     </record>
 </odoo>

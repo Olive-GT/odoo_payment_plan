@@ -61,15 +61,14 @@
                             <field name="allocation_ids" readonly="1"/>
                         </page>
                         <page string="Account Moves" attrs="{'invisible': [('account_move_ids', '=', [])]}">
-                            <field name="account_move_ids" widget="many2many" readonly="1">
-                                <tree>
+                            <field name="account_move_ids" widget="many2many" readonly="1">                                <list>
                                     <field name="name"/>
                                     <field name="date"/>
                                     <field name="journal_id"/>
                                     <field name="amount_total" widget="monetary"/>
                                     <field name="state"/>
                                     <field name="currency_id" invisible="1"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                     </notebook>
