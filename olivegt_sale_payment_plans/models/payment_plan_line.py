@@ -35,7 +35,8 @@ class PaymentPlanLine(models.Model):
             try:
                 # For saved records, use date and id for ordering
                 previous_lines = line.payment_plan_id.line_ids.filtered(
-                    lambda l: l.date and l.date <= line.date
+                    lambda l: l.date and (l.date < line.date or 
+                                         (l.date == line.date and l.id <= line.id))
                 )
                 paid_amount = sum(previous_lines.filtered(lambda l: l.paid).mapped('amount'))
                 total_amount = sum(previous_lines.mapped('amount'))
