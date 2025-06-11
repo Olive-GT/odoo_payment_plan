@@ -52,11 +52,6 @@ class PaymentPlanLine(models.Model):
         today = fields.Date.context_today(self)
         
         for line in self:
-            # Skip if overdue_days has been manually edited
-            # We check if overdue_days is in env.cache to detect manual changes
-            if 'overdue_days' in self.env.cache and line.id in self.env.cache['overdue_days']:
-                continue
-                
             # Skip computation for records with no date
             if not line.date:
                 line.overdue_days = 0
@@ -86,10 +81,6 @@ class PaymentPlanLine(models.Model):
         today = fields.Date.context_today(self)  # Fallback date
         
         for line in self:
-            # Skip if interest has been manually edited
-            # We check if interest_amount is in env.cache to detect manual changes
-            if 'interest_amount' in self.env.cache and line.id in self.env.cache['interest_amount']:
-                continue
                 
             reference_date = line.payment_date if line.payment_date else today
             
@@ -254,58 +245,49 @@ class PaymentPlanLine(models.Model):
         if not reference_date:
             reference_date = self.payment_date if self.payment_date else fields.Date.context_today(self)
             
-        # Check if values have been manually edited
-        manually_edited_overdue = False
-        manually_edited_interest = False
-        
+        # Calculate overdue days based on dates (regardless of manual edits)
+        if self.date and self.date < reference_date:
+            delta = reference_date - self.date
+            calculated_overdue_days = delta.days if delta.days > 0 else 0
+        else:
+            calculated_overdue_days = 0
+                
+        # Calculate interest based on calculated overdue days
+        calculated_interest_amount = 0
+        if calculated_overdue_days > 0:
+            if self.payment_plan_id and self.payment_plan_id.interest_rate:
+                annual_rate = self.payment_plan_id.interest_rate / 100.0
+            else:
+                annual_rate = 0.10  # Default 10%
+            
+            daily_rate = annual_rate / 365.0
+            calculated_interest_amount = self.amount * calculated_overdue_days * daily_rate
+            
+        # Determine which values to use based on respect_manual_edits flag
+        # If respect_manual_edits is True and we have existing values, keep them
+        # Otherwise, use the newly calculated values
         if respect_manual_edits:
-            # Check if these values were manually set (can't use env.cache directly here)
-            # Instead we'll use the fact that there's no straightforward way to detect this,
-            # so we'll allow a parameter to control the behavior
-            pass
+            # Keep existing values for edited fields
+            final_overdue_days = self.overdue_days
+            final_interest_amount = self.interest_amount
+        else:
+            # Use calculated values
+            final_overdue_days = calculated_overdue_days
+            final_interest_amount = calculated_interest_amount
             
-        # Calculate overdue days if not manually set
-        overdue_days = self.overdue_days
-        interest_amount = self.interest_amount
-        
-        if not respect_manual_edits or not manually_edited_overdue:
-            if self.date and self.date < reference_date:
-                delta = reference_date - self.date
-                overdue_days = delta.days if delta.days > 0 else 0
-            else:
-                overdue_days = 0
-                
-        # Calculate interest if not manually set
-        if not respect_manual_edits or not manually_edited_interest:
-            if overdue_days > 0:
-                if self.payment_plan_id and self.payment_plan_id.interest_rate:
-                    annual_rate = self.payment_plan_id.interest_rate / 100.0
-                else:
-                    annual_rate = 0.10  # Default 10%
-                
-                daily_rate = annual_rate / 365.0
-                interest_amount = self.amount * overdue_days * daily_rate
-            else:
-                interest_amount = 0
-                
         # Calculate total with interest
-        total_with_interest = self.amount + interest_amount
+        final_total_with_interest = self.amount + final_interest_amount
         
-        # Store calculated values only if not manually edited
-        if not respect_manual_edits or not manually_edited_overdue:
-            self.overdue_days = overdue_days
-        
-        if not respect_manual_edits or not manually_edited_interest:
-            self.interest_amount = interest_amount
-            
-        # Total with interest is always updated
-        self.total_with_interest = total_with_interest
+        # Store the final values
+        self.overdue_days = final_overdue_days
+        self.interest_amount = final_interest_amount
+        self.total_with_interest = final_total_with_interest
         
         # Return the calculated values
         return {
-            'overdue_days': overdue_days,
-            'interest_amount': interest_amount, 
-            'total_with_interest': total_with_interest
+            'overdue_days': final_overdue_days,
+            'interest_amount': final_interest_amount,
+            'total_with_interest': final_total_with_interest
         }
 
     def update_overdue_status(self, respect_manual_edits=True):

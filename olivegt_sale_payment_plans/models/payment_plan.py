@@ -88,6 +88,7 @@ class PaymentPlan(models.Model):
         """Update overdue days and interest for all lines in this payment plan"""
         self.ensure_one()
         if self.line_ids:
-            self.line_ids._compute_overdue_days()
-            self.line_ids._compute_interest_amount()
+            # Use the update_overdue_status method on the lines instead of compute methods
+            # This respects manually edited values
+            self.line_ids.update_overdue_status(respect_manual_edits=True)
         return True
