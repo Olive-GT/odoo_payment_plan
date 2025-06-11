@@ -56,22 +56,22 @@
                     </group>
                     <notebook>
                         <page string="Payment Schedule">
-                            <field name="line_ids" context="{'default_payment_plan_id': id}">
-                                <list>
+                            <field name="line_ids" context="{'default_payment_plan_id': id}">                                <list>
                                     <field name="date"/>
                                     <field name="name"/>
-                                    <field name="amount"/>
+                                    <field name="amount" widget="monetary"/>
                                     <field name="paid"/>
-                                </list>
-                                <form>
+                                    <field name="currency_id" invisible="1"/>
+                                </list>                                <form>
                                     <group>
                                         <field name="payment_plan_id" invisible="1"/>
                                         <field name="date"/>
                                         <field name="name"/>
-                                        <field name="amount"/>
+                                        <field name="amount" widget="monetary"/>
                                         <field name="paid"/>
                                         <field name="payment_date" invisible="paid == False"/>
                                         <field name="payment_reference" invisible="paid == False"/>
+                                        <field name="currency_id" invisible="1"/>
                                     </group>
                                 </form>
                             </field>

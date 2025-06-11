@@ -4,19 +4,19 @@
     <record id="view_payment_plan_line_list" model="ir.ui.view">
         <field name="name">payment.plan.line.list</field>
         <field name="model">payment.plan.line</field>
-        <field name="arch" type="xml">            <list editable="bottom">
-                <field name="date"/>
+        <field name="arch" type="xml">            <list editable="bottom">                <field name="date"/>
                 <field name="name"/>
-                <field name="amount"/>
-                <field name="running_balance"/>
+                <field name="amount" widget="monetary"/>
+                <field name="running_balance" widget="monetary"/>
                 <field name="overdue_days"/>
-                <field name="interest_amount"/>
-                <field name="total_with_interest"/>
+                <field name="interest_amount" widget="monetary"/>
+                <field name="total_with_interest" widget="monetary"/>
                 <field name="paid"/>
-                <field name="payment_date"/>                <field name="payment_reference"/>
-                <button name="mark_as_paid" type="object" string="" title="Mark as Paid" icon="fa-solid fa-check" invisible="paid" class="btn-sm"/>
-                <button name="mark_as_unpaid" type="object" string="" title="Mark as Unpaid" icon="fa-solid fa-xmark" invisible="not paid" class="btn-sm"/>
-                <button name="update_overdue_status" type="object" string="" title="Update Status" icon="fa-solid fa-refresh" invisible="paid" class="btn-sm"/>
+                <field name="payment_date"/>
+                <field name="payment_reference"/>
+                <field name="currency_id" invisible="1"/>                <button name="mark_as_paid" type="object" string="" title="Mark as Paid" icon="fa-check" invisible="paid" class="btn-sm"/>
+                <button name="mark_as_unpaid" type="object" string="" title="Mark as Unpaid" icon="fa-times" invisible="not paid" class="btn-sm"/>
+                <button name="update_overdue_status" type="object" string="" title="Update Status" icon="fa-refresh" invisible="paid" class="btn-sm"/>
             </list></field>
     </record>
       <!-- Payment Plan Line Form View -->
@@ -26,16 +26,15 @@
         <field name="arch" type="xml">
             <form>
                 <group>
-                    <group>
-                        <field name="payment_plan_id"/>
+                    <group>                        <field name="payment_plan_id"/>
                         <field name="date"/>
                         <field name="name"/>
-                        <field name="amount"/>
-                        <field name="running_balance"/>
-                    </group>                    <group>
-                        <field name="overdue_days" invisible="overdue_days == 0"/>
-                        <field name="interest_amount" invisible="interest_amount == 0"/>
-                        <field name="total_with_interest"/>
+                        <field name="amount" widget="monetary"/>
+                        <field name="running_balance" widget="monetary"/>
+                        <field name="currency_id" invisible="1"/>
+                    </group>                    <group>                        <field name="overdue_days" invisible="overdue_days == 0"/>
+                        <field name="interest_amount" invisible="interest_amount == 0" widget="monetary"/>
+                        <field name="total_with_interest" widget="monetary"/>
                         <field name="paid"/>
                         <field name="payment_date" invisible="not paid"/>
                         <field name="payment_reference" invisible="not paid"/>
