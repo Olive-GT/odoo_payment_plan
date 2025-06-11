@@ -430,7 +430,7 @@ class PaymentPlanLine(models.Model):
                 months_passed = days / 30.0  # Approximate months
                 if months_passed < 1:
                     # Less than a month - prorate the fixed amount
-                    interest_amount = self.payment_plan_id.fixed_interest_amount * months_passed
+                    interest_amount = self.payment_plan_id.fixed_interest_amount
                 else:
                     # Round up for complete months
                     complete_months = math.ceil(months_passed)
