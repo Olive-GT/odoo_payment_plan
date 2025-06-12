@@ -233,7 +233,6 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
             wizard.remaining_to_allocate = wizard.remaining_amount - wizard.total_allocation
     
     # The action_add_allocation_line method has been removed as it's redundant with the editable list view
-    
     def _get_existing_reconciliations(self):
         """Get existing reconciliations for the current payment plan line"""
         self.ensure_one()
@@ -244,23 +243,54 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
             ])
         return self.env['payment.plan.reconciliation']
         
-    @api.model
+    def default_get(self, fields_list):
+        """Override default_get to ensure existing reconciliations are loaded"""
+        res = super(PaymentPlanReconciliationWizard, self).default_get(fields_list)
+        # If payment_plan_line_id is already in the context, preload the existing reconciliations
+        if 'payment_plan_line_id' in res:
+            payment_plan_line = self.env['payment.plan.line'].browse(res['payment_plan_line_id'])
+            if payment_plan_line:
+                res['payment_plan_id'] = payment_plan_line.payment_plan_id.id
+        return res@api.model
     def create(self, vals):
         """Override create to populate existing reconciliations as wizard lines"""
         res = super(PaymentPlanReconciliationWizard, self).create(vals)
         # After creating the wizard, load existing reconciliations as read-only lines
         if res.payment_plan_line_id:
-            existing_reconciliations = res._get_existing_reconciliations()
+            res._load_existing_reconciliations()
+        return res    @api.onchange('payment_plan_line_id')
+    def _onchange_payment_plan_line_id(self):
+        """When the payment plan line changes, load its existing reconciliations"""
+        if self.payment_plan_line_id:
+            # Using command pattern to update wizard lines
+            self.ensure_one()
+            commands = [(5, 0, 0)]  # Clear existing lines
+            existing_reconciliations = self._get_existing_reconciliations()
+            
             for rec in existing_reconciliations:
-                # Create a wizard line for each existing reconciliation
-                self.env['payment.plan.reconciliation.wizard.line'].create({
-                    'wizard_id': res.id,
+                # Add existing reconciliation as a wizard line with create command
+                commands.append((0, 0, {
                     'move_line_id': rec.move_line_id.id,
                     'amount': rec.amount,
                     'is_readonly': True,
                     'existing_reconciliation_id': rec.id,
-                })
-        return res
+                }))
+            
+            self.wizard_line_ids = commands
+            
+    def _load_existing_reconciliations(self):
+        """Helper method to load existing reconciliations as wizard lines"""
+        self.ensure_one()
+        existing_reconciliations = self._get_existing_reconciliations()
+        for rec in existing_reconciliations:
+            vals = {
+                'wizard_id': self.id,
+                'move_line_id': rec.move_line_id.id,
+                'amount': rec.amount,
+                'is_readonly': True,
+                'existing_reconciliation_id': rec.id,
+            }
+            self.env['payment.plan.reconciliation.wizard.line'].create(vals)
     
     # Removed the action_view_existing_reconciliations method as existing
     # reconciliations are now displayed directly in the wizard table
