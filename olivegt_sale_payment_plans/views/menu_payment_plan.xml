@@ -19,14 +19,7 @@
         </field>
     </record>
 
-    <!-- Root Menu -->
-    <menuitem 
-        id="menu_payment_plans_root" 
-        name="Payment Plans" 
-        sequence="50" 
-        web_icon="olivegt_sale_payment_plans,static/description/icon.png" />
-    
-    <!-- Sub Menus -->
+    <!-- Sub Menus - Root menu is defined in base_menus.xml -->
     <menuitem 
         id="menu_payment_plans" 
         name="Payment Plans" 

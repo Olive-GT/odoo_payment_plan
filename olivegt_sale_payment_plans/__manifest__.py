@@ -23,6 +23,7 @@
         'data/payment_plan_sequence.xml',
         'data/payment_plan_cron.xml',
         'reports/payment_plan_report.xml',
+        'views/base_menus.xml',  # Base menus must be loaded first
         'views/simplified_view.xml',
         'views/view_payment_plan.xml',
         'views/payment_plan_line_views.xml',

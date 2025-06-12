@@ -98,9 +98,7 @@
                         context="{'default_payment_plan_id': id}"/>
             </header>
         </field>
-    </record>
-    
-    <!-- Menu Action -->
+    </record>    <!-- Menu Action -->
     <menuitem id="menu_payment_plan_allocation_wizard"
               name="Allocate Payments"
               parent="menu_payment_plans_root"
