@@ -76,8 +76,8 @@
                             <field name="line_ids" readonly="1">
                                 <tree
                                     decoration-success="is_fully_allocated"
-                                    decoration-info="eval('allocated_amount > 0 and allocated_amount < amount')"
-                                    decoration-danger="eval('date < context_today and unallocated_amount > 0')"
+                                    decoration-info="eval('allocated_amount &gt; 0 and allocated_amount &lt; amount')"
+                                    decoration-danger="eval('date &lt; context_today and unallocated_amount &gt; 0')"
                                 >
                                     <field name="date"/>
                                     <field name="name"/>
