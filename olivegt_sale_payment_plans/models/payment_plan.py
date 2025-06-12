@@ -42,6 +42,7 @@ class PaymentPlan(models.Model):
     partially_allocated_lines_count = fields.Integer(string='Partially Allocated Lines', compute='_compute_allocation_statistics')
     unallocated_lines_count = fields.Integer(string='Unallocated Lines', compute='_compute_allocation_statistics')
     allocation_progress = fields.Float(string='Allocation Progress', compute='_compute_allocation_statistics')
+    allocation_ids = fields.One2many(string='All Allocations', compute='_compute_all_allocations')
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -157,3 +158,9 @@ class PaymentPlan(models.Model):
             # This respects manually edited values
             self.line_ids.update_overdue_status(respect_manual_edits=True)
         return True
+        
+    @api.depends('line_ids.allocation_ids')
+    def _compute_all_allocations(self):
+        """Compute all allocations for this payment plan"""
+        for plan in self:
+            plan.allocation_ids = plan.line_ids.mapped('allocation_ids')

@@ -26,6 +26,7 @@
         'views/payment_plan_line_allocation_views.xml',
         'views/payment_plan_line_allocation_embedded_view.xml',
         'views/payment_plan_line_views.xml',
+        'views/payment_plan_line_embedded_view.xml',
         'views/payment_plan_line_actions.xml',
         'views/view_payment_plan.xml',
         'views/simplified_view.xml',
