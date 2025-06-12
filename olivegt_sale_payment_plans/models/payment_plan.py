@@ -99,6 +99,33 @@ class PaymentPlan(models.Model):
             if plan.state != 'canceled':
                 plan.state = 'canceled'
                 
+    def action_refresh_allocation_stats(self):
+        """Refresh allocation statistics manually"""
+        self.ensure_one()
+        self._compute_allocation_statistics()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
+        
+    def action_view_allocations(self):
+        """View all allocations for this payment plan"""
+        self.ensure_one()
+        
+        # Collect all allocation IDs
+        allocation_ids = []
+        for line in self.line_ids:
+            allocation_ids.extend(line.allocation_ids.ids)
+            
+        return {
+            'name': _('Payment Allocations'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'payment.plan.line.allocation',
+            'view_mode': 'tree,form',
+            'domain': [('id', 'in', allocation_ids)],
+            'context': {'default_payment_plan_id': self.id},
+        }
+                
     def print_payment_plan(self):
         self.ensure_one()
         return self.env.ref('olivegt_sale_payment_plans.action_report_payment_plan').report_action(self)

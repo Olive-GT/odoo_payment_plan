@@ -5,22 +5,46 @@
         <field name="name">payment.plan.line.allocation.wizard.form</field>
         <field name="model">payment.plan.line.allocation.wizard</field>
         <field name="arch" type="xml">
-            <form string="Allocate Payment">
-                <sheet>
+            <form string="Allocate Payment">                <sheet>
+                    <!-- Add a progress indicator at top -->
+                    <div class="oe_title mb-3">
+                        <h2>Payment Allocation</h2>
+                    </div>
+                    
+                    <div class="alert alert-info" role="alert">
+                        <field name="allocation_percentage" widget="progressbar" 
+                               options="{'current_value': 'allocation_percentage', 'max_value': 100, 'editable': false}"/>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>Allocated: <field name="allocation_used" widget="monetary" class="oe_inline"/> of <field name="account_move_amount" widget="monetary" class="oe_inline"/></div>
+                            <div>Remaining: <field name="allocation_remaining" widget="monetary" class="oe_inline"/></div>
+                        </div>
+                    </div>
+                    
                     <group>
                         <group>
                             <field name="payment_plan_id" options="{'no_create': True, 'no_open': True}"/>
                             <field name="partner_id"/>
                             <field name="currency_id" invisible="1"/>
                             <field name="allocation_date"/>
+                            <field name="allocation_strategy" widget="radio"/>
                         </group>
                         <group>
                             <field name="account_move_id" options="{'no_create': True}"/>
                             <field name="account_move_line_id" options="{'no_create': True}"/>
-                            <field name="account_move_amount" widget="monetary"/>
+                            <button name="apply_allocation_strategy" string="Apply Strategy" 
+                                    type="object" class="btn-secondary oe_inline ml-2"
+                                    attrs="{'invisible': [('allocation_strategy', '=', 'manual')]}"/>
                         </group>
-                    </group>                      <field name="allocation_line_ids">
-                        <list editable="bottom" create="0" delete="0" decoration-success="amount_to_allocate > 0" decoration-info="allocated_amount > 0" decoration-muted="unallocated_amount == 0">
+                    </group>                    <div class="alert alert-warning" role="alert" invisible="allocation_line_ids">
+                        <p>No unallocated payment lines found. All lines may be fully paid or allocated.</p>
+                    </div>
+                    
+                    <field name="allocation_line_ids">
+                        <list editable="bottom" create="0" delete="0" 
+                              decoration-success="amount_to_allocate > 0" 
+                              decoration-info="allocated_amount > 0 and allocated_amount < amount_total" 
+                              decoration-muted="unallocated_amount == 0"
+                              decoration-danger="date &lt; context_today and unallocated_amount > 0">
                             <field name="wizard_id" invisible="1"/>
                             <field name="payment_plan_line_id" invisible="1"/>
                             <field name="currency_id" invisible="1"/>
@@ -31,17 +55,27 @@
                             <field name="unallocated_amount" widget="monetary"/>
                             <field name="amount_to_allocate" widget="monetary" sum="Total to Allocate"/>
                             <field name="allocation_percentage" string="% of Line" widget="percentage"/>
-                            <button name="_set_max_allocation" type="object" string="" title="Allocate Maximum" icon="fa-check-circle" class="btn-sm"/>
+                            <field name="allocation_visual" string="Allocation Status" widget="progressbar" 
+                                   options="{'current_value': 'allocated_amount', 'max_value': 'amount_total', 'editable': false}"/>
+                            <button name="_set_max_allocation" type="object" string="" 
+                                   title="Allocate Maximum" icon="fa-check-circle" class="btn-sm"/>
+                            <button name="_clear_allocation" type="object" string="" 
+                                   title="Clear Allocation" icon="fa-times-circle" class="btn-sm"
+                                   invisible="amount_to_allocate == 0"/>
                         </list>
                     </field>
                     
                     <group>
                         <field name="notes" placeholder="Enter any notes related to this allocation..."/>
                     </group>
-                </sheet>
-                <footer>
-                    <button name="action_allocate" string="Create Allocations" type="object" class="btn-primary"/>
-                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </sheet>                <footer>
+                    <button name="action_allocate" string="Create Allocations" 
+                            type="object" class="btn-primary"/>
+                    <button name="action_distribute_evenly" string="Distribute Evenly" 
+                            type="object" class="btn-secondary"/>
+                    <button name="action_clear_all" string="Clear All" 
+                            type="object" class="btn-secondary"/>
+                    <button string="Cancel" class="btn-light" special="cancel"/>
                 </footer>
             </form>
         </field>

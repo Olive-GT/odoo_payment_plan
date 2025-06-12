@@ -108,8 +108,7 @@ class PaymentPlanLineAllocationWizard(models.TransientModel):
                 'allocation_date': self.allocation_date,
                 'notes': self.notes,
             })
-        
-        # Create the allocations
+          # Create the allocations
         allocations = self.env['payment.plan.line.allocation'].create(allocation_vals)
           # Show the created allocations
         action = {
@@ -121,6 +120,125 @@ class PaymentPlanLineAllocationWizard(models.TransientModel):
         }
         
         return action
+        
+    def apply_allocation_strategy(self):
+        """Apply the selected allocation strategy"""
+        self.ensure_one()
+        
+        # Clear existing allocations
+        for line in self.allocation_line_ids:
+            line.amount_to_allocate = 0.0
+            
+        # Get amount to allocate
+        amount_remaining = self.account_move_amount
+        if amount_remaining <= 0:
+            return {'warning': {'title': _('Warning'), 'message': _('No amount available to allocate!')}}
+            
+        # Apply strategy
+        if self.allocation_strategy == 'oldest_first':
+            self._apply_oldest_first_strategy(amount_remaining)
+        elif self.allocation_strategy == 'newest_first':
+            self._apply_newest_first_strategy(amount_remaining)
+        elif self.allocation_strategy == 'proportional':
+            self._apply_proportional_strategy(amount_remaining)
+            
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
+    
+    def _apply_oldest_first_strategy(self, amount_remaining):
+        """Apply oldest first allocation strategy"""
+        # Sort lines by date (oldest first)
+        lines = self.allocation_line_ids.sorted(lambda l: l.date)
+        
+        for line in lines:
+            if amount_remaining <= 0:
+                break
+                
+            if line.unallocated_amount > 0:
+                amount_to_allocate = min(line.unallocated_amount, amount_remaining)
+                line.amount_to_allocate = amount_to_allocate
+                amount_remaining -= amount_to_allocate
+    
+    def _apply_newest_first_strategy(self, amount_remaining):
+        """Apply newest first allocation strategy"""
+        # Sort lines by date (newest first)
+        lines = self.allocation_line_ids.sorted(lambda l: l.date, reverse=True)
+        
+        for line in lines:
+            if amount_remaining <= 0:
+                break
+                
+            if line.unallocated_amount > 0:
+                amount_to_allocate = min(line.unallocated_amount, amount_remaining)
+                line.amount_to_allocate = amount_to_allocate
+                amount_remaining -= amount_to_allocate
+    
+    def _apply_proportional_strategy(self, amount_remaining):
+        """Apply proportional distribution strategy"""
+        # Calculate total unallocated amount
+        total_unallocated = sum(line.unallocated_amount for line in self.allocation_line_ids)
+        
+        if total_unallocated <= 0:
+            return
+            
+        # Distribute proportionally
+        for line in self.allocation_line_ids:
+            if line.unallocated_amount > 0:
+                ratio = line.unallocated_amount / total_unallocated
+                amount_to_allocate = min(line.unallocated_amount, amount_remaining * ratio)
+                line.amount_to_allocate = round(amount_to_allocate, 2)
+                
+        # Adjust for rounding errors - allocate remaining to first line with space
+        recalculated_allocated = sum(line.amount_to_allocate for line in self.allocation_line_ids)
+        if recalculated_allocated < amount_remaining:
+            remaining_diff = amount_remaining - recalculated_allocated
+            for line in self.allocation_line_ids:
+                if line.amount_to_allocate + remaining_diff <= line.unallocated_amount:
+                    line.amount_to_allocate += remaining_diff
+                    break
+                    
+    def action_distribute_evenly(self):
+        """Distribute the amount evenly across all lines"""
+        self.ensure_one()
+        
+        # Count lines with unallocated amounts
+        eligible_lines = self.allocation_line_ids.filtered(lambda l: l.unallocated_amount > 0)
+        if not eligible_lines:
+            return {'warning': {'title': _('Warning'), 'message': _('No eligible lines for allocation!')}}
+            
+        # Calculate even distribution
+        amount_per_line = self.account_move_amount / len(eligible_lines)
+        
+        # Clear existing allocations
+        for line in self.allocation_line_ids:
+            line.amount_to_allocate = 0.0
+            
+        # Allocate evenly
+        amount_remaining = self.account_move_amount
+        for line in eligible_lines:
+            if amount_remaining <= 0:
+                break
+                
+            amount_to_allocate = min(line.unallocated_amount, amount_per_line)
+            line.amount_to_allocate = amount_to_allocate
+            amount_remaining -= amount_to_allocate
+            
+        # Allocate any remainder to the first eligible line
+        if amount_remaining > 0:
+            for line in eligible_lines:
+                if line.amount_to_allocate + amount_remaining <= line.unallocated_amount:
+                    line.amount_to_allocate += amount_remaining
+                    break
+                    
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
+        
+    def action_clear_all(self):
+        """Clear all allocations"""
+        self.ensure_one()
+        
+        for line in self.allocation_line_ids:
+            line.amount_to_allocate = 0.0
+            
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
 
 
 class PaymentPlanLineAllocationWizardLine(models.TransientModel):
@@ -139,6 +257,7 @@ class PaymentPlanLineAllocationWizardLine(models.TransientModel):
     unallocated_amount = fields.Monetary('Remaining Amount', readonly=True)
     amount_to_allocate = fields.Monetary('Allocate', required=True, default=0.0)
     allocation_percentage = fields.Float('Allocation %', compute='_compute_allocation_percentage', store=True)
+    allocation_visual = fields.Float('Allocation Visual', compute='_compute_allocation_percentage', store=True)
     
     @api.depends('amount_to_allocate', 'amount_total')
     def _compute_allocation_percentage(self):
@@ -149,11 +268,16 @@ class PaymentPlanLineAllocationWizardLine(models.TransientModel):
                 line.allocation_percentage = total_allocated / line.amount_total
             else:
                 line.allocation_percentage = 0
-    
-    def _set_max_allocation(self):
+      def _set_max_allocation(self):
         """Set the maximum allocation amount"""
         for line in self:
             line.amount_to_allocate = line.unallocated_amount
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
+        
+    def _clear_allocation(self):
+        """Clear the allocation amount"""
+        for line in self:
+            line.amount_to_allocate = 0
         return {'type': 'ir.actions.client', 'tag': 'reload'}
     
     @api.onchange('amount_to_allocate')
