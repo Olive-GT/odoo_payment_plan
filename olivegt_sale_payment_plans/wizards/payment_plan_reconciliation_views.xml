@@ -29,16 +29,15 @@
                         </group>
                     </group>
                     <group string="Allocations">
-                        <field name="allocated_amount" invisible="1"/>
-                        <field name="wizard_line_ids" nolabel="1">
-                            <list editable="bottom" decoration-muted="is_readonly == true" decoration-info="is_readonly == true">
-                                <field name="move_line_id" domain="[('account_id.reconcile', '=', True), ('partner_id', '=', parent.partner_id)]" readonly="is_readonly == true"/>
-                                <field name="journal_id" readonly="is_readonly == true"/>
-                                <field name="date" readonly="is_readonly == true"/>
-                                <field name="payment_reference" readonly="is_readonly == true"/>
-                                <field name="original_amount" widget="monetary" readonly="is_readonly == true"/>
-                                <field name="available_amount" widget="monetary" readonly="is_readonly == true"/>
-                                <field name="amount" widget="monetary" sum="Total" readonly="is_readonly == true" decoration-success="is_readonly == true"/>
+                        <field name="allocated_amount" invisible="1"/>                    <field name="wizard_line_ids" nolabel="1">
+                            <list editable="bottom" decoration-muted="is_readonly" decoration-info="is_readonly">
+                                <field name="move_line_id" domain="[('account_id.reconcile', '=', True), ('partner_id', '=', parent.partner_id)]" readonly="is_readonly"/>
+                                <field name="journal_id" readonly="is_readonly"/>
+                                <field name="date" readonly="is_readonly"/>
+                                <field name="payment_reference" readonly="is_readonly"/>
+                                <field name="original_amount" widget="monetary" readonly="is_readonly"/>
+                                <field name="available_amount" widget="monetary" readonly="is_readonly"/>
+                                <field name="amount" widget="monetary" sum="Total" readonly="is_readonly" decoration-success="is_readonly"/>
                                 <field name="is_readonly" invisible="1"/>
                                 <field name="existing_reconciliation_id" invisible="1"/>
                                 <field name="wizard_id" invisible="1"/>

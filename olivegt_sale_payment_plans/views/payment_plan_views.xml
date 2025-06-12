@@ -87,11 +87,9 @@
                 </div>
             </form>
         </field>
-    </record>
-
-    <!-- Payment Plan Tree View -->
+    </record>    <!-- Payment Plan List View -->
     <record id="payment_plan_view_tree" model="ir.ui.view">
-        <field name="name">payment.plan.tree</field>
+        <field name="name">payment.plan.list</field>
         <field name="model">payment.plan</field>
         <field name="arch" type="xml">            <list decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'">                <field name="name"/>
                 <field name="sale_id"/>

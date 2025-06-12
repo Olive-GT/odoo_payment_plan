@@ -249,16 +249,19 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
         # If payment_plan_line_id is already in the context, preload the existing reconciliations
         if 'payment_plan_line_id' in res:
             payment_plan_line = self.env['payment.plan.line'].browse(res['payment_plan_line_id'])
-            if payment_plan_line:
-                res['payment_plan_id'] = payment_plan_line.payment_plan_id.id
-        return res@api.model
+            if payment_plan_line:                res['payment_plan_id'] = payment_plan_line.payment_plan_id.id
+        return res
+        
+    @api.model
     def create(self, vals):
         """Override create to populate existing reconciliations as wizard lines"""
         res = super(PaymentPlanReconciliationWizard, self).create(vals)
         # After creating the wizard, load existing reconciliations as read-only lines
         if res.payment_plan_line_id:
             res._load_existing_reconciliations()
-        return res    @api.onchange('payment_plan_line_id')
+        return res
+        
+    @api.onchange('payment_plan_line_id')
     def _onchange_payment_plan_line_id(self):
         """When the payment plan line changes, load its existing reconciliations"""
         if self.payment_plan_line_id:
@@ -320,10 +323,10 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
                 'state': 'draft',
             })
             reconciliations.append(reconciliation.id)
-            
-            # Confirm the reconciliation
+              # Confirm the reconciliation
             reconciliation.action_confirm()
-          # Show result
+            
+        # Show result
         if reconciliations:
             return {
                 'name': _('Reconciliations'),
