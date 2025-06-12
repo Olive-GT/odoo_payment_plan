@@ -35,13 +35,12 @@
             </form>
         </field>
     </record>
-    
-    <!-- Payment Plan Reconciliation Tree View -->
-    <record id="payment_plan_reconciliation_view_tree" model="ir.ui.view">
-        <field name="name">payment.plan.reconciliation.tree</field>
+      <!-- Payment Plan Reconciliation List View -->
+    <record id="payment_plan_reconciliation_view_list" model="ir.ui.view">
+        <field name="name">payment.plan.reconciliation.list</field>
         <field name="model">payment.plan.reconciliation</field>
         <field name="arch" type="xml">
-            <tree decoration-info="state == 'draft'" decoration-success="state == 'confirmed'" decoration-muted="state == 'cancelled'">
+            <list decoration-info="state == 'draft'" decoration-success="state == 'confirmed'" decoration-muted="state == 'cancelled'">
                 <field name="payment_plan_id"/>
                 <field name="payment_plan_line_id"/>
                 <field name="date"/>
@@ -51,7 +50,7 @@
                 <field name="journal_id"/>
                 <field name="move_payment_reference"/>
                 <field name="state"/>
-            </tree>
+            </list>
         </field>
     </record>
     
@@ -79,12 +78,11 @@
             </search>
         </field>
     </record>
-    
-    <!-- Payment Plan Reconciliation Action Window -->
+      <!-- Payment Plan Reconciliation Action Window -->
     <record id="action_payment_plan_reconciliation" model="ir.actions.act_window">
         <field name="name">Payment Reconciliations</field>
         <field name="res_model">payment.plan.reconciliation</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="context">{'search_default_draft': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

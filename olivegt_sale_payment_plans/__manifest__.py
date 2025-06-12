@@ -13,12 +13,12 @@
     'category': 'Sales',
     'author': 'Olive GT',
     'website': '',
-    'license': 'LGPL-3',
-    'depends': [
+    'license': 'LGPL-3',    'depends': [
         'account',
         'base',
+        'mail',
         'sale_management',
-    ],    'data': [
+    ],'data': [
         'security/ir.model.access.csv',
         'data/payment_plan_sequence.xml',
         'data/payment_plan_cron.xml',

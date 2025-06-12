@@ -27,10 +27,9 @@
                             <field name="total_allocation" widget="monetary"/>
                             <field name="remaining_to_allocate" widget="monetary" class="oe_subtotal_footer_separator"/>
                         </group>
-                    </group>
-                    <group>
+                    </group>                    <group>
                         <field name="wizard_line_ids" nolabel="1">
-                            <tree editable="bottom">
+                            <list editable="bottom">
                                 <field name="move_line_id" domain="[('account_id.reconcile', '=', True), ('reconciled', '=', False), ('partner_id', '=', parent.partner_id)]"/>
                                 <field name="journal_id"/>
                                 <field name="date"/>
@@ -40,7 +39,7 @@
                                 <field name="amount" widget="monetary" sum="Total"/>
                                 <field name="wizard_id" invisible="1"/>
                                 <field name="currency_id" invisible="1"/>
-                            </tree>
+                            </list>
                         </field>
                     </group>
                     <div class="oe_right">

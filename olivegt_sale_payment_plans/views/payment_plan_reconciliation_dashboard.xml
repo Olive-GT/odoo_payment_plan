@@ -109,12 +109,11 @@
             </kanban>
         </field>
     </record>
-    
-    <!-- Payment Plan Reconciliation Dashboard Action -->
+      <!-- Payment Plan Reconciliation Dashboard Action -->
     <record id="action_payment_plan_reconciliation_dashboard" model="ir.actions.act_window">
         <field name="name">Payment Reconciliation Dashboard</field>
         <field name="res_model">payment.plan.line</field>
-        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="domain">[('payment_plan_id.state', '=', 'posted')]</field>
         <field name="context">{'search_default_unpaid': 1}</field>
         <field name="help" type="html">
