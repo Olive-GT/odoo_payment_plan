@@ -461,8 +461,7 @@ class PaymentPlanLine(models.Model):
                 daily_rate = (1.0 / 100.0) / 30.0
                 interest_amount = self.amount * days * daily_rate
         
-        elif self.payment_plan_id.interest_calculation_method == 'fixed':
-            # Fixed monthly amount method
+        elif self.payment_plan_id.interest_calculation_method == 'fixed':            # Fixed monthly amount method
             if self.payment_plan_id.fixed_interest_amount:
                 # Calculate how many months have passed (including partial months)
                 months_passed = days / 30.0  # Approximate months
@@ -473,10 +472,10 @@ class PaymentPlanLine(models.Model):
                     # Round up for complete months
                     complete_months = math.ceil(months_passed)
                     interest_amount = self.payment_plan_id.fixed_interest_amount * complete_months
-        
         return interest_amount
 
-    def action_view_reconciliations(self):        """View reconciliations for this line"""
+    def action_view_reconciliations(self):
+        """View reconciliations for this line"""
         self.ensure_one()
         return {
             'name': _('Reconciliations'),
