@@ -58,7 +58,7 @@
                                                 <span t-field="line.amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                             </td>
                                             <td class="text-center">
-                                                <span t-if="line.paid" class="badge bg-success">Paid</span>
+                                                <span class="badge bg-success" attrs="{'invisible': [('paid', '=', False)]}">Paid</span>
                                                 <span t-else="" class="badge bg-info">Pending</span>
                                             </td>
                                             <td><span t-field="line.payment_date"/></td>
@@ -75,7 +75,7 @@
                                 </tfoot>
                             </table>
                             
-                            <div t-if="o.notes" class="mt32">
+                            <div class="mt32" attrs="{'invisible': [('notes', '=', False)]}">
                                 <h3>Notes</h3>
                                 <p t-field="o.notes"/>
                             </div>
