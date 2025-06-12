@@ -76,8 +76,8 @@
                             <field name="line_ids" readonly="1">
                                 <tree
                                     decoration-success="is_fully_allocated"
-                                    decoration-info="allocated_amount &gt; 0 and allocated_amount &lt; amount"
-                                    decoration-danger="date &lt; context_today and unallocated_amount &gt; 0"
+                                    decoration-info="is_partially_allocated"
+                                    decoration-danger="is_overdue_and_unallocated"
                                 >
                                     <field name="date"/>
                                     <field name="name"/>
@@ -87,6 +87,8 @@
                                     <field name="running_balance" widget="monetary"/>
                                     <field name="currency_id" invisible="1"/>
                                     <field name="is_fully_allocated" invisible="1"/>
+                                    <field name="is_partially_allocated" invisible="1"/>
+                                    <field name="is_overdue_and_unallocated" invisible="1"/>
                                 </tree>
                             </field>
                         </page>

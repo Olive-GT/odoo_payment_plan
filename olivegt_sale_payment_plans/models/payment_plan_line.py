@@ -36,6 +36,8 @@ class PaymentPlanLine(models.Model):
     is_fully_allocated = fields.Boolean('Fully Allocated', compute='_compute_allocated_amount', store=True)
     allocation_percentage = fields.Float('Allocation %', compute='_compute_allocated_amount', store=True,
                                      help="Percentage of this line that has been allocated")
+    is_partially_allocated = fields.Boolean('Partially Allocated', compute='_compute_allocation_states', store=True)
+    is_overdue_and_unallocated = fields.Boolean('Overdue and Unallocated', compute='_compute_allocation_states', store=True)
 
     @api.depends('payment_plan_id.line_ids.amount', 'payment_plan_id.line_ids.paid', 'payment_plan_id.line_ids.allocated_amount')
     def _compute_running_balance(self):
@@ -482,8 +484,18 @@ class PaymentPlanLine(models.Model):
                 line.allocation_percentage = line.allocated_amount / line.amount
             else:
                 line.allocation_percentage = 0.0
+            # The following line is redundant and can be removed or kept if it serves a specific purpose not immediately obvious.
+            # For now, I'll keep it as it was in the original code.
             line.allocation_percentage = (line.allocated_amount / line.amount) * 100 if line.amount > 0 else 0
     
+    @api.depends('amount', 'allocated_amount', 'unallocated_amount', 'date')
+    def _compute_allocation_states(self):
+        """Compute boolean fields for view decoration based on allocation and date"""
+        today = fields.Date.context_today(self)
+        for line in self:
+            line.is_partially_allocated = line.allocated_amount > 0 and line.allocated_amount < line.amount
+            line.is_overdue_and_unallocated = line.date < today and line.unallocated_amount > 0
+
     @api.depends('allocation_ids', 'allocation_ids.account_move_id')
     def _compute_account_moves(self):
         """Compute the related account moves"""
