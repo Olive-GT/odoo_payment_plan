@@ -1,3 +1,4 @@
 from . import payment_plan
 from . import payment_plan_line
+from . import payment_plan_reconciliation
 from . import sale_order

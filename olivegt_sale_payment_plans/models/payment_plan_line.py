@@ -1,5 +1,6 @@
 ﻿from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
+from odoo.tools import float_compare, float_is_zero
 from datetime import datetime, date
 import logging
 import math
@@ -22,7 +23,39 @@ class PaymentPlanLine(models.Model):
     overdue_days = fields.Integer('Overdue Days', compute='_compute_overdue_days', store=True, readonly=False)
     interest_amount = fields.Monetary('Interest', compute='_compute_interest_amount', store=True, readonly=False)
     total_with_interest = fields.Monetary('Total with Interest', compute='_compute_total_with_interest', store=True)
-
+    
+    # New fields for reconciliation
+    reconciliation_ids = fields.One2many('payment.plan.reconciliation', 'payment_plan_line_id', string='Reconciliations')
+    allocation_count = fields.Integer(compute='_compute_allocation_count', string='Allocations')
+    allocated_amount = fields.Monetary(compute='_compute_allocated_amount', string='Allocated Amount', store=True)
+    allocation_state = fields.Selection([
+        ('none', 'Not Allocated'),
+        ('partial', 'Partially Allocated'),
+        ('full', 'Fully Allocated')
+    ], compute='_compute_allocation_state', string='Allocation Status', store=True)
+    
+    @api.depends('reconciliation_ids.state')
+    def _compute_allocation_count(self):
+        for line in self:
+            line.allocation_count = len(line.reconciliation_ids.filtered(lambda r: r.state == 'confirmed'))
+    
+    @api.depends('reconciliation_ids.amount', 'reconciliation_ids.state', 'amount')
+    def _compute_allocated_amount(self):
+        for line in self:
+            line.allocated_amount = sum(line.reconciliation_ids.filtered(
+                lambda r: r.state == 'confirmed').mapped('amount')
+            )
+    
+    @api.depends('allocated_amount', 'amount')
+    def _compute_allocation_state(self):
+        for line in self:
+            if float_is_zero(line.allocated_amount, precision_rounding=line.currency_id.rounding):
+                line.allocation_state = 'none'
+            elif float_compare(line.allocated_amount, line.amount, precision_rounding=line.currency_id.rounding) >= 0:
+                line.allocation_state = 'full'
+            else:
+                line.allocation_state = 'partial'
+    
     @api.depends('payment_plan_id.line_ids.amount', 'payment_plan_id.line_ids.paid')
     def _compute_running_balance(self):
         for line in self:
@@ -442,3 +475,53 @@ class PaymentPlanLine(models.Model):
                     interest_amount = self.payment_plan_id.fixed_interest_amount * complete_months
         
         return interest_amount
+
+    def action_view_reconciliations(self):
+        """View reconciliations for this line"""
+        self.ensure_one()
+        return {
+            'name': _('Reconciliations'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'payment.plan.reconciliation',
+            'view_mode': 'tree,form',
+            'domain': [('payment_plan_line_id', '=', self.id)],
+            'context': {
+                'default_payment_plan_id': self.payment_plan_id.id,
+                'default_payment_plan_line_id': self.id,
+            },
+        }
+    
+    def action_reconcile(self):
+        """Open reconciliation wizard"""
+        self.ensure_one()
+        
+        # Check if we have a wizard model first
+        model = 'payment.plan.reconciliation.wizard'
+        if model in self.env:
+            return {
+                'name': _('Reconcile Payment'),
+                'type': 'ir.actions.act_window',
+                'res_model': model,
+                'view_mode': 'form',
+                'target': 'new',
+                'context': {
+                    'default_payment_plan_id': self.payment_plan_id.id,
+                    'default_payment_plan_line_id': self.id,
+                    'default_partner_id': self.payment_plan_id.partner_id.id,
+                    'default_amount': self.amount - self.allocated_amount,
+                }
+            }
+        else:
+            # If wizard doesn't exist yet, create a simple form
+            return {
+                'name': _('Create Reconciliation'),
+                'type': 'ir.actions.act_window',
+                'res_model': 'payment.plan.reconciliation',
+                'view_mode': 'form',
+                'target': 'current',
+                'context': {
+                    'default_payment_plan_id': self.payment_plan_id.id,
+                    'default_payment_plan_line_id': self.id,
+                    'default_amount': self.amount - self.allocated_amount,
+                }
+            }

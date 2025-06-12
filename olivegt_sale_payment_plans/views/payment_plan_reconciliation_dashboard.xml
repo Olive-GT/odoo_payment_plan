@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Payment Plan Dashboard -->
+    <record id="view_payment_plan_dashboard_kanban" model="ir.ui.view">
+        <field name="name">payment.plan.line.dashboard.kanban</field>
+        <field name="model">payment.plan.line</field>
+        <field name="arch" type="xml">
+            <kanban create="0" class="o_kanban_dashboard">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="amount"/>
+                <field name="date"/>
+                <field name="paid"/>
+                <field name="allocation_state"/>
+                <field name="allocated_amount"/>
+                <field name="payment_plan_id"/>
+                <field name="currency_id"/>
+                <field name="allocation_count"/>
+                <field name="overdue_days"/>
+                
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_card oe_kanban_global_click
+                                           #{record.paid.raw_value ? 'oe_kanban_color_5' : ''}
+                                           #{record.allocation_state.raw_value == 'full' and !record.paid.raw_value ? 'oe_kanban_color_3' : ''}
+                                           #{record.allocation_state.raw_value == 'partial' ? 'oe_kanban_color_2' : ''}
+                                           #{record.allocation_state.raw_value == 'none' and record.overdue_days.raw_value > 0 ? 'oe_kanban_color_1' : ''}">
+                            <div class="o_kanban_card_header">
+                                <div class="o_kanban_card_header_title">
+                                    <div class="o_primary">
+                                        <strong>
+                                            <t t-esc="record.payment_plan_id.value"/> - 
+                                            <t t-esc="record.name.value || 'Payment'"/>
+                                        </strong>
+                                    </div>
+                                    <div class="o_secondary">
+                                        Due: <t t-esc="record.date.value"/>
+                                        <t t-if="record.overdue_days.raw_value > 0">
+                                            (<t t-esc="record.overdue_days.raw_value"/> days overdue)
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="container o_kanban_card_content">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <span>Amount:</span>
+                                        <span class="float-right">
+                                            <field name="amount" widget="monetary"/>
+                                        </span>
+                                    </div>
+                                    <div class="col-6">
+                                        <span>Allocated:</span>
+                                        <span class="float-right">
+                                            <field name="allocated_amount" widget="monetary"/>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <t t-if="record.paid.raw_value">
+                                            <span class="badge badge-success">
+                                                <i class="fa fa-check"/> Paid
+                                            </span>
+                                        </t>
+                                        <t t-elif="record.allocation_state.raw_value == 'full'">
+                                            <span class="badge badge-warning">
+                                                <i class="fa fa-money"/> Fully Allocated
+                                            </span>
+                                        </t>
+                                        <t t-elif="record.allocation_state.raw_value == 'partial'">
+                                            <span class="badge badge-info">
+                                                <i class="fa fa-money"/> Partially Allocated
+                                                (<t t-esc="record.allocation_count.value"/>)
+                                            </span>
+                                        </t>
+                                        <t t-elif="record.overdue_days.raw_value > 0">
+                                            <span class="badge badge-danger">
+                                                <i class="fa fa-exclamation-triangle"/> Overdue
+                                            </span>
+                                        </t>
+                                        <t t-else="">
+                                            <span class="badge badge-light">
+                                                <i class="fa fa-clock-o"/> Pending
+                                            </span>
+                                        </t>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-12">
+                                        <div class="o_kanban_button_box">
+                                            <button name="action_reconcile" type="object" 
+                                                    t-if="!record.paid.raw_value"
+                                                    class="btn btn-primary btn-sm">
+                                                <i class="fa fa-link"/> Reconcile
+                                            </button>
+                                            <button name="action_view_reconciliations" type="object"
+                                                    t-if="record.allocation_count.raw_value > 0"
+                                                    class="btn btn-outline-secondary btn-sm">
+                                                <i class="fa fa-money"/> <t t-esc="record.allocation_count.value"/> Allocations
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    
+    <!-- Payment Plan Reconciliation Dashboard Action -->
+    <record id="action_payment_plan_reconciliation_dashboard" model="ir.actions.act_window">
+        <field name="name">Payment Reconciliation Dashboard</field>
+        <field name="res_model">payment.plan.line</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="domain">[('payment_plan_id.state', '=', 'posted')]</field>
+        <field name="context">{'search_default_unpaid': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+                No payment plan lines found
+            </p>
+            <p>
+                Create payment plans to see them here.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Payment Plan Line Search View Update for Dashboard -->
+    <record id="payment_plan_line_view_search_dashboard" model="ir.ui.view">
+        <field name="name">payment.plan.line.search.dashboard</field>
+        <field name="model">payment.plan.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="payment_plan_id"/>
+                <separator/>
+                <filter string="Unpaid" name="unpaid" domain="[('paid', '=', False)]"/>
+                <filter string="Paid" name="paid" domain="[('paid', '=', True)]"/>
+                <separator/>
+                <filter string="Overdue" name="overdue" domain="[('overdue_days', '>', 0), ('paid', '=', False)]"/>
+                <filter string="Not Allocated" name="not_allocated" domain="[('allocation_state', '=', 'none')]"/>
+                <filter string="Partially Allocated" name="partially_allocated" domain="[('allocation_state', '=', 'partial')]"/>
+                <filter string="Fully Allocated" name="fully_allocated" domain="[('allocation_state', '=', 'full')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Payment Plan" name="group_by_plan" domain="[]" context="{'group_by': 'payment_plan_id'}"/>
+                    <filter string="Due Date" name="group_by_date" domain="[]" context="{'group_by': 'date:month'}"/>
+                    <filter string="Status" name="group_by_paid" domain="[]" context="{'group_by': 'paid'}"/>
+                    <filter string="Allocation Status" name="group_by_allocation" domain="[]" context="{'group_by': 'allocation_state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- Dashboard Menu Item -->
+    <menuitem id="menu_payment_plan_reconciliation_dashboard"
+        name="Reconciliation Dashboard"
+        parent="menu_payment_plan_root"
+        action="action_payment_plan_reconciliation_dashboard"
+        sequence="15"/>
+</odoo>
