@@ -17,8 +17,7 @@ class PaymentPlanReconciliationWizardLine(models.TransientModel):
     move_line_id = fields.Many2one(
         'account.move.line',
         string='Journal Item',
-        required=True,
-        # Domain is now handled in the view with filter_domain
+        required=True
     )
     
     is_readonly = fields.Boolean(
@@ -32,50 +31,61 @@ class PaymentPlanReconciliationWizardLine(models.TransientModel):
         string='Existing Reconciliation',
         help='Reference to the existing reconciliation record if this is a historical entry'
     )
+    
     move_id = fields.Many2one(
         related='move_line_id.move_id',
         string='Journal Entry',
         store=False
     )
+    
     date = fields.Date(
         related='move_id.date',
         string='Date',
         store=False
     )
+    
     journal_id = fields.Many2one(
         related='move_id.journal_id',
         string='Journal',
         store=False
     )
+    
     currency_id = fields.Many2one(
         related='wizard_id.currency_id',
         string='Currency',
         store=False
     )
+    
     payment_reference = fields.Char(
         related='move_id.payment_reference',
         string='Reference',
         store=False
     )
+    
     partner_id = fields.Many2one(
         related='move_id.partner_id',
         string='Partner',
         store=False
     )
+    
     amount = fields.Monetary(
         string='Amount',
         help='Amount to allocate from this journal item'
     )
+    
     available_amount = fields.Monetary(
         string='Available',
         compute='_compute_available',
         help='Available amount that can be allocated'
     )
+    
     original_amount = fields.Monetary(
         string='Original',
         compute='_compute_available',
         help='Original amount of the journal item'
-    )    @api.onchange('move_line_id')
+    )
+    
+    @api.onchange('move_line_id')
     @api.depends('move_line_id')
     def _compute_available(self):
         for line in self:
@@ -105,7 +115,9 @@ class PaymentPlanReconciliationWizardLine(models.TransientModel):
             
             # If no amount is set and it's not a readonly line, default to available amount
             if not line.amount and not line.is_readonly:
-                line.amount = min(line.available_amount, line.wizard_id.remaining_to_allocate)    @api.constrains('amount', 'is_readonly')
+                line.amount = min(line.available_amount, line.wizard_id.remaining_to_allocate)
+    
+    @api.constrains('amount', 'is_readonly')
     def _check_amount(self):
         for line in self:
             # Skip validation for readonly lines
@@ -130,6 +142,7 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
         required=True,
         ondelete='cascade'
     )
+    
     payment_plan_line_id = fields.Many2one(
         'payment.plan.line',
         string='Payment Plan Line',
@@ -137,54 +150,66 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
         domain="[('payment_plan_id', '=', payment_plan_id)]",
         ondelete='cascade'
     )
+    
     partner_id = fields.Many2one(
         'res.partner',
         string='Partner',
         related='payment_plan_id.partner_id',
         store=False
     )
+    
     currency_id = fields.Many2one(
         'res.currency',
         string='Currency',
         related='payment_plan_id.currency_id',
         store=False
     )
+    
     company_id = fields.Many2one(
         'res.company',
         string='Company',
         related='payment_plan_id.company_id',
         store=False
     )
+    
     date = fields.Date(
         string='Date',
         default=lambda self: fields.Date.context_today(self),
         required=True
     )
+    
     line_amount = fields.Monetary(
         string='Line Amount',
         related='payment_plan_line_id.amount',
         store=False
-    )    # We're using a different approach to show existing reconciliations
+    )
+    
+    # We're using a different approach to show existing reconciliations
+    
     allocated_amount = fields.Monetary(
         string='Already Allocated',
         related='payment_plan_line_id.allocated_amount',
         store=False
     )
+    
     remaining_amount = fields.Monetary(
         string='Remaining to Allocate',
         compute='_compute_remaining',
         store=True
     )
+    
     wizard_line_ids = fields.One2many(
         'payment.plan.reconciliation.wizard.line',
         'wizard_id',
         string='Allocations'
     )
+    
     total_allocation = fields.Monetary(
         string='Total Allocation',
         compute='_compute_total',
         store=True
     )
+    
     remaining_to_allocate = fields.Monetary(
         string='Remaining After This Allocation',
         compute='_compute_total',
@@ -197,13 +222,19 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
             if wizard.payment_plan_line_id:
                 wizard.remaining_amount = wizard.line_amount - wizard.allocated_amount
             else:
-                wizard.remaining_amount = 0.0    @api.depends('wizard_line_ids.amount', 'remaining_amount', 'wizard_line_ids.is_readonly')
+                wizard.remaining_amount = 0.0
+    
+    @api.depends('wizard_line_ids.amount', 'remaining_amount', 'wizard_line_ids.is_readonly')
     def _compute_total(self):
         for wizard in self:
             # Only sum new allocations (non-readonly lines) for the total
             non_readonly_lines = wizard.wizard_line_ids.filtered(lambda line: not line.is_readonly)
             wizard.total_allocation = sum(non_readonly_lines.mapped('amount'))
-            wizard.remaining_to_allocate = wizard.remaining_amount - wizard.total_allocation# The action_add_allocation_line method has been removed as it's redundant with the editable list view    def _get_existing_reconciliations(self):
+            wizard.remaining_to_allocate = wizard.remaining_amount - wizard.total_allocation
+    
+    # The action_add_allocation_line method has been removed as it's redundant with the editable list view
+    
+    def _get_existing_reconciliations(self):
         """Get existing reconciliations for the current payment plan line"""
         self.ensure_one()
         if self.payment_plan_line_id:
@@ -230,8 +261,10 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
                     'existing_reconciliation_id': rec.id,
                 })
         return res
-          # Removed the action_view_existing_reconciliations method as existing
+    
+    # Removed the action_view_existing_reconciliations method as existing
     # reconciliations are now displayed directly in the wizard table
+    
     def action_confirm(self):
         """Confirm the reconciliations"""
         self.ensure_one()
@@ -240,7 +273,8 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
         if float_compare(self.total_allocation, 0.0, 
                       precision_rounding=self.currency_id.rounding) <= 0:
             raise ValidationError(_("Nothing to allocate. Please add allocation lines."))
-          # Create reconciliations
+        
+        # Create reconciliations
         reconciliations = []
         for line in self.wizard_line_ids:
             # Skip readonly lines (existing reconciliations) and zero amounts
