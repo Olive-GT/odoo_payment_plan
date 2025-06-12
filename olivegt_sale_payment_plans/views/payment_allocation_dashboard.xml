@@ -72,12 +72,11 @@
                                     </h2>
                                     <i class="fa fa-check-circle fa-2x text-success mt-2" attrs="{'invisible': [('allocation_progress', '!=', 1.0)]}"></i>
                                 </div>
-                            </div>
-                              <field name="line_ids" readonly="1">
+                            </div>                              <field name="line_ids" readonly="1">
                                 <tree decoration-success="paid" 
                                       decoration-danger="overdue_days > 0 and not paid" 
                                       decoration-info="allocation_percentage > 0 and allocation_percentage &lt; 1 and not paid"
-                                      default_order="date asc" string="Payment Plan Lines">
+                                      default_order="date asc" string="Payment Plan Lines" model="payment.plan.line">
                                     <field name="date"/>
                                     <field name="name"/>
                                     <field name="amount" sum="Total Amount" widget="monetary"/>
@@ -106,10 +105,9 @@
                                 </tree>
                             </field>
                         </page>
-                        
-                        <page string="Allocation Details">                            <field name="line_ids" invisible="1"/>
+                          <page string="Allocation Details">                            <field name="line_ids" invisible="1"/>
                             <field name="line_ids.allocation_ids" readonly="1">
-                                <tree string="Allocations">
+                                <tree string="Allocations" model="payment.plan.line.allocation">
                                     <field name="payment_plan_line_id"/>
                                     <field name="account_move_id"/>
                                     <field name="account_move_line_id"/>
