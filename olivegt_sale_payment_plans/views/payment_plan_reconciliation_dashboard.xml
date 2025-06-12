@@ -151,11 +151,10 @@
             </search>
         </field>
     </record>
-    
-    <!-- Dashboard Menu Item -->
+      <!-- Dashboard Menu Item -->
     <menuitem id="menu_payment_plan_reconciliation_dashboard"
         name="Reconciliation Dashboard"
-        parent="menu_payment_plan_root"
+        parent="menu_payment_plans_root"
         action="action_payment_plan_reconciliation_dashboard"
         sequence="15"/>
 </odoo>

@@ -93,11 +93,10 @@
             </p>
         </field>
     </record>
-    
-    <!-- Menu item -->
+      <!-- Menu item -->
     <menuitem id="menu_payment_plan_reconciliation"
         name="Payment Reconciliations"
-        parent="menu_payment_plan_root"
+        parent="menu_payment_plans_root"
         action="action_payment_plan_reconciliation"
         sequence="20"/>
 
