@@ -268,7 +268,8 @@ class PaymentPlanLineAllocationWizardLine(models.TransientModel):
                 line.allocation_percentage = total_allocated / line.amount_total
             else:
                 line.allocation_percentage = 0
-      def _set_max_allocation(self):
+                
+    def _set_max_allocation(self):
         """Set the maximum allocation amount"""
         for line in self:
             line.amount_to_allocate = line.unallocated_amount
