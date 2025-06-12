@@ -78,10 +78,8 @@
                                     <field name="allocated_amount" widget="monetary"/>
                                     <field name="unallocated_amount" widget="monetary"/>
                                     <field name="running_balance" widget="monetary"/>
-                                    <field name="currency_id" invisible="1"/>
-                                    <field name="is_fully_allocated" invisible="1"/>
+                                    <field name="currency_id" invisible="1"/>                                    <field name="is_fully_allocated" invisible="1"/>
                                 </tree>
-                            </field>
                             </field>
                         </page>                        <page string="Allocation Details">                            <field name="allocation_ids" readonly="1">
                                 <tree string="Payment Plan Line Allocations">
@@ -89,11 +87,9 @@
                                     <field name="account_move_id"/>
                                     <field name="account_move_line_id"/>
                                     <field name="allocation_date"/>
-                                    <field name="amount" sum="Total Allocated" widget="monetary"/>
-                                    <field name="notes"/>
+                                    <field name="amount" sum="Total Allocated" widget="monetary"/>                                    <field name="notes"/>
                                     <field name="currency_id" invisible="1"/>
                                 </tree>
-                            </field>
                             </field>
                         </page>
                         
