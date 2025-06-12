@@ -36,7 +36,7 @@
                             <field name="partner_id" readonly="1"/>
                             <field name="date" readonly="1"/>
                             <field name="state" readonly="1"/>
-                            <field name="currency_id" readonly="1" invisible="1"/>
+                            <field name="currency_id" readonly="1" groups=""/>
                         </group>
                         <group>
                             <field name="total_amount" widget="monetary"/>
@@ -66,16 +66,32 @@
                                 </div>
                                 
                                 <div class="alert alert-success flex-shrink-0 text-center mb-0" style="min-width:180px;">
-                                    <h4 class="mb-0">Allocation Progress</h4>
-                                    <h2 class="mt-2 mb-0">
-                                        <field name="allocation_progress" widget="percentage" class="oe_inline"/>
+                                    <h4 class="mb-0">Allocation Progress</h4>                                    <h2 class="mt-2 mb-0">                                        <field name="allocation_progress" widget="percentage" class="oe_inline"/>
                                     </h2>
-                                    <i class="fa fa-check-circle fa-2x text-success mt-2" attrs="{'invisible': [('allocation_progress', '!=', 1.0)]}"></i>
+                                    <i class="fa fa-check-circle fa-2x text-success mt-2" decoration-display="allocation_progress == 1.0"/>
                                 </div>
-                            </div>                              <field name="line_ids" readonly="1" widget="one2many" views="olivegt_sale_payment_plans.view_payment_plan_line_tree,form"/>
-                        </page>                        
-                        <page string="Allocation Details">
-                            <field name="allocation_ids" readonly="1" widget="one2many" views="olivegt_sale_payment_plans.view_payment_plan_line_allocation_tree,form"/>
+                            </div>
+                            <field name="line_ids" readonly="1" widget="one2many">
+                                <tree>
+                                    <field name="date"/>
+                                    <field name="name"/>
+                                    <field name="amount" widget="monetary"/>
+                                    <field name="allocated_amount" widget="monetary"/>
+                                    <field name="unallocated_amount" widget="monetary"/>                                    <field name="running_balance" widget="monetary"/>
+                                    <field name="currency_id" groups=""/>
+                                </tree>
+                            </field>
+                        </page>                          <page string="Allocation Details">
+                            <field name="allocation_ids" readonly="1" widget="one2many">
+                                <tree>
+                                    <field name="payment_plan_line_id"/>
+                                    <field name="account_move_id"/>
+                                    <field name="account_move_line_id"/>
+                                    <field name="allocation_date"/>                                    <field name="amount" sum="Total Allocated" widget="monetary"/>
+                                    <field name="notes"/>
+                                    <field name="currency_id" groups=""/>
+                                </tree>
+                            </field>
                         </page>
                         
                         <page string="Allocation Statistics">

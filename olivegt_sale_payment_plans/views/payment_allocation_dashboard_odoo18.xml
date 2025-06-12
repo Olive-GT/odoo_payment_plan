@@ -36,7 +36,7 @@
                             <field name="partner_id" readonly="1"/>
                             <field name="date" readonly="1"/>
                             <field name="state" readonly="1"/>
-                            <field name="currency_id" readonly="1" invisible="1"/>
+                            <field name="currency_id" readonly="1" groups=""/>
                         </group>
                         <group>
                             <field name="total_amount" widget="monetary"/>
@@ -66,56 +66,36 @@
                                 </div>
                                 
                                 <div class="alert alert-success flex-shrink-0 text-center mb-0" style="min-width:180px;">
-                                    <h4 class="mb-0">Allocation Progress</h4>                                    <h2 class="mt-2 mb-0">
+                                    <h4 class="mb-0">Allocation Progress</h4>
+                                    <h2 class="mt-2 mb-0">
                                         <field name="allocation_progress" widget="percentage" class="oe_inline"/>
                                     </h2>
-                                    <i class="fa fa-check-circle fa-2x text-success mt-2" invisible="allocation_progress != 1.0"></i>
+                                    <i class="fa fa-check-circle fa-2x text-success mt-2" decoration-display="allocation_progress == 1.0"/>
                                 </div>
                             </div>
-                            
-                            <field name="line_ids" readonly="1">                                <list decoration-success="paid" 
-                                      decoration-danger="overdue_days > 0 and not paid" 
-                                      decoration-info="allocation_percentage > 0 and allocation_percentage &lt; 1 and not paid"
-                                      default_order="date asc">
+                            <field name="line_ids" readonly="1" widget="one2many">
+                                <tree>
                                     <field name="date"/>
                                     <field name="name"/>
-                                    <field name="amount" widget="monetary" sum="Total Amount"/>
-                                    <field name="allocated_amount" widget="monetary" sum="Total Allocated"/>
-                                    <field name="unallocated_amount" widget="monetary" sum="Total Unallocated"/>
-                                    <field name="allocation_percentage" widget="progressbar" string="Allocation Status"/>
-                                    <field name="allocation_count" string="# Alloc"/>
-                                    <field name="is_fully_allocated" widget="boolean_toggle" string="Full Alloc"/>
-                                    <field name="overdue_days" invisible="overdue_days == 0"/>
-                                    <field name="paid" widget="boolean_toggle"/>
-                                    <field name="payment_date"/>
-                                    <field name="payment_reference"/>
-                                    <field name="currency_id" invisible="1"/>
-                                    <button name="action_view_allocations" 
-                                            type="object" 
-                                            icon="fa-list-ul"
-                                            title="View Allocations" 
-                                            class="btn btn-link" 
-                                            invisible="allocation_count == 0"/>
-                                    <button name="%(olivegt_sale_payment_plans.action_payment_plan_line_allocation_wizard)d" 
-                                            type="action" 
-                                            icon="fa-money"                                            title="Create Allocation for this Line" 
-                                            class="btn btn-link" 
-                                            context="{'default_payment_plan_id': parent.id, 'preselect_line': id}"/>
-                                </list>
+                                    <field name="amount" widget="monetary"/>
+                                    <field name="allocated_amount" widget="monetary"/>
+                                    <field name="unallocated_amount" widget="monetary"/>                                    
+                                    <field name="running_balance" widget="monetary"/>
+                                    <field name="currency_id" groups=""/>
+                                </tree>
                             </field>
-                        </page>
-                        
+                        </page>                        
                         <page string="Allocation Details">
-                            <field name="line_ids" invisible="1"/>
-                            <field name="line_ids.allocation_ids" readonly="1">                                <list>
+                            <field name="allocation_ids" readonly="1" widget="one2many">
+                                <tree>
                                     <field name="payment_plan_line_id"/>
                                     <field name="account_move_id"/>
                                     <field name="account_move_line_id"/>
                                     <field name="allocation_date"/>
-                                    <field name="amount" widget="monetary" sum="Total Allocated"/>
+                                    <field name="amount" sum="Total Allocated" widget="monetary"/>
                                     <field name="notes"/>
-                                    <field name="currency_id" invisible="1"/>
-                                </list>
+                                    <field name="currency_id" groups=""/>
+                                </tree>
                             </field>
                         </page>
                         

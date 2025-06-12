@@ -28,12 +28,11 @@
                             <field name="allocation_date"/>
                             <field name="allocation_strategy" widget="radio"/>
                         </group>
-                        <group>
-                            <field name="account_move_id" options="{'no_create': True}"/>
+                        <group>                            <field name="account_move_id" options="{'no_create': True}"/>
                             <field name="account_move_line_id" options="{'no_create': True}"/>
                             <button name="apply_allocation_strategy" string="Apply Strategy" 
                                     type="object" class="btn-secondary oe_inline ml-2"
-                                    attrs="{'invisible': [('allocation_strategy', '=', 'manual')]}"/>
+                                    invisible="allocation_strategy == 'manual'"/>
                         </group>
                     </group>                    <div class="alert alert-warning" role="alert" invisible="allocation_line_ids">
                         <p>No unallocated payment lines found. All lines may be fully paid or allocated.</p>
