@@ -37,13 +37,12 @@
                     </group>                    <div class="alert alert-warning" role="alert" invisible="allocation_line_ids">
                         <p>No unallocated payment lines found. All lines may be fully paid or allocated.</p>
                     </div>
-                    
-                    <field name="allocation_line_ids">
+                      <field name="allocation_line_ids">
                         <list editable="bottom" create="0" delete="0" 
-                              decoration-success="amount_to_allocate > 0" 
-                              decoration-info="allocated_amount > 0 and allocated_amount < amount_total" 
+                              decoration-success="amount_to_allocate &gt; 0" 
+                              decoration-info="allocated_amount &gt; 0 and allocated_amount &lt; amount_total" 
                               decoration-muted="unallocated_amount == 0"
-                              decoration-danger="date &lt; context_today and unallocated_amount > 0">
+                              decoration-danger="date &lt; context_today and unallocated_amount &gt; 0">
                             <field name="wizard_id" invisible="1"/>
                             <field name="payment_plan_line_id" invisible="1"/>
                             <field name="currency_id" invisible="1"/>
@@ -57,8 +56,7 @@
                             <field name="allocation_visual" string="Allocation Status" widget="progressbar" 
                                    options="{'current_value': 'allocated_amount', 'max_value': 'amount_total', 'editable': false}"/>
                             <button name="_set_max_allocation" type="object" string="" 
-                                   title="Allocate Maximum" icon="fa-check-circle" class="btn-sm"/>
-                            <button name="_clear_allocation" type="object" string="" 
+                                   title="Allocate Maximum" icon="fa-check-circle" class="btn-sm"/>                            <button name="_clear_allocation" type="object" string="" 
                                    title="Clear Allocation" icon="fa-times-circle" class="btn-sm"
                                    invisible="amount_to_allocate == 0"/>
                         </list>
