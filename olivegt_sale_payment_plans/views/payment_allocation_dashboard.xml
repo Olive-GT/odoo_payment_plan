@@ -72,9 +72,8 @@
                                     <i t-if="allocation_progress == 1.0" class="fa fa-check-circle fa-2x text-success mt-2"></i>
                                 </div>
                             </div>                            <field name="line_ids" readonly="1">
-                                <tree decoration-success="paid" 
-                                      decoration-danger="overdue_days > 0 and not paid" 
-                                      decoration-info="allocation_percentage > 0 and allocation_percentage < 1 and not paid"
+                                <tree decoration-success="paid"                                      decoration-danger="overdue_days > 0 and not paid" 
+                                      decoration-info="allocation_percentage > 0 and allocation_percentage &lt; 1 and not paid"
                                       default_order="date asc">
                                     <field name="date"/>
                                     <field name="name"/>
