@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<odoo>    <!-- Payment Plan Line List View (embedded) -->
+<odoo>
+    <!-- Payment Plan Line List View (embedded) -->
     <record id="view_payment_plan_line_tree" model="ir.ui.view">
         <field name="name">payment.plan.line.list</field>
         <field name="model">payment.plan.line</field>
-        <field name="arch" type="xml">            <tree decoration-success="paid" 
+        <field name="type">list</field>
+        <field name="arch" type="xml"><tree decoration-success="paid" 
                   decoration-danger="overdue_days > 0 and not paid" 
                   decoration-info="allocation_percentage > 0 and allocation_percentage &lt; 1 and not paid"
                   default_order="date asc" string="Payment Plan Lines">
@@ -34,11 +36,14 @@
                         context="{'default_payment_plan_id': parent.id, 'preselect_line': id}"/>
             </tree>
         </field>
-    </record>    <!-- Payment Plan Line Allocation List View (embedded) -->
+    </record>
+    
+    <!-- Payment Plan Line Allocation List View (embedded) -->
     <record id="view_payment_plan_line_allocation_tree" model="ir.ui.view">
         <field name="name">payment.plan.line.allocation.list</field>
         <field name="model">payment.plan.line.allocation</field>
-        <field name="arch" type="xml">            <tree string="Allocations">
+        <field name="type">list</field>
+        <field name="arch" type="xml"><tree string="Allocations">
                 <field name="payment_plan_line_id"/>
                 <field name="account_move_id"/>
                 <field name="account_move_line_id"/>
