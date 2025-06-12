@@ -146,6 +146,11 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
         related='payment_plan_line_id.amount',
         store=False
     )
+    existing_reconciliation_ids = fields.Many2many(
+        'payment.plan.reconciliation',
+        string='Existing Reconciliations',
+        compute='_compute_existing_reconciliations'
+    )
     allocated_amount = fields.Monetary(
         string='Already Allocated',
         related='payment_plan_line_id.allocated_amount',
@@ -184,8 +189,18 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
     def _compute_total(self):
         for wizard in self:
             wizard.total_allocation = sum(wizard.wizard_line_ids.mapped('amount'))
-            wizard.remaining_to_allocate = wizard.remaining_amount - wizard.total_allocation
-      # The action_add_allocation_line method has been removed as it's redundant with the editable list view
+            wizard.remaining_to_allocate = wizard.remaining_amount - wizard.total_allocation    # The action_add_allocation_line method has been removed as it's redundant with the editable list view
+    
+    @api.depends('payment_plan_line_id')
+    def _compute_existing_reconciliations(self):
+        for wizard in self:
+            if wizard.payment_plan_line_id:
+                wizard.existing_reconciliation_ids = self.env['payment.plan.reconciliation'].search([
+                    ('payment_plan_line_id', '=', wizard.payment_plan_line_id.id),
+                    ('state', '=', 'confirmed')
+                ])
+            else:
+                wizard.existing_reconciliation_ids = False
     def action_confirm(self):
         """Confirm the reconciliations"""
         self.ensure_one()
