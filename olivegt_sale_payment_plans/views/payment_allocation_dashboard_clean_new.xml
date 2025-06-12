@@ -66,17 +66,15 @@
                                 </div>
                                 
                                 <div class="alert alert-success flex-shrink-0 text-center mb-0" style="min-width:180px;">
-                                    <h4 class="mb-0">Allocation Progress</h4>
-                                    <h2 class="mt-2 mb-0">
+                                    <h4 class="mb-0">Allocation Progress</h4>                                    <h2 class="mt-2 mb-0">
                                         <field name="allocation_progress" widget="percentage" class="oe_inline"/>
                                     </h2>
-                                    <i class="fa fa-check-circle fa-2x text-success mt-2" attrs="{'invisible': [('allocation_progress', '<', 1.0)]}"/>
+                                    <i class="fa fa-check-circle fa-2x text-success mt-2" attrs="{'invisible': [('allocation_progress', '&lt;', 1.0)]}"/>
                                 </div>
                             </div>
-                            
-                            <!-- Payment Plan Lines -->
+                              <!-- Payment Plan Lines -->
                             <field name="line_ids" readonly="1">
-                                <tree decoration-success="is_fully_allocated" decoration-info="allocated_amount > 0 and allocated_amount &lt; amount" decoration-danger="date &lt; context_today and unallocated_amount > 0">
+                                <tree decoration-success="is_fully_allocated" decoration-info="allocated_amount &gt; 0 and allocated_amount &lt; amount" decoration-danger="date &lt; context_today and unallocated_amount &gt; 0">
                                     <field name="date"/>
                                     <field name="name"/>
                                     <field name="amount" widget="monetary"/>
