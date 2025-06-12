@@ -1,5 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <!-- Define separate tree view for payment.plan.line -->
+    <record id="view_payment_plan_line_tree_embedded" model="ir.ui.view">
+        <field name="name">payment.plan.line.tree.embedded</field>
+        <field name="model">payment.plan.line</field>
+        <field name="arch" type="xml">
+            <tree string="Payment Plan Lines">
+                <field name="date"/>
+                <field name="name"/>
+                <field name="amount" widget="monetary"/>
+                <field name="allocated_amount" widget="monetary"/> 
+                <field name="unallocated_amount" widget="monetary"/>
+                <field name="running_balance" widget="monetary"/>
+                <field name="currency_id" groups=""/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Define separate form view for payment.plan.line -->
+    <record id="view_payment_plan_line_form_embedded" model="ir.ui.view">
+        <field name="name">payment.plan.line.form.embedded</field>
+        <field name="model">payment.plan.line</field>
+        <field name="arch" type="xml">
+            <form string="Payment Plan Line">
+                <group>
+                    <field name="name"/>
+                    <field name="date"/>
+                    <field name="amount" widget="monetary"/>
+                    <field name="allocated_amount" widget="monetary"/>
+                    <field name="currency_id" groups=""/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <!-- Define separate tree view for payment.plan.line.allocation -->
+    <record id="view_payment_plan_line_allocation_tree_embedded" model="ir.ui.view">
+        <field name="name">payment.plan.line.allocation.tree.embedded</field>
+        <field name="model">payment.plan.line.allocation</field>
+        <field name="arch" type="xml">
+            <tree string="Payment Plan Line Allocations">
+                <field name="payment_plan_line_id"/>
+                <field name="account_move_id"/>
+                <field name="account_move_line_id"/>
+                <field name="allocation_date"/>
+                <field name="amount" sum="Total Allocated" widget="monetary"/> 
+                <field name="notes"/>
+                <field name="currency_id" groups=""/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Define separate form view for payment.plan.line.allocation -->
+    <record id="view_payment_plan_line_allocation_form_embedded" model="ir.ui.view">
+        <field name="name">payment.plan.line.allocation.form.embedded</field>
+        <field name="model">payment.plan.line.allocation</field>
+        <field name="arch" type="xml">
+            <form string="Payment Plan Line Allocation">
+                <group>
+                    <field name="payment_plan_line_id"/>
+                    <field name="account_move_id"/>
+                    <field name="allocation_date"/>
+                    <field name="amount" widget="monetary"/>
+                    <field name="currency_id" groups=""/>
+                </group>
+            </form>
+        </field>
+    </record>
+
     <!-- Payment Plan Allocation Dashboard -->
     <record id="view_payment_plan_allocation_dashboard" model="ir.ui.view">
         <field name="name">payment.plan.allocation.dashboard</field>
@@ -66,51 +134,26 @@
                                 </div>
                                 
                                 <div class="alert alert-success flex-shrink-0 text-center mb-0" style="min-width:180px;">
-                                    <h4 class="mb-0">Allocation Progress</h4>                                    <h2 class="mt-2 mb-0">                                        <field name="allocation_progress" widget="percentage" class="oe_inline"/>
+                                    <h4 class="mb-0">Allocation Progress</h4>
+                                    <h2 class="mt-2 mb-0">
+                                        <field name="allocation_progress" widget="percentage" class="oe_inline"/>
                                     </h2>
                                     <i class="fa fa-check-circle fa-2x text-success mt-2" decoration-display="allocation_progress == 1.0"/>
                                 </div>
-                            </div>                            <field name="line_ids" readonly="1">
-                                <tree string="Payment Plan Lines" editable="bottom">
-                                    <field name="date"/>
-                                    <field name="name"/>
-                                    <field name="amount" widget="monetary"/>
-                                    <field name="allocated_amount" widget="monetary"/>
-                                    <field name="unallocated_amount" widget="monetary"/>
-                                    <field name="running_balance" widget="monetary"/>
-                                    <field name="currency_id" groups=""/>
-                                </tree>
-                                <form string="Payment Plan Line">
-                                    <group>
-                                        <field name="name"/>
-                                        <field name="date"/>
-                                        <field name="amount" widget="monetary"/>
-                                        <field name="allocated_amount" widget="monetary"/>
-                                        <field name="unallocated_amount" widget="monetary"/>
-                                        <field name="currency_id" groups=""/>
-                                    </group>
-                                </form>
+                            </div>
+                            
+                            <!-- Payment Plan Lines using the view defined above -->
+                            <field name="line_ids" readonly="1" view_mode="tree,form" views_switcher="bottom">
+                                <tree string="Payment Plan Lines" view_ref="olivegt_sale_payment_plans.view_payment_plan_line_tree_embedded"/>
+                                <form string="Payment Plan Line" view_ref="olivegt_sale_payment_plans.view_payment_plan_line_form_embedded"/>
                             </field>
-                        </page>                        <page string="Allocation Details">
-                            <field name="allocation_ids" readonly="1">
-                                <tree string="Payment Plan Line Allocations">
-                                    <field name="payment_plan_line_id"/>
-                                    <field name="account_move_id"/>
-                                    <field name="account_move_line_id"/>
-                                    <field name="allocation_date"/>
-                                    <field name="amount" sum="Total Allocated" widget="monetary"/>
-                                    <field name="notes"/>
-                                    <field name="currency_id" groups=""/>
-                                </tree>
-                                <form string="Payment Plan Line Allocation">
-                                    <group>
-                                        <field name="payment_plan_line_id"/>
-                                        <field name="account_move_id"/>
-                                        <field name="allocation_date"/>
-                                        <field name="amount" widget="monetary"/>
-                                        <field name="currency_id" groups=""/>
-                                    </group>
-                                </form>
+                        </page>
+                        
+                        <page string="Allocation Details">
+                            <!-- Payment Plan Line Allocations using the view defined above -->
+                            <field name="allocation_ids" readonly="1" view_mode="tree,form" views_switcher="bottom">
+                                <tree string="Payment Plan Line Allocations" view_ref="olivegt_sale_payment_plans.view_payment_plan_line_allocation_tree_embedded"/>
+                                <form string="Payment Plan Line Allocation" view_ref="olivegt_sale_payment_plans.view_payment_plan_line_allocation_form_embedded"/>
                             </field>
                         </page>
                         
@@ -129,7 +172,8 @@
                                     <field name="allocation_progress" widget="percentage"/>
                                 </group>
                             </group>
-                              <!-- Visual Progress Bar -->
+                            
+                            <!-- Visual Progress Bar -->
                             <div class="mt16">
                                 <h3>Allocation Progress</h3>
                                 <div class="progress">
