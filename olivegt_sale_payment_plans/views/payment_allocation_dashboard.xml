@@ -73,17 +73,16 @@
                                     <i class="fa fa-check-circle fa-2x text-success mt-2" attrs="{'invisible': [('allocation_progress', '!=', 1.0)]}"></i>
                                 </div>
                             </div>
-                            
-                            <field name="line_ids" readonly="1">
+                              <field name="line_ids" readonly="1">
                                 <tree decoration-success="paid" 
                                       decoration-danger="overdue_days > 0 and not paid" 
                                       decoration-info="allocation_percentage > 0 and allocation_percentage &lt; 1 and not paid"
-                                      default_order="date asc">
+                                      default_order="date asc" string="Payment Plan Lines">
                                     <field name="date"/>
                                     <field name="name"/>
-                                    <field name="amount" widget="monetary" sum="Total Amount"/>
-                                    <field name="allocated_amount" widget="monetary" sum="Total Allocated"/>
-                                    <field name="unallocated_amount" widget="monetary" sum="Total Unallocated"/>
+                                    <field name="amount" sum="Total Amount" widget="monetary"/>
+                                    <field name="allocated_amount" sum="Total Allocated" widget="monetary"/>
+                                    <field name="unallocated_amount" sum="Total Unallocated" widget="monetary"/>
                                     <field name="allocation_percentage" widget="progressbar" string="Allocation Status"/>
                                     <field name="allocation_count" string="# Alloc"/>
                                     <field name="is_fully_allocated" widget="boolean_toggle" string="Full Alloc"/>
@@ -108,15 +107,14 @@
                             </field>
                         </page>
                         
-                        <page string="Allocation Details">
-                            <field name="line_ids" invisible="1"/>
+                        <page string="Allocation Details">                            <field name="line_ids" invisible="1"/>
                             <field name="line_ids.allocation_ids" readonly="1">
-                                <tree>
+                                <tree string="Allocations">
                                     <field name="payment_plan_line_id"/>
                                     <field name="account_move_id"/>
                                     <field name="account_move_line_id"/>
                                     <field name="allocation_date"/>
-                                    <field name="amount" widget="monetary" sum="Total Allocated"/>
+                                    <field name="amount" sum="Total Allocated" widget="monetary"/>
                                     <field name="notes"/>
                                     <field name="currency_id" invisible="1"/>
                                 </tree>
