@@ -476,14 +476,13 @@ class PaymentPlanLine(models.Model):
         
         return interest_amount
 
-    def action_view_reconciliations(self):
-        """View reconciliations for this line"""
+    def action_view_reconciliations(self):        """View reconciliations for this line"""
         self.ensure_one()
         return {
             'name': _('Reconciliations'),
             'type': 'ir.actions.act_window',
             'res_model': 'payment.plan.reconciliation',
-            'view_mode': 'tree,form',
+            'view_mode': 'list,form',
             'domain': [('payment_plan_line_id', '=', self.id)],
             'context': {
                 'default_payment_plan_id': self.payment_plan_id.id,

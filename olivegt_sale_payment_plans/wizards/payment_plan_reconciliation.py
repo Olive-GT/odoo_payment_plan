@@ -230,14 +230,13 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
             
             # Confirm the reconciliation
             reconciliation.action_confirm()
-        
-        # Show result
+          # Show result
         if reconciliations:
             return {
                 'name': _('Reconciliations'),
                 'type': 'ir.actions.act_window',
                 'res_model': 'payment.plan.reconciliation',
-                'view_mode': 'tree,form',
+                'view_mode': 'list,form',
                 'domain': [('id', 'in', reconciliations)],
             }
         else:
