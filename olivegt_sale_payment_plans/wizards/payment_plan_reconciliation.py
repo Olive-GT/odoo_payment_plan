@@ -185,24 +185,7 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
         for wizard in self:
             wizard.total_allocation = sum(wizard.wizard_line_ids.mapped('amount'))
             wizard.remaining_to_allocate = wizard.remaining_amount - wizard.total_allocation
-    
-    def action_add_allocation_line(self):
-        """Add a new allocation line"""
-        self.ensure_one()
-        
-        # Create a new line
-        self.write({'wizard_line_ids': [(0, 0, {})]})
-        
-        # Return the same wizard
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'payment.plan.reconciliation.wizard',
-            'view_mode': 'form',
-            'res_id': self.id,
-            'target': 'new',
-            'context': self._context,
-        }
-    
+      # The action_add_allocation_line method has been removed as it's redundant with the editable list view
     def action_confirm(self):
         """Confirm the reconciliations"""
         self.ensure_one()

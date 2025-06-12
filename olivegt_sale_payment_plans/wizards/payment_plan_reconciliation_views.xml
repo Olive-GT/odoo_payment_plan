@@ -40,11 +40,7 @@
                                 <field name="wizard_id" invisible="1"/>
                                 <field name="currency_id" invisible="1"/>
                             </list>
-                        </field>
-                    </group>
-                    <div class="oe_right">
-                        <button name="action_add_allocation_line" string="Add Allocation Line" type="object" class="btn-primary"/>
-                    </div>
+                        </field>                    </group>
                 </sheet>
                 <footer>
                     <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
