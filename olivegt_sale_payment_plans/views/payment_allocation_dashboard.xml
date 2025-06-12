@@ -78,21 +78,19 @@
                                     <field name="allocated_amount" widget="monetary"/>
                                     <field name="unallocated_amount" widget="monetary"/>
                                     <field name="running_balance" widget="monetary"/>
-                                    <field name="currency_id" groups=""/>
-                                </tree>
-                                <form string="Payment Plan Line">
+                                    <field name="currency_id" invisible="1"/>
+                                </tree>                                <form string="Payment Plan Line">
                                     <group>
                                         <field name="name"/>
                                         <field name="date"/>
                                         <field name="amount" widget="monetary"/>
                                         <field name="allocated_amount" widget="monetary"/>
                                         <field name="unallocated_amount" widget="monetary"/>
-                                        <field name="currency_id" groups=""/>
+                                        <field name="currency_id" invisible="1"/>
                                     </group>
                                 </form>
                             </field>
-                        </page>                        <page string="Allocation Details">
-                            <field name="allocation_ids" readonly="1">
+                        </page>                        <page string="Allocation Details">                            <field name="allocation_ids" readonly="1">
                                 <tree string="Payment Plan Line Allocations">
                                     <field name="payment_plan_line_id"/>
                                     <field name="account_move_id"/>
@@ -100,7 +98,7 @@
                                     <field name="allocation_date"/>
                                     <field name="amount" sum="Total Allocated" widget="monetary"/>
                                     <field name="notes"/>
-                                    <field name="currency_id" groups=""/>
+                                    <field name="currency_id" invisible="1"/>
                                 </tree>
                                 <form string="Payment Plan Line Allocation">
                                     <group>
@@ -108,7 +106,7 @@
                                         <field name="account_move_id"/>
                                         <field name="allocation_date"/>
                                         <field name="amount" widget="monetary"/>
-                                        <field name="currency_id" groups=""/>
+                                        <field name="currency_id" invisible="1"/>
                                     </group>
                                 </form>
                             </field>
