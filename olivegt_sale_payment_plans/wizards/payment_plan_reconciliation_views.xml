@@ -27,19 +27,14 @@
                             <field name="total_allocation" widget="monetary"/>
                             <field name="remaining_to_allocate" widget="monetary" class="oe_subtotal_footer_separator"/>
                         </group>                    </group>
-                    
-                    <group string="Previous Allocations" attrs="{'invisible': [('existing_reconciliation_ids', '=', [])]}">
-                        <field name="existing_reconciliation_ids" nolabel="1" readonly="1">
-                            <list>
-                                <field name="move_line_id"/>
-                                <field name="journal_id"/>
-                                <field name="move_date"/>
-                                <field name="move_payment_reference"/>
-                                <field name="amount" widget="monetary" sum="Total"/>
-                                <field name="date"/>
-                                <field name="state"/>
-                            </list>
-                        </field>
+                      <group string="Previous Allocations" attrs="{'invisible': [('allocated_amount', '=', 0)]}">
+                        <field name="allocated_amount" invisible="1"/>
+                        <button 
+                            name="action_view_existing_reconciliations" 
+                            string="View Previous Allocations" 
+                            type="object" 
+                            class="btn-link oe_inline" 
+                            icon="fa-external-link"/>
                     </group>
                     
                     <group string="New Allocations">

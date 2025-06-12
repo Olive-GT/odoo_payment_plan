@@ -145,12 +145,7 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
         string='Line Amount',
         related='payment_plan_line_id.amount',
         store=False
-    )
-    existing_reconciliation_ids = fields.Many2many(
-        'payment.plan.reconciliation',
-        string='Existing Reconciliations',
-        compute='_compute_existing_reconciliations'
-    )
+    )    # We're using a different approach to show existing reconciliations
     allocated_amount = fields.Monetary(
         string='Already Allocated',
         related='payment_plan_line_id.allocated_amount',
@@ -189,18 +184,34 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
     def _compute_total(self):
         for wizard in self:
             wizard.total_allocation = sum(wizard.wizard_line_ids.mapped('amount'))
-            wizard.remaining_to_allocate = wizard.remaining_amount - wizard.total_allocation    # The action_add_allocation_line method has been removed as it's redundant with the editable list view
-    
-    @api.depends('payment_plan_line_id')
-    def _compute_existing_reconciliations(self):
-        for wizard in self:
-            if wizard.payment_plan_line_id:
-                wizard.existing_reconciliation_ids = self.env['payment.plan.reconciliation'].search([
-                    ('payment_plan_line_id', '=', wizard.payment_plan_line_id.id),
-                    ('state', '=', 'confirmed')
-                ])
-            else:
-                wizard.existing_reconciliation_ids = False
+            wizard.remaining_to_allocate = wizard.remaining_amount - wizard.total_allocation    # The action_add_allocation_line method has been removed as it's redundant with the editable list view    def get_existing_reconciliations(self):
+        """Get existing reconciliations for the current payment plan line"""
+        self.ensure_one()
+        if self.payment_plan_line_id:
+            return self.env['payment.plan.reconciliation'].search([
+                ('payment_plan_line_id', '=', self.payment_plan_line_id.id),
+                ('state', '=', 'confirmed')
+            ])
+        return self.env['payment.plan.reconciliation']
+        
+    def action_view_existing_reconciliations(self):
+        """Open a window with the existing reconciliations"""
+        self.ensure_one()
+        
+        reconciliations = self.get_existing_reconciliations()
+        if not reconciliations:
+            raise ValidationError(_("No existing reconciliations found for this payment plan line."))
+        
+        action = self.env["ir.actions.actions"]._for_xml_id("olivegt_sale_payment_plans.action_payment_plan_reconciliation")
+        action['domain'] = [('id', 'in', reconciliations.ids)]
+        action['context'] = {'create': False}
+        action['name'] = _('Previous Allocations for %s') % self.payment_plan_line_id.display_name
+        
+        if len(reconciliations) == 1:
+            action['views'] = [(self.env.ref('olivegt_sale_payment_plans.payment_plan_reconciliation_view_form').id, 'form')]
+            action['res_id'] = reconciliations.id
+            
+        return action
     def action_confirm(self):
         """Confirm the reconciliations"""
         self.ensure_one()
