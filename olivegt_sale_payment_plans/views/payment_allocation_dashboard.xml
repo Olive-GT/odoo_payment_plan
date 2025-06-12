@@ -70,24 +70,25 @@
                                     </h2>
                                     <i class="fa fa-check-circle fa-2x text-success mt-2" decoration-display="allocation_progress == 1.0"/>
                                 </div>
-                            </div>
-                            <field name="line_ids" readonly="1" widget="one2many">
+                            </div>                            <field name="line_ids" readonly="1">
                                 <tree>
                                     <field name="date"/>
                                     <field name="name"/>
                                     <field name="amount" widget="monetary"/>
                                     <field name="allocated_amount" widget="monetary"/>
-                                    <field name="unallocated_amount" widget="monetary"/>                                    <field name="running_balance" widget="monetary"/>
+                                    <field name="unallocated_amount" widget="monetary"/>
+                                    <field name="running_balance" widget="monetary"/>
                                     <field name="currency_id" groups=""/>
                                 </tree>
                             </field>
-                        </page>                          <page string="Allocation Details">
-                            <field name="allocation_ids" readonly="1" widget="one2many">
+                        </page>                        <page string="Allocation Details">
+                            <field name="allocation_ids" readonly="1">
                                 <tree>
                                     <field name="payment_plan_line_id"/>
                                     <field name="account_move_id"/>
                                     <field name="account_move_line_id"/>
-                                    <field name="allocation_date"/>                                    <field name="amount" sum="Total Allocated" widget="monetary"/>
+                                    <field name="allocation_date"/>
+                                    <field name="amount" sum="Total Allocated" widget="monetary"/>
                                     <field name="notes"/>
                                     <field name="currency_id" groups=""/>
                                 </tree>
@@ -109,12 +110,11 @@
                                     <field name="allocation_progress" widget="percentage"/>
                                 </group>
                             </group>
-                            
-                            <!-- Visual Progress Bar -->
+                              <!-- Visual Progress Bar -->
                             <div class="mt16">
                                 <h3>Allocation Progress</h3>
                                 <div class="progress">
-                                    <div class="progress-bar bg-success" role="progressbar" style="width: 0%" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar bg-success" role="progressbar" t-att-style="'width: ' + (allocation_progress * 100) + '%'" aria-valuemin="0" aria-valuemax="100">
                                         <field name="allocation_progress" widget="percentage"/>
                                     </div>
                                 </div>
