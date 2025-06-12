@@ -34,7 +34,7 @@
         'views/menu_payment_plan.xml',
         'views/payment_plan_line_allocation_views.xml',
         'views/payment_plan_line_allocation_embedded_view.xml',
-        'views/payment_allocation_dashboard.xml',
+        'views/payment_allocation_dashboard_clean_new.xml',  # Using a cleaner minimal version
         'views/sale_order_views.xml',
     ],
     'demo': [],
