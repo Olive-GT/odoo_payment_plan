@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_payment_plan_line_tree_for_dashboard" model="ir.ui.view">
+        <field name="name">payment.plan.line.tree.dashboard</field>
+        <field name="model">payment.plan.line</field>
+        <field name="arch" type="xml">
+            <tree decoration-success="is_fully_allocated"
+                  decoration-info="is_partially_allocated"
+                  decoration-danger="is_overdue_and_unallocated">
+                <field name="date"/>
+                <field name="name"/>
+                <field name="amount" widget="monetary"/>
+                <field name="allocated_amount" widget="monetary"/>
+                <field name="unallocated_amount" widget="monetary"/>
+                <field name="running_balance" widget="monetary"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="is_fully_allocated" invisible="1"/>
+                <field name="is_partially_allocated" invisible="1"/>
+                <field name="is_overdue_and_unallocated" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+</odoo>

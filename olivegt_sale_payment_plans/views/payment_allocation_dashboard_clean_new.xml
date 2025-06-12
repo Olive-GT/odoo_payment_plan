@@ -73,23 +73,8 @@
                                 </div>
                             </div>
                               <!-- Payment Plan Lines -->
-                            <field name="line_ids" readonly="1">
-                                <tree
-                                    decoration-success="is_fully_allocated"
-                                    decoration-info="is_partially_allocated"
-                                    decoration-danger="is_overdue_and_unallocated"
-                                >
-                                    <field name="date"/>
-                                    <field name="name"/>
-                                    <field name="amount" widget="monetary"/>
-                                    <field name="allocated_amount" widget="monetary"/>
-                                    <field name="unallocated_amount" widget="monetary"/>
-                                    <field name="running_balance" widget="monetary"/>
-                                    <field name="currency_id" invisible="1"/>
-                                    <field name="is_fully_allocated" invisible="1"/>
-                                    <field name="is_partially_allocated" invisible="1"/>
-                                    <field name="is_overdue_and_unallocated" invisible="1"/>
-                                </tree>
+                            <field name="line_ids" readonly="1" context="{'tree_view_ref': 'olivegt_sale_payment_plans.view_payment_plan_line_tree_for_dashboard'}">
+                                <!-- Tree view is now defined in a separate file and referenced in context -->
                             </field>
                         </page>
                         
