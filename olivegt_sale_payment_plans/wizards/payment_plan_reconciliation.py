@@ -13,11 +13,12 @@ class PaymentPlanReconciliationWizardLine(models.TransientModel):
         required=True,
         ondelete='cascade'
     )
+    
     move_line_id = fields.Many2one(
         'account.move.line',
         string='Journal Item',
         required=True,
-        domain=[('account_id.reconcile', '=', True), ('reconciled', '=', False)]
+        # Domain is now handled in the view with filter_domain
     )
     move_id = fields.Many2one(
         related='move_line_id.move_id',
