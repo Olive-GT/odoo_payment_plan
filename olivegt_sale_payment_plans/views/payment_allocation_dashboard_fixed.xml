@@ -74,8 +74,7 @@
                                 </div>
                             </div>
                             
-                            <field name="line_ids" readonly="1">
-                                <tree decoration-success="paid" 
+                            <field name="line_ids" readonly="1">                                <list decoration-success="paid" 
                                       decoration-danger="overdue_days > 0 and not paid" 
                                       decoration-info="allocation_percentage > 0 and allocation_percentage &lt; 1 and not paid"
                                       default_order="date asc">
@@ -110,8 +109,7 @@
                         
                         <page string="Allocation Details">
                             <field name="line_ids" invisible="1"/>
-                            <field name="line_ids.allocation_ids" readonly="1">
-                                <tree>
+                            <field name="line_ids.allocation_ids" readonly="1">                                <list>
                                     <field name="payment_plan_line_id"/>
                                     <field name="account_move_id"/>
                                     <field name="account_move_line_id"/>
@@ -119,7 +117,7 @@
                                     <field name="amount" widget="monetary" sum="Total Allocated"/>
                                     <field name="notes"/>
                                     <field name="currency_id" invisible="1"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                         

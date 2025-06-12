@@ -5,7 +5,7 @@
         <field name="name">payment.plan.line.list</field>
         <field name="model">payment.plan.line</field>
         <field name="type">list</field>
-        <field name="arch" type="xml"><tree decoration-success="paid" 
+        <field name="arch" type="xml"><list decoration-success="paid" 
                   decoration-danger="overdue_days > 0 and not paid" 
                   decoration-info="allocation_percentage > 0 and allocation_percentage &lt; 1 and not paid"
                   default_order="date asc" string="Payment Plan Lines">
@@ -34,7 +34,7 @@
                         title="Create Allocation for this Line" 
                         class="btn btn-link" 
                         context="{'default_payment_plan_id': parent.id, 'preselect_line': id}"/>
-            </tree>
+            </list>
         </field>
     </record>
     
@@ -43,7 +43,7 @@
         <field name="name">payment.plan.line.allocation.list</field>
         <field name="model">payment.plan.line.allocation</field>
         <field name="type">list</field>
-        <field name="arch" type="xml"><tree string="Allocations">
+        <field name="arch" type="xml"><list string="Allocations">
                 <field name="payment_plan_line_id"/>
                 <field name="account_move_id"/>
                 <field name="account_move_line_id"/>
@@ -51,7 +51,7 @@
                 <field name="amount" sum="Total Allocated" widget="monetary"/>
                 <field name="notes"/>
                 <field name="currency_id" invisible="1"/>
-            </tree>
+            </list>
         </field>
     </record>
 </odoo>
