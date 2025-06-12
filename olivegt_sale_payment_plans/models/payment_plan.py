@@ -42,7 +42,7 @@ class PaymentPlan(models.Model):
     partially_allocated_lines_count = fields.Integer(string='Partially Allocated Lines', compute='_compute_allocation_statistics')
     unallocated_lines_count = fields.Integer(string='Unallocated Lines', compute='_compute_allocation_statistics')
     allocation_progress = fields.Float(string='Allocation Progress', compute='_compute_allocation_statistics')
-    allocation_ids = fields.One2many(string='All Allocations', compute='_compute_all_allocations')
+    allocation_ids = fields.One2many('payment.plan.line.allocation', compute='_compute_all_allocations', string='All Allocations')
 
     @api.model_create_multi
     def create(self, vals_list):

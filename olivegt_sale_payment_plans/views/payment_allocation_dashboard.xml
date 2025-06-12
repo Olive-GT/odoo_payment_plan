@@ -73,12 +73,9 @@
                                     <i class="fa fa-check-circle fa-2x text-success mt-2" attrs="{'invisible': [('allocation_progress', '!=', 1.0)]}"></i>
                                 </div>
                             </div>                              <field name="line_ids" readonly="1" widget="one2many" views="olivegt_sale_payment_plans.view_payment_plan_line_tree,form"/>
-                                </tree>
-                            </field>
-                        </page>                        <page string="Allocation Details">
+                        </page>                        
+                        <page string="Allocation Details">
                             <field name="allocation_ids" readonly="1" widget="one2many" views="olivegt_sale_payment_plans.view_payment_plan_line_allocation_tree,form"/>
-                                </tree>
-                            </field>
                         </page>
                         
                         <page string="Allocation Statistics">
