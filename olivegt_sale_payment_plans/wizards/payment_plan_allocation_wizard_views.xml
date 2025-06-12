@@ -54,9 +54,8 @@
                             <field name="amount_to_allocate" widget="monetary" sum="Total to Allocate"/>
                             <field name="allocation_percentage" string="% of Line" widget="percentage"/>
                             <field name="allocation_visual" string="Allocation Status" widget="progressbar" 
-                                   options="{'current_value': 'allocated_amount', 'max_value': 'amount_total', 'editable': false}"/>
-                            <button name="_set_max_allocation" type="object" string="" 
-                                   title="Allocate Maximum" icon="fa-check-circle" class="btn-sm"/>                            <button name="_clear_allocation" type="object" string="" 
+                                   options="{'current_value': 'allocated_amount', 'max_value': 'amount_total', 'editable': false}"/>                            <button name="set_max_allocation" type="object" string="" 
+                                   title="Allocate Maximum" icon="fa-check-circle" class="btn-sm"/>                            <button name="clear_allocation" type="object" string="" 
                                    title="Clear Allocation" icon="fa-times-circle" class="btn-sm"
                                    invisible="amount_to_allocate == 0"/>
                         </list>
