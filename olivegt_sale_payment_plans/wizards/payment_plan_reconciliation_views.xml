@@ -28,7 +28,12 @@
                             <field name="remaining_to_allocate" widget="monetary" class="oe_subtotal_footer_separator"/>
                         </group>
                     </group>                    <group string="Allocations">
-                        <field name="allocated_amount" invisible="1"/>                        <field name="wizard_line_ids" nolabel="1">                            <list editable="bottom" decoration-muted="is_readonly" decoration-info="is_readonly">
+                        <field name="allocated_amount" invisible="1"/>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_add_line" type="object" string="Add Line" class="oe_highlight" icon="fa-plus"/>
+                        </div>
+                        <field name="wizard_line_ids" nolabel="1">
+                            <list editable="bottom" decoration-muted="is_readonly" decoration-info="is_readonly">
                                 <field name="move_line_id" domain="[('account_id.reconcile', '=', True), ('partner_id', '=', parent.partner_id)]" readonly="is_readonly" required="1"/>
                                 <field name="journal_id" readonly="is_readonly"/>
                                 <field name="date" readonly="is_readonly"/>

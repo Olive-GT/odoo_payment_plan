@@ -314,29 +314,47 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
                 'is_readonly': True,
                 'existing_reconciliation_id': rec.id,
             }
-            self.env['payment.plan.reconciliation.wizard.line'].create(vals)
-      # Removed the action_view_existing_reconciliations method as existing
+            self.env['payment.plan.reconciliation.wizard.line'].create(vals)    # Removed the action_view_existing_reconciliations method as existing
     # reconciliations are now displayed directly in the wizard table
+    
+    def action_add_line(self):
+        """Add a new empty line to the wizard"""
+        self.ensure_one()
+        self.env['payment.plan.reconciliation.wizard.line'].create({
+            'wizard_id': self.id,
+            'is_readonly': False,
+        })
+        return {
+            'name': _('Reconcile Payment Plan Line'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'payment.plan.reconciliation.wizard',
+            'view_mode': 'form',
+            'res_id': self.id,
+            'target': 'new',            'context': self.env.context,
+        }
     
     def action_confirm(self):
         """Confirm the reconciliations"""
         self.ensure_one()
         
+        # Filter out lines without move_line_id to avoid validation errors
+        valid_lines = self.wizard_line_ids.filtered(lambda l: l.move_line_id and not l.is_readonly)
+        
         # Validation
-        if float_compare(self.total_allocation, 0.0, 
+        if float_compare(sum(valid_lines.mapped('amount')), 0.0, 
                       precision_rounding=self.currency_id.rounding) <= 0:
             raise ValidationError(_("Nothing to allocate. Please add allocation lines."))
         
         # Create reconciliations
         reconciliations = []
-        for line in self.wizard_line_ids:
-            # Skip readonly lines (existing reconciliations) and zero amounts
-            if line.is_readonly or float_is_zero(line.amount, precision_rounding=self.currency_id.rounding):
+        for line in valid_lines:
+            # Skip zero amounts
+            if float_is_zero(line.amount, precision_rounding=self.currency_id.rounding):
                 continue
                 
-            # Validate required fields
+            # Additional validation - should never happen with the filtering above
             if not line.move_line_id:
-                raise ValidationError(_("Journal Item is required for all allocation lines."))
+                continue
                 
             reconciliation = self.env['payment.plan.reconciliation'].create({
                 'payment_plan_id': self.payment_plan_id.id,
@@ -348,16 +366,27 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
             })
             reconciliations.append(reconciliation.id)
               # Confirm the reconciliation
-            reconciliation.action_confirm()
-            
-        # Show result
-        if reconciliations:
-            return {
-                'name': _('Reconciliations'),
-                'type': 'ir.actions.act_window',
-                'res_model': 'payment.plan.reconciliation',
-                'view_mode': 'list,form',
-                'domain': [('id', 'in', reconciliations)],
-            }
-        else:
-            return {'type': 'ir.actions.act_window_close'}
+            reconciliation.action_confirm()            # Reload the wizard for further allocations if there's still an amount to allocate
+            if float_compare(self.line_amount, self.allocated_amount + sum(r.amount for r in self.env['payment.plan.reconciliation'].browse(reconciliations)), 
+                         precision_rounding=self.currency_id.rounding) > 0:
+                # There's still an amount to allocate, return the wizard view to continue
+                return {
+                    'name': _('Reconcile Payment Plan Line'),
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'payment.plan.reconciliation.wizard',
+                    'view_mode': 'form',
+                    'res_id': self.id,
+                    'target': 'new',
+                    'context': self.env.context,
+                }
+            # Show result if fully allocated or no more allocations needed
+            elif reconciliations:
+                return {
+                    'name': _('Reconciliations'),
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'payment.plan.reconciliation',
+                    'view_mode': 'list,form',
+                    'domain': [('id', 'in', reconciliations)],
+                }
+            else:
+                return {'type': 'ir.actions.act_window_close'}
