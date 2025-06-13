@@ -328,19 +328,24 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
             'name': _('Reconcile Payment Plan Line'),
             'type': 'ir.actions.act_window',
             'res_model': 'payment.plan.reconciliation.wizard',
-            'view_mode': 'form',
-            'res_id': self.id,
-            'target': 'new',            'context': self.env.context,
+            'view_mode': 'form',            'res_id': self.id,
+            'target': 'new',
+            'context': self.env.context,
         }
     
     def action_confirm(self):
         """Confirm the reconciliations"""
         self.ensure_one()
         
-        # Filter out lines without move_line_id to avoid validation errors
+        # First, identify and delete any empty lines that might cause validation errors
+        empty_lines = self.wizard_line_ids.filtered(lambda l: not l.move_line_id and not l.is_readonly)
+        if empty_lines:
+            empty_lines.unlink()
+        
+        # Get remaining valid lines
         valid_lines = self.wizard_line_ids.filtered(lambda l: l.move_line_id and not l.is_readonly)
         
-        # Validation
+        # Validation 
         if float_compare(sum(valid_lines.mapped('amount')), 0.0, 
                       precision_rounding=self.currency_id.rounding) <= 0:
             raise ValidationError(_("Nothing to allocate. Please add allocation lines."))
@@ -348,13 +353,6 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
         # Create reconciliations
         reconciliations = []
         for line in valid_lines:
-            # Skip zero amounts
-            if float_is_zero(line.amount, precision_rounding=self.currency_id.rounding):
-                continue
-                
-            # Additional validation - should never happen with the filtering above
-            if not line.move_line_id:
-                continue
                 
             reconciliation = self.env['payment.plan.reconciliation'].create({
                 'payment_plan_id': self.payment_plan_id.id,
@@ -369,13 +367,22 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
             reconciliation.action_confirm()            # Reload the wizard for further allocations if there's still an amount to allocate
             if float_compare(self.line_amount, self.allocated_amount + sum(r.amount for r in self.env['payment.plan.reconciliation'].browse(reconciliations)), 
                          precision_rounding=self.currency_id.rounding) > 0:
-                # There's still an amount to allocate, return the wizard view to continue
+                # There's still an amount to allocate, create a fresh wizard with same data
+                new_wizard = self.env['payment.plan.reconciliation.wizard'].create({
+                    'payment_plan_id': self.payment_plan_id.id,
+                    'payment_plan_line_id': self.payment_plan_line_id.id,
+                    'date': self.date,
+                })
+                # Load existing reconciliations in the new wizard
+                new_wizard._load_existing_reconciliations()
+                
+                # Return the new wizard view
                 return {
                     'name': _('Reconcile Payment Plan Line'),
                     'type': 'ir.actions.act_window',
                     'res_model': 'payment.plan.reconciliation.wizard',
                     'view_mode': 'form',
-                    'res_id': self.id,
+                    'res_id': new_wizard.id,
                     'target': 'new',
                     'context': self.env.context,
                 }
