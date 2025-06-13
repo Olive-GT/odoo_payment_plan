@@ -18,13 +18,13 @@ class PaymentPlanReconciliation(models.Model):
         string='Journal Item',
         required=True, 
         ondelete='restrict',
-        domain=[
-            ('account_id.reconcile', '=', True),
-            ('reconciled', '=', False),
-            ('payment_plan_available_amount', '>', 0),
-            ('account_id.account_type', 'in', ['asset_cash', 'asset_liquidity']),
-            ('debit', '>', 0.0)
-        ],
+        domain="[('id', 'in', available_move_line_ids)]",
+    )
+    
+    available_move_line_ids = fields.Many2many(
+        'account.move.line',
+        compute='_compute_available_move_lines',
+        string='Available Journal Items'
     )
     payment_plan_id = fields.Many2one(
         related='payment_plan_line_id.payment_plan_id',
@@ -221,3 +221,27 @@ class PaymentPlanReconciliation(models.Model):
         if not vals.get('date'):
             vals['date'] = fields.Date.context_today(self)
         return super().create(vals)
+    
+    @api.depends('partner_id')
+    def _compute_available_move_lines(self):
+        """Compute available move lines for reconciliation based on filters"""
+        for rec in self:
+            domain = [
+                ('account_id.reconcile', '=', True),
+                ('reconciled', '=', False),
+                ('account_id.account_type', 'in', ['asset_cash', 'asset_liquidity']),
+                ('debit', '>', 0.0)
+            ]
+            
+            # Add partner filter if we have one
+            if rec.partner_id:
+                domain.append(('partner_id', '=', rec.partner_id.id))
+                
+            # Get move lines that match the domain
+            move_lines = self.env['account.move.line'].search(domain)
+            rec.available_move_line_ids = move_lines
+            
+    @api.onchange('partner_id')
+    def _onchange_partner_id(self):
+        """When partner changes, recompute available move lines"""
+        self._compute_available_move_lines()
