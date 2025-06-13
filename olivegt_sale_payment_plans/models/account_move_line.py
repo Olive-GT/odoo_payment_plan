@@ -7,7 +7,7 @@ class AccountMoveLine(models.Model):
     payment_plan_available_amount = fields.Monetary(
         string='Available for Payment Plans',
         compute='_compute_payment_plan_available_amount',
-        store=False
+        store=True
     )
     
     def _compute_payment_plan_available_amount(self):
