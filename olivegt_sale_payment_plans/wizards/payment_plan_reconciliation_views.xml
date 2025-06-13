@@ -36,6 +36,7 @@
                                 <field name="move_line_id" domain="[
                                     ('account_id.reconcile', '=', True), 
                                     ('partner_id', '=', parent.partner_id),
+                                    ('payment_plan_available_amount', '>', 0),
                                     ('debit', '>', 0.0)
                                 ]" readonly="is_readonly" placeholder="Select a journal item"/>
                                 <field name="journal_id" readonly="is_readonly"/>
