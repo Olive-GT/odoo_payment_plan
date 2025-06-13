@@ -112,11 +112,23 @@ class PaymentPlanReconciliationWizardLine(models.TransientModel):
             
             # Available amount is original minus allocated
             line.available_amount = line.original_amount - allocated
-            
-            # If no amount is set and it's not a readonly line, default to available amount
+              # If no amount is set and it's not a readonly line, default to available amount
             if not line.amount and not line.is_readonly:
                 line.amount = min(line.available_amount, line.wizard_id.remaining_to_allocate)
     
+    @api.onchange('move_line_id')
+    def _onchange_move_line_id(self):
+        """When move_line_id changes, automatically set the amount to the lesser of 
+        available amount or remaining to allocate"""
+        for line in self:
+            if line.move_line_id and not line.is_readonly:
+                # First ensure available amount is calculated
+                line._compute_available()
+                
+                # Then set the amount based on availability and remaining to allocate
+                if line.wizard_id and line.available_amount > 0:
+                    line.amount = min(line.available_amount, line.wizard_id.remaining_to_allocate)
+
     @api.constrains('amount', 'is_readonly')
     def _check_amount(self):
         for line in self:
@@ -303,8 +315,7 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
                 'existing_reconciliation_id': rec.id,
             }
             self.env['payment.plan.reconciliation.wizard.line'].create(vals)
-    
-    # Removed the action_view_existing_reconciliations method as existing
+      # Removed the action_view_existing_reconciliations method as existing
     # reconciliations are now displayed directly in the wizard table
     
     def action_confirm(self):
@@ -322,6 +333,10 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
             # Skip readonly lines (existing reconciliations) and zero amounts
             if line.is_readonly or float_is_zero(line.amount, precision_rounding=self.currency_id.rounding):
                 continue
+                
+            # Validate required fields
+            if not line.move_line_id:
+                raise ValidationError(_("Journal Item is required for all allocation lines."))
                 
             reconciliation = self.env['payment.plan.reconciliation'].create({
                 'payment_plan_id': self.payment_plan_id.id,
