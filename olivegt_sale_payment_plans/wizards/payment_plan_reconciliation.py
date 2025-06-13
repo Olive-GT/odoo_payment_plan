@@ -106,10 +106,9 @@ class PaymentPlanReconciliationWizardLine(models.TransientModel):
                 ('move_line_id', '=', line.move_line_id.id),
                 ('state', '=', 'confirmed')
             ])
-            allocated = sum(reconciliations.mapped('amount'))
-              # Available amount is original minus allocated
+            allocated = sum(reconciliations.mapped('amount'))            # Available amount is original minus allocated
             line.available_amount = line.original_amount - allocated
-              # If no amount is set and it's not a readonly line, default to available amount
+            # If no amount is set and it's not a readonly line, default to available amount
             if not line.amount and not line.is_readonly:
                 line.amount = min(line.available_amount, line.wizard_id.remaining_to_allocate)
     
@@ -120,8 +119,7 @@ class PaymentPlanReconciliationWizardLine(models.TransientModel):
         for line in self:
             if line.move_line_id and not line.is_readonly:
                 # First ensure available amount is calculated
-                line._compute_available()
-                  # Then set the amount based on availability and remaining to allocate
+                line._compute_available()                # Then set the amount based on availability and remaining to allocate
                 if line.wizard_id and line.available_amount > 0:
                     line.amount = min(line.available_amount, line.wizard_id.remaining_to_allocate)
     
