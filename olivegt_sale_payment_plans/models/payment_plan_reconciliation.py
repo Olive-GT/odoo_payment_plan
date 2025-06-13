@@ -7,7 +7,6 @@ class PaymentPlanReconciliation(models.Model):
     _name = 'payment.plan.reconciliation'
     _description = 'Payment Plan Reconciliation'
     _order = 'id desc'
-    
     payment_plan_line_id = fields.Many2one(
         'payment.plan.line', 
         string='Payment Plan Line',
@@ -19,7 +18,13 @@ class PaymentPlanReconciliation(models.Model):
         string='Journal Item',
         required=True, 
         ondelete='restrict',
-        domain=[('account_id.reconcile', '=', True), ('reconciled', '=', False)]
+        domain=[
+            ('account_id.reconcile', '=', True),
+            ('reconciled', '=', False),
+            ('payment_plan_available_amount', '>', 0),
+            ('account_id.account_type', 'in', ['asset_cash', 'asset_liquidity']),
+            ('debit', '>', 0.0)
+        ],
     )
     payment_plan_id = fields.Many2one(
         related='payment_plan_line_id.payment_plan_id',
@@ -66,7 +71,7 @@ class PaymentPlanReconciliation(models.Model):
         store=True
     )
     move_payment_reference = fields.Char(
-        related='move_id.payment_reference',
+        related='move_id.ref',
         string='Payment Reference',
         store=True
     )
