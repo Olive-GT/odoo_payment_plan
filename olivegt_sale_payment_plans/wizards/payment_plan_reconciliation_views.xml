@@ -33,7 +33,12 @@
                             <button name="action_add_line" type="object" string="Add Line" class="oe_highlight" icon="fa-plus"/>
                         </div>
                         <field name="wizard_line_ids" nolabel="1">                            <list editable="bottom" decoration-muted="is_readonly" decoration-info="is_readonly" decoration-danger="not move_line_id">
-                                <field name="move_line_id" domain="[('account_id.reconcile', '=', True), ('partner_id', '=', parent.partner_id)]" readonly="is_readonly" placeholder="Select a journal item"/>
+                                <field name="move_line_id" domain="[
+                                    ('account_id.reconcile', '=', True), 
+                                    ('partner_id', '=', parent.partner_id),
+                                    ('account_id.account_type', 'in', ['asset_cash', 'asset_liquidity']),
+                                    ('debit', '>', 0.0)
+                                ]" readonly="is_readonly" placeholder="Select a journal item"/>
                                 <field name="journal_id" readonly="is_readonly"/>
                                 <field name="date" readonly="is_readonly"/>
                                 <field name="payment_reference" readonly="is_readonly"/>

@@ -406,3 +406,18 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
                 }
             else:
                 return {'type': 'ir.actions.act_window_close'}
+    
+    @api.onchange('partner_id')
+    def _onchange_partner_filter_move_lines(self):
+        """Filter move lines based on criteria when partner changes"""
+        return {
+            'domain': {
+                'move_line_id': [
+                    ('account_id.reconcile', '=', True),
+                    ('reconciled', '=', False),
+                    ('account_id.account_type', 'in', ['asset_cash', 'asset_liquidity']),
+                    ('debit', '>', 0.0),
+                    ('partner_id', '=', self.partner_id.id if self.partner_id else False),
+                ]
+            }
+        }
