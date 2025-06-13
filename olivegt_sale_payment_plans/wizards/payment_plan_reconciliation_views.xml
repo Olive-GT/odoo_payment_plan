@@ -27,11 +27,10 @@
                             <field name="total_allocation" widget="monetary"/>
                             <field name="remaining_to_allocate" widget="monetary" class="oe_subtotal_footer_separator"/>
                         </group>
-                    </group>
-                    <group string="Allocations">
+                    </group>                    <group string="Allocations">
                         <field name="allocated_amount" invisible="1"/>                        <field name="wizard_line_ids" nolabel="1">
                             <list editable="bottom" decoration-muted="is_readonly" decoration-info="is_readonly">
-                                <field name="move_line_id" domain="[('account_id.reconcile', '=', True), ('partner_id', '=', parent.partner_id), ('payment_plan_available_amount', '>', 0)]" readonly="is_readonly"/>
+                                <field name="move_line_id" domain="[('account_id.reconcile', '=', True), ('partner_id', '=', parent.partner_id)]" readonly="is_readonly"/>
                                 <field name="journal_id" readonly="is_readonly"/>
                                 <field name="date" readonly="is_readonly"/>
                                 <field name="payment_reference" readonly="is_readonly"/>
