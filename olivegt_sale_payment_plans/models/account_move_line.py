@@ -10,6 +10,7 @@ class AccountMoveLine(models.Model):
         store=True
     )
     
+    @api.depends('balance', 'account_id.reconcile')
     def _compute_payment_plan_available_amount(self):
         """
         Calculate the amount available for allocation to payment plans
