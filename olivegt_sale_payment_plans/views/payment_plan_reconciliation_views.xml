@@ -23,7 +23,12 @@
                             <field name="currency_id" invisible="1"/>
                         </group>
                         <group>
-                            <field name="move_line_id" domain="[('account_id.reconcile', '=', True), ('reconciled', '=', False)]" readonly="state != 'draft'"/>
+                            <field name="move_line_id" domain="[
+                                ('account_id.reconcile', '=', True), 
+                                ('reconciled', '=', False), 
+                                ('account_id.account_type', 'in', ['asset_cash', 'asset_liquidity']),
+                                ('debit', '>', 0.0)
+                            ]" readonly="state != 'draft'"/>
                             <field name="move_id" readonly="1"/>
                             <field name="journal_id" readonly="1"/>
                             <field name="move_date" readonly="1"/>
