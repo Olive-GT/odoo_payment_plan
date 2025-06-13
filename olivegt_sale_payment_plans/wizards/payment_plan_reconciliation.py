@@ -107,8 +107,7 @@ class PaymentPlanReconciliationWizardLine(models.TransientModel):
                 ('state', '=', 'confirmed')
             ])
             allocated = sum(reconciliations.mapped('amount'))
-            
-            # Available amount is original minus allocated
+              # Available amount is original minus allocated
             line.available_amount = line.original_amount - allocated
               # If no amount is set and it's not a readonly line, default to available amount
             if not line.amount and not line.is_readonly:
@@ -122,10 +121,11 @@ class PaymentPlanReconciliationWizardLine(models.TransientModel):
             if line.move_line_id and not line.is_readonly:
                 # First ensure available amount is calculated
                 line._compute_available()
-                
-                # Then set the amount based on availability and remaining to allocate
+                  # Then set the amount based on availability and remaining to allocate
                 if line.wizard_id and line.available_amount > 0:
-                    line.amount = min(line.available_amount, line.wizard_id.remaining_to_allocate)    @api.model
+                    line.amount = min(line.available_amount, line.wizard_id.remaining_to_allocate)
+    
+    @api.model
     def create(self, values):
         """Override create to make move_line_id validation conditional"""
         # If we're creating an empty line (for UI purposes), don't validate move_line_id
