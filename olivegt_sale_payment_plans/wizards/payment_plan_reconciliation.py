@@ -9,15 +9,13 @@ class PaymentPlanReconciliationWizardLine(models.TransientModel):
     
     wizard_id = fields.Many2one(
         'payment.plan.reconciliation.wizard',
-        string='Wizard',
-        required=True,
+        string='Wizard',        required=True,
         ondelete='cascade'
     )
     
     move_line_id = fields.Many2one(
         'account.move.line',
-        string='Journal Item',
-        required=True
+        string='Journal Item'
     )
     
     is_readonly = fields.Boolean(
@@ -127,13 +125,20 @@ class PaymentPlanReconciliationWizardLine(models.TransientModel):
                 
                 # Then set the amount based on availability and remaining to allocate
                 if line.wizard_id and line.available_amount > 0:
-                    line.amount = min(line.available_amount, line.wizard_id.remaining_to_allocate)
+                    line.amount = min(line.available_amount, line.wizard_id.remaining_to_allocate)    @api.model
+    def create(self, values):
+        """Override create to make move_line_id validation conditional"""
+        # If we're creating an empty line (for UI purposes), don't validate move_line_id
+        if 'move_line_id' not in values and not values.get('is_readonly', False):
+            # This is an empty line being created, likely through the "Add Line" button
+            return super(PaymentPlanReconciliationWizardLine, self).create(values)
+        return super(PaymentPlanReconciliationWizardLine, self).create(values)
 
     @api.constrains('amount', 'is_readonly')
     def _check_amount(self):
         for line in self:
-            # Skip validation for readonly lines
-            if line.is_readonly:
+            # Skip validation for readonly lines or lines without move_line_id
+            if line.is_readonly or not line.move_line_id:
                 continue
                 
             if float_compare(line.amount, 0.0, precision_rounding=line.currency_id.rounding) < 0:
@@ -310,45 +315,49 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
             vals = {
                 'wizard_id': self.id,
                 'move_line_id': rec.move_line_id.id,
-                'amount': rec.amount,
-                'is_readonly': True,
+                'amount': rec.amount,                'is_readonly': True,
                 'existing_reconciliation_id': rec.id,
             }
-            self.env['payment.plan.reconciliation.wizard.line'].create(vals)    # Removed the action_view_existing_reconciliations method as existing
+            self.env['payment.plan.reconciliation.wizard.line'].create(vals)
+      # Removed the action_view_existing_reconciliations method as existing
     # reconciliations are now displayed directly in the wizard table
     
     def action_add_line(self):
         """Add a new empty line to the wizard"""
         self.ensure_one()
-        self.env['payment.plan.reconciliation.wizard.line'].create({
-            'wizard_id': self.id,
-            'is_readonly': False,
+        
+        # Create a new wizard with the same data but with a fresh state
+        new_wizard = self.env['payment.plan.reconciliation.wizard'].create({
+            'payment_plan_id': self.payment_plan_id.id,
+            'payment_plan_line_id': self.payment_plan_line_id.id,
+            'date': self.date,
         })
+        
+        # Load existing reconciliations
+        new_wizard._load_existing_reconciliations()
+        
+        # Return the new wizard view
         return {
             'name': _('Reconcile Payment Plan Line'),
             'type': 'ir.actions.act_window',
             'res_model': 'payment.plan.reconciliation.wizard',
-            'view_mode': 'form',            'res_id': self.id,
-            'target': 'new',
-            'context': self.env.context,
+            'view_mode': 'form',
+            'res_id': new_wizard.id,
+            'target': 'new',            'context': {'default_payment_plan_id': self.payment_plan_id.id,
+                        'default_payment_plan_line_id': self.payment_plan_line_id.id},
         }
     
     def action_confirm(self):
         """Confirm the reconciliations"""
         self.ensure_one()
         
-        # First, identify and delete any empty lines that might cause validation errors
-        empty_lines = self.wizard_line_ids.filtered(lambda l: not l.move_line_id and not l.is_readonly)
-        if empty_lines:
-            empty_lines.unlink()
-        
-        # Get remaining valid lines
+        # Only process lines that have a move_line_id set
         valid_lines = self.wizard_line_ids.filtered(lambda l: l.move_line_id and not l.is_readonly)
         
         # Validation 
-        if float_compare(sum(valid_lines.mapped('amount')), 0.0, 
+        if not valid_lines or float_compare(sum(valid_lines.mapped('amount')), 0.0, 
                       precision_rounding=self.currency_id.rounding) <= 0:
-            raise ValidationError(_("Nothing to allocate. Please add allocation lines."))
+            raise ValidationError(_("Nothing to allocate. Please add allocation lines and select journal items."))
         
         # Create reconciliations
         reconciliations = []
