@@ -5,7 +5,7 @@
     <record id="view_payment_plan_list_simple" model="ir.ui.view">
         <field name="name">payment.plan.list</field>
         <field name="model">payment.plan</field>
-        <field name="arch" type="xml">            <list decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'">
+        <field name="arch" type="xml">            <list>
                 <field name="name"/>
                 <field name="sale_id"/>
                 <field name="partner_id"/>

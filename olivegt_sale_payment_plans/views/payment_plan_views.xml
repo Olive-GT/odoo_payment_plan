@@ -37,12 +37,7 @@
                             <field name="currency_id" invisible="1"/>
                         </group>
                     </group>
-                    <notebook>                        <page string="Payment Schedule">                            <field name="line_ids">
-                                <list editable="bottom" 
-                                       decoration-danger="overdue_days > 0 and not paid" 
-                                       decoration-success="paid" 
-                                       decoration-info="allocation_state == 'partial' and not paid" 
-                                       decoration-warning="allocation_state == 'full' and not paid">                                    
+                    <notebook>                        <page string="Payment Schedule">                            <field name="line_ids">                                <list editable="bottom">                                    
                                     <field name="date"/>
                                     <field name="name"/>
                                     <field name="amount" widget="monetary"/>
@@ -91,7 +86,7 @@
     <record id="payment_plan_view_tree" model="ir.ui.view">
         <field name="name">payment.plan.list</field>
         <field name="model">payment.plan</field>
-        <field name="arch" type="xml">            <list decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'">                <field name="name"/>
+        <field name="arch" type="xml">            <list>                <field name="name"/>
                 <field name="sale_id"/>
                 <field name="partner_id"/>
                 <field name="date"/>
