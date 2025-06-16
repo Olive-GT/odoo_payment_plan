@@ -50,10 +50,7 @@
                 <field name="move_id"/>
                 <field name="move_date"/>
                 <field name="journal_id"/>
-                <field name="move_payment_reference"/>                <field name="state"
-                       decoration-info="state == 'draft'"
-                       decoration-success="state == 'confirmed'"
-                       decoration-muted="state == 'cancelled'"/>
+                <field name="move_payment_reference"/>                <field name="state" widget="badge"/>
             </list>
         </field>
     </record>

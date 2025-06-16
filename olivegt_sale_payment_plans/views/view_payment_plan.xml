@@ -91,12 +91,7 @@
                                                 <field name="total_with_interest" widget="monetary"/>
                                                 <field name="paid"/>
                                                 <field name="payment_date" invisible="not paid"/>
-                                                <field name="payment_reference" invisible="not paid"/>
-                                                <field name="state" widget="badge" 
-                                                   decoration-success="state == 'paid'" 
-                                                   decoration-info="state == 'allocated'" 
-                                                   decoration-warning="state == 'partial'"
-                                                   decoration-danger="state == 'overdue'"/>
+                                                <field name="payment_reference" invisible="not paid"/>                                                <field name="state" widget="badge"/>
                                             </group>
                                         </group>
                                         <notebook invisible="allocation_count == 0">
@@ -128,7 +123,7 @@
     </record>    <!-- Payment Plan List View -->
     <record id="view_payment_plan_list" model="ir.ui.view">
         <field name="name">payment.plan.list</field>
-        <field name="model">payment.plan</field>        <field name="arch" type="xml">            <list decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'canceled'" decoration-danger="total_interest > 0">                <field name="name"/>
+        <field name="model">payment.plan</field>        <field name="arch" type="xml">            <list>                <field name="name"/>
                 <field name="sale_id"/>
                 <field name="partner_id"/>
                 <field name="date"/>

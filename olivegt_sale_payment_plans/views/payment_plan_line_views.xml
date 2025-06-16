@@ -50,9 +50,8 @@
                             <field name="date"/>
                             <field name="name"/>
                             <field name="amount" widget="monetary"/>
-                            <field name="allocated_amount" widget="monetary"/>                            <field name="allocation_state" widget="badge"/>
-                            <field name="running_balance" widget="monetary"/>
-                            <field name="currency_id" column_invisible="1"/>
+                            <field name="allocated_amount" widget="monetary"/>                            <field name="allocation_state" widget="badge"/>                            <field name="running_balance" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
                         </group>                        <group>                        <field name="overdue_days"/>
                             <field name="interest_amount" widget="monetary"/>
                             <field name="total_with_interest" widget="monetary"/>
