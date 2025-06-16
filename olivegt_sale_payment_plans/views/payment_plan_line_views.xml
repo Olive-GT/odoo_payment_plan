@@ -2,7 +2,10 @@
 <odoo>
 <data>    <!-- Payment Plan Line List View -->    <record id="view_payment_plan_line_list" model="ir.ui.view">
         <field name="name">payment.plan.line.list</field>
-        <field name="model">payment.plan.line</field>        <field name="arch" type="xml">            <list editable="bottom">                <field name="date"/>
+        <field name="model">payment.plan.line</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="date"/>
                 <field name="name"/>
                 <field name="amount" widget="monetary"/>
                 <field name="allocated_amount" widget="monetary"/>
@@ -12,33 +15,39 @@
                 <field name="total_with_interest" widget="monetary"/>
                 <field name="paid"/>
                 <field name="payment_date"/>
-                <field name="payment_reference"/>                <field name="currency_id" column_invisible="True"/>
-                <field name="allocation_count" string="# Alloc."/>
-                  <!-- Allocation info -->
+                <field name="payment_reference"/>
+                <field name="currency_id" column_invisible="True"/>
+                
                 <field name="allocation_state" string="Allocation Status" widget="badge" 
                        decoration-success="allocation_state == 'full'" 
                        decoration-info="allocation_state == 'partial'" 
                        decoration-danger="allocation_state == 'none'"/>
-                         <!-- Allocations summary -->
-                <field name="allocation_summary" string="Allocations" widget="html"/>
-                       
-                <!-- Button to show detailed allocations in a popup -->
-                <button name="action_show_allocations" type="object" 
-                       string="" title="Ver Detalles de Asignaciones" icon="fa-list" 
-                       column_invisible="allocation_count == 0"/><field name="state" widget="badge" 
+                
+                <field name="allocation_summary" string="Allocations"/>
+                
+                <field name="state" widget="badge" 
                        decoration-success="state == 'paid'" 
                        decoration-info="state == 'allocated'" 
                        decoration-warning="state == 'partial'"
-                       decoration-danger="state == 'overdue'"/><button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment" 
-                        class="btn btn-primary btn-sm" 
-                        column_invisible="paid"/>
-                <button name="action_view_reconciliations" type="object" string="View Allocations" title="View Allocations" 
-                        class="btn btn-secondary btn-sm" 
-                        column_invisible="allocation_count == 0"/>
-                <button name="mark_as_paid" type="object" string="" title="Mark as Paid" icon="fa-check" column_invisible="paid" class="btn-sm"/>
-                <button name="mark_as_unpaid" type="object" string="" title="Mark as Unpaid" icon="fa-times" column_invisible="not paid" class="btn-sm"/>
-                <button name="update_overdue_status" type="object" string="" title="Update Status" icon="fa-refresh" column_invisible="paid" class="btn-sm"/>
-            </list></field>
+                       decoration-danger="state == 'overdue'"/>
+                
+                <button name="action_show_allocations" type="object" 
+                       string="" title="Ver Detalles de Asignaciones" icon="fa-list" 
+                       column_invisible="allocation_count == 0"/>
+                
+                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment" 
+                        class="btn btn-primary btn-sm" column_invisible="paid"/>
+                
+                <button name="mark_as_paid" type="object" string="" title="Mark as Paid" 
+                        icon="fa-check" column_invisible="paid" class="btn-sm"/>
+                
+                <button name="mark_as_unpaid" type="object" string="" title="Mark as Unpaid" 
+                        icon="fa-times" column_invisible="not paid" class="btn-sm"/>
+                
+                <button name="update_overdue_status" type="object" string="" title="Update Status" 
+                        icon="fa-refresh" column_invisible="paid" class="btn-sm"/>
+            </list>
+        </field>
     </record>
       <!-- Payment Plan Line Form View -->
     <record id="view_payment_plan_line_form" model="ir.ui.view">
