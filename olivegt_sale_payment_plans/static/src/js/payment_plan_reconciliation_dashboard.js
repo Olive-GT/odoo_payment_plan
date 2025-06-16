@@ -1,44 +1,75 @@
-odoo.define('olivegt_sale_payment_plans.payment_plan_reconciliation_dashboard', function (require) {
-"use strict";
+/** @odoo-module **/
 
-var KanbanRecord = require('web.KanbanRecord');
-var KanbanView = require('web.KanbanView');
-var viewRegistry = require('web.view_registry');
-var KanbanController = require('web.KanbanController');
-var KanbanRenderer = require('web.KanbanRenderer');
-var KanbanModel = require('web.KanbanModel');
+import { KanbanController } from "@web/views/kanban/kanban_controller";
+import { KanbanRenderer } from "@web/views/kanban/kanban_renderer";
+import { KanbanRecord } from "@web/views/kanban/kanban_record";
+import { KanbanArchParser } from "@web/views/kanban/kanban_arch_parser";
+import { kanbanView } from "@web/views/kanban/kanban_view";
+import { registry } from "@web/core/registry";
+import { useService } from "@web/core/utils/hooks";
 
-var PaymentPlanDashboardController = KanbanController.extend({
-    custom_events: _.extend({}, KanbanController.prototype.custom_events, {
-        kanban_click_custom_reconcile: '_onKanbanClickCustomReconcile',
-    }),
+/**
+ * Custom Kanban Controller for Payment Plan Dashboard
+ */
+class PaymentPlanDashboardKanbanController extends KanbanController {
+    setup() {
+        super.setup();
+        this.orm = useService("orm");
+        this.action = useService("action");
+    }
 
     /**
-     * Handler when clicking on a card in the kanban view.
-     *
-     * @private
-     * @param {OdooEvent} ev
+     * Handle clicking a card and open the reconciliation view directly
+     * @param {Object} record - The record that was clicked
      */
-    _onKanbanClickCustomReconcile: function (ev) {
-        var record = this.model.get(ev.target.recordData.id, {raw: true});
-        this._rpc({
-            model: 'payment.plan.line',
-            method: 'action_reconcile',
-            args: [[record.res_id]],
-        }).then((result) => {
-            this.do_action(result);
-        });
-    },
-});
+    async onRecordClick(record) {
+        // Override default click behavior
+        if (record) {
+            const result = await this.orm.call(
+                "payment.plan.line",
+                "action_reconcile",
+                [[record.resId]]
+            );
+            this.action.doAction(result);
+        }
+    }
+}
 
-var PaymentPlanDashboardView = KanbanView.extend({
-    config: _.extend({}, KanbanView.prototype.config, {
-        Controller: PaymentPlanDashboardController,
-    }),
-});
+/**
+ * Custom Kanban Record to override click behavior
+ */
+class PaymentPlanDashboardKanbanRecord extends KanbanRecord {
+    onClick(ev) {
+        // Prevent default kanban record click handling
+        ev.preventDefault();
+        ev.stopPropagation();
+        this.props.onRecordClick(this.props.record);
+    }
+}
 
-viewRegistry.add('payment_plan_dashboard_kanban', PaymentPlanDashboardView);
+/**
+ * Custom Renderer to use our custom KanbanRecord
+ */
+class PaymentPlanDashboardKanbanRenderer extends KanbanRenderer {
+    static components = {
+        ...KanbanRenderer.components,
+        KanbanRecord: PaymentPlanDashboardKanbanRecord,
+    };
 
-return PaymentPlanDashboardView;
+    setup() {
+        super.setup();
+    }
+}
+
+/**
+ * Register our custom kanban view
+ */
+export const paymentPlanDashboardKanbanView = {
+    ...kanbanView,
+    Controller: PaymentPlanDashboardKanbanController,
+    Renderer: PaymentPlanDashboardKanbanRenderer,
+};
+
+registry.category("views").add("payment_plan_dashboard_kanban", paymentPlanDashboardKanbanView);
 
 });
