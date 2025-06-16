@@ -28,16 +28,16 @@
             <form>                <header>
                     <button name="action_reconcile" type="object" string="Reconcile" 
                             class="btn-primary" 
-                            invisible="paid == True"/>
+                            invisible="paid"/>
                     <button name="action_view_reconciliations" type="object" string="View Allocations" 
                             class="btn-secondary" 
                             invisible="allocation_count == 0"/>
                     <button name="mark_as_paid" type="object" string="Mark as Paid" 
-                            invisible="paid == True"/>
+                            invisible="paid"/>
                     <button name="mark_as_unpaid" type="object" string="Mark as Unpaid" 
-                            invisible="paid == False"/>
+                            invisible="not paid"/>
                     <button name="update_overdue_status" type="object" string="Update Status" 
-                            invisible="paid == True"/>
+                            invisible="paid"/>
                 </header>
                 <sheet>                    <div class="oe_button_box" name="button_box">
                         <button name="action_view_reconciliations" type="object" class="oe_stat_button" icon="fa-money"
@@ -59,8 +59,7 @@
                             <field name="paid"/>
                             <field name="payment_date"/>
                             <field name="payment_reference"/>
-                        </group>
-                    </group>            <notebook invisible="allocation_count == 0">
+                        </group>                    </group>            <notebook invisible="allocation_count == 0">
                         <page string="Allocations">
                             <field name="reconciliation_ids"/>
                         </page>

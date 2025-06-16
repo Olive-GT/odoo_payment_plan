@@ -4,24 +4,23 @@
     <record id="view_payment_plan_dashboard_list" model="ir.ui.view">
         <field name="name">payment.plan.line.dashboard.list</field>
         <field name="model">payment.plan.line</field>
-        <field name="arch" type="xml">
-            <list create="0" delete="0"
-                  decoration-danger="overdue_days &gt; 0 and allocation_state == 'none'"
-                  decoration-warning="allocation_state == 'partial'"
-                  decoration-success="paid or allocation_state == 'full'">
+        <field name="arch" type="xml">            <list create="0" delete="0"
+                  decoration-danger="record.overdue_days.value &gt; 0 and record.allocation_state.value == 'none'"
+                  decoration-warning="record.allocation_state.value == 'partial'"
+                  decoration-success="record.paid.value or record.allocation_state.value == 'full'">
                 <field name="payment_plan_id"/>
                 <field name="name"/>
-                <field name="date"/>                <field name="amount" sum="Total Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>                <field name="overdue_days" column_invisible="overdue_days == 0"/>
-                <field name="interest_amount" sum="Total Interest" widget="monetary" options="{'currency_field': 'currency_id'}" column_invisible="interest_amount == 0"/>
-                <field name="total_with_interest" sum="Total + Interest" widget="monetary" options="{'currency_field': 'currency_id'}" column_invisible="interest_amount == 0"/>
+                <field name="date"/>                <field name="amount" sum="Total Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>                <field name="overdue_days" column_invisible="record.overdue_days.value == 0"/>
+                <field name="interest_amount" sum="Total Interest" widget="monetary" options="{'currency_field': 'currency_id'}" column_invisible="record.interest_amount.value == 0"/>
+                <field name="total_with_interest" sum="Total + Interest" widget="monetary" options="{'currency_field': 'currency_id'}" column_invisible="record.interest_amount.value == 0"/>
                 <field name="allocated_amount" sum="Total Allocated" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                 <field name="allocation_state"/>
                 <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px'}"/>                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment"
                         class="btn btn-primary btn-sm"
-                        column_invisible="paid == True or allocation_state == 'full'"/>
+                        column_invisible="record.paid.value == True or record.allocation_state.value == 'full'"/>
                 <button name="action_view_reconciliations" type="object" string="View Details" title="View Allocation Details"
                         class="btn btn-secondary btn-sm"
-                        column_invisible="allocation_count == 0"/>
+                        column_invisible="record.allocation_count.value == 0"/>
                 <field name="state" widget="badge"
                        decoration-success="state == 'paid'"
                        decoration-info="state == 'allocated'"
