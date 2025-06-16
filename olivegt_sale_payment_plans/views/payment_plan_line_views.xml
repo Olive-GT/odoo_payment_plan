@@ -7,10 +7,9 @@
                 <field name="amount" widget="monetary" sum="Total"/>
                 <field name="allocated_amount" widget="monetary" sum="Total Asignado"/>                <field name="allocation_state"/>
                 <field name="allocation_summary" string="Asignaciones"/>
-                <field name="allocation_count" invisible="1"/>
-                <button name="action_show_allocations" type="object" 
+                <field name="allocation_count" invisible="1"/>                <button name="action_show_allocations" type="object" 
                         string="Ver Detalles" icon="fa-list" class="btn btn-link" optional="show"
-                        attrs="{'invisible': [('allocation_count', '=', 0)]}"/>
+                        invisible="allocation_count == 0"/>
                 <field name="running_balance" widget="monetary"/>
                 <field name="overdue_days"/>
                 <field name="interest_amount" widget="monetary"/>
