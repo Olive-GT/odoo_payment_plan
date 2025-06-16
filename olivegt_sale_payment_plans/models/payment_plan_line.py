@@ -41,7 +41,8 @@ class PaymentPlanLine(models.Model):
         ('overdue', 'Overdue')
     ], compute='_compute_state', string='Status', store=True)    # Vamos a usar un campo Char para mayor compatibilidad
     allocation_summary = fields.Char(compute='_compute_allocation_summary', string='Allocations')
-      # New field to show move lines details in the dashboard
+    
+    # New field to show move lines details in the dashboard
     move_lines_summary = fields.Html(compute='_compute_move_lines_summary', string='Payment Details')
     
     @api.depends('reconciliation_ids.state')
@@ -57,7 +58,7 @@ class PaymentPlanLine(models.Model):
             line.allocated_amount = sum(line.reconciliation_ids.filtered(
                 lambda r: r.state == 'confirmed').mapped('amount')            )
     
-    @api.depends('allocated_amount', 'amount', 'interest_amount', 'overdue_days', 'total_with_interest')
+    @api.depends('allocated_amount', 'amount', 'interest_amount', 'overdue_days')
     def _compute_allocation_state(self):
         for line in self:
             if float_is_zero(line.allocated_amount, precision_rounding=line.currency_id.rounding):
@@ -65,7 +66,7 @@ class PaymentPlanLine(models.Model):
             else:
                 # Si hay intereses por mora, comparar con el total incluyendo intereses
                 if line.overdue_days > 0 and line.interest_amount > 0:
-                    total_required = line.total_with_interest  # Use the computed field instead
+                    total_required = line.amount + line.interest_amount
                     if float_compare(line.allocated_amount, total_required, 
                                     precision_rounding=line.currency_id.rounding) >= 0:
                         line.allocation_state = 'full'
@@ -507,7 +508,8 @@ class PaymentPlanLine(models.Model):
             'domain': [('payment_plan_line_id', '=', self.id)],
             'context': {
                 'default_payment_plan_id': self.payment_plan_id.id,
-                'default_payment_plan_line_id': self.id,            },
+                'default_payment_plan_line_id': self.id,
+            },
         }
     
     def action_reconcile(self):
@@ -528,10 +530,6 @@ class PaymentPlanLine(models.Model):
                     'default_payment_plan_line_id': self.id,
                     'default_partner_id': self.payment_plan_id.partner_id.id,
                     'default_amount': self.amount - self.allocated_amount,
-                    'default_overdue_days': self.overdue_days,
-                    'default_interest_amount': self.interest_amount,
-                    'default_total_with_interest': self.total_with_interest,
-                    'payment_plan_line_id': self.id,  # Used by our JS extension
                 }
             }
         else:

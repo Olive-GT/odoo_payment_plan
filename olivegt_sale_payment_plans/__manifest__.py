@@ -18,7 +18,7 @@
         'base',
         'mail',
         'sale_management',
-    ],    'data': [
+    ],'data': [
         'security/ir.model.access.csv',
         'data/payment_plan_sequence.xml',
         'data/payment_plan_cron.xml',
@@ -28,7 +28,6 @@
         'views/payment_plan_reconciliation_views.xml',
         'views/payment_plan_reconciliation_dashboard.xml',
         'views/view_payment_plan.xml',
-        'static/src/xml/payment_plan_assets.xml',
         'views/simplified_view.xml',
         'views/menu_payment_plan.xml',
         'views/sale_order_views.xml',
