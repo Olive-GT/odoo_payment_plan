@@ -4,10 +4,11 @@
     <record id="payment_plan_reconciliation_view_form" model="ir.ui.view">
         <field name="name">payment.plan.reconciliation.form</field>
         <field name="model">payment.plan.reconciliation</field>
-        <field name="arch" type="xml">            <form>                <header>
-                    <button name="action_confirm" type="object" string="Confirm" class="oe_highlight" invisible="[('state', '!=', 'draft')]"/>
-                    <button name="action_cancel" type="object" string="Cancel" invisible="[('state', '!=', 'confirmed')]"/>
-                    <button name="action_draft" type="object" string="Reset to Draft" invisible="[('state', '!=', 'cancelled')]"/>
+        <field name="arch" type="xml">
+            <form>                <header>
+                    <button name="action_confirm" type="object" string="Confirm" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state != 'confirmed'"/>
+                    <button name="action_draft" type="object" string="Reset to Draft" invisible="state != 'cancelled'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,cancelled"/>
                 </header>
                 <sheet>
@@ -15,10 +16,10 @@
                         <group>
                             <field name="payment_plan_id" readonly="1"/>
                             <field name="payment_plan_line_id" domain="[('payment_plan_id', '=', payment_plan_id)]" readonly="1"/>
-                            <field name="partner_id" readonly="1"/>                            <field name="date" force_save="1" help="This date is automatically set to match the journal entry date" readonly="1"/>
-                            <field name="overdue_days" string="Días de mora" readonly="1" invisible="[('overdue_days', '=', 0)]"/>
-                            <field name="interest_amount" widget="monetary" string="Interés por mora" readonly="1" invisible="[('interest_amount', '=', 0)]"/>
-                            <field name="total_with_interest" widget="monetary" string="Total con interés" readonly="1" invisible="[('interest_amount', '=', 0)]"/>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="date" force_save="1" help="This date is automatically set to match the journal entry date" readonly="1"/>                             <field name="overdue_days" string="Días de mora" readonly="1" attrs="{'invisible': [('overdue_days', '=', 0)]}"/>
+                            <field name="interest_amount" widget="monetary" string="Interés por mora" readonly="1" attrs="{'invisible': [('interest_amount', '=', 0)]}"/>
+                            <field name="total_with_interest" widget="monetary" string="Total con interés" readonly="1" attrs="{'invisible': [('interest_amount', '=', 0)]}"/>
                             <field name="amount" widget="monetary" readonly="1"/>
                             <field name="currency_id" invisible="1"/>
                         </group>
