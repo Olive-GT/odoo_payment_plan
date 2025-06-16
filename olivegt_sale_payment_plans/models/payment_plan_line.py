@@ -576,11 +576,10 @@ class PaymentPlanLine(models.Model):
                     'type': 'warning',
                 }
             }
-        
-        # Return action to show reconciliations in a popup
+          # Return action to show reconciliations in a popup
         return {
             'name': _('Allocation Details'),
-            'view_mode': 'tree,form',
+            'view_mode': 'list,form',
             'res_model': 'payment.plan.reconciliation',
             'domain': [('id', 'in', reconciliations.ids)],
             'view_id': self.env.ref('olivegt_sale_payment_plans.view_payment_plan_reconciliation_detailed_tree').id,

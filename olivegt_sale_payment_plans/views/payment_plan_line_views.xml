@@ -85,12 +85,11 @@
                 </sheet>
             </form>        </field>    </record>
 
-    <!-- Inline reconciliations tree view -->
-    <record id="view_payment_plan_reconciliation_inline_tree" model="ir.ui.view">
+    <!-- Inline reconciliations tree view -->    <record id="view_payment_plan_reconciliation_inline_tree" model="ir.ui.view">
         <field name="name">payment.plan.reconciliation.inline.tree</field>
         <field name="model">payment.plan.reconciliation</field>
         <field name="arch" type="xml">
-            <tree create="false" edit="false" delete="false">
+            <list create="false" edit="false" delete="false">
                 <field name="date"/>
                 <field name="move_id"/>
                 <field name="journal_id"/>
@@ -100,16 +99,15 @@
                        decoration-info="state == 'draft'" 
                        decoration-success="state == 'confirmed'" 
                        decoration-muted="state == 'cancelled'"/>
-            </tree>
+            </list>
         </field>
     </record>
 
-    <!-- Detailed reconciliation tree view for popup -->
-    <record id="view_payment_plan_reconciliation_detailed_tree" model="ir.ui.view">
+    <!-- Detailed reconciliation tree view for popup -->    <record id="view_payment_plan_reconciliation_detailed_tree" model="ir.ui.view">
         <field name="name">payment.plan.reconciliation.detailed.tree</field>
         <field name="model">payment.plan.reconciliation</field>
         <field name="arch" type="xml">
-            <tree create="false" edit="false" delete="false">
+            <list create="false" edit="false" delete="false">
                 <field name="date"/>
                 <field name="move_id"/>
                 <field name="journal_id"/>
@@ -121,7 +119,7 @@
                        decoration-info="state == 'draft'" 
                        decoration-success="state == 'confirmed'" 
                        decoration-muted="state == 'cancelled'"/>
-            </tree>
+            </list>
         </field>
     </record>
 </data>
