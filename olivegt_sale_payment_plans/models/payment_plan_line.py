@@ -473,22 +473,21 @@ class PaymentPlanLine(models.Model):
                     complete_months = math.ceil(months_passed)
                     interest_amount = self.payment_plan_id.fixed_interest_amount * complete_months
         return interest_amount
-
+        
     def action_view_reconciliations(self):
         """View reconciliations for this line"""
         self.ensure_one()
+        
+        # Use our custom reconciliation view form
         return {
-            'name': _('Reconciliations'),
+            'name': _('Reconciliation: %s') % (self.name or ''),
             'type': 'ir.actions.act_window',
-            'res_model': 'payment.plan.reconciliation',
-            'view_mode': 'list,form',
-            'domain': [('payment_plan_line_id', '=', self.id)],
-            'context': {
-                'default_payment_plan_id': self.payment_plan_id.id,
-                'default_payment_plan_line_id': self.id,
-            },
+            'res_model': 'payment.plan.line',
+            'view_mode': 'form',
+            'res_id': self.id,
+            'view_id': self.env.ref('olivegt_sale_payment_plans.payment_plan_line_reconciliation_view_form').id,
+            'target': 'current',
         }
-    
     def action_reconcile(self):
         """Open reconciliation wizard"""
         self.ensure_one()
