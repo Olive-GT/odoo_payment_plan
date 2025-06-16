@@ -11,19 +11,17 @@
                   decoration-success="paid or allocation_state == 'full'">
                 <field name="payment_plan_id"/>
                 <field name="name"/>
-                <field name="date"/>                <field name="amount" sum="Total Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="overdue_days" invisible="overdue_days == 0"/>
-                <field name="interest_amount" sum="Total Interest" widget="monetary" options="{'currency_field': 'currency_id'}" invisible="interest_amount == 0"/>
-                <field name="total_with_interest" sum="Total + Interest" widget="monetary" options="{'currency_field': 'currency_id'}" invisible="interest_amount == 0"/>
+                <field name="date"/>                <field name="amount" sum="Total Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>                <field name="overdue_days" column_invisible="overdue_days == 0"/>
+                <field name="interest_amount" sum="Total Interest" widget="monetary" options="{'currency_field': 'currency_id'}" column_invisible="interest_amount == 0"/>
+                <field name="total_with_interest" sum="Total + Interest" widget="monetary" options="{'currency_field': 'currency_id'}" column_invisible="interest_amount == 0"/>
                 <field name="allocated_amount" sum="Total Allocated" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                 <field name="allocation_state"/>
-                <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px'}"/>
-                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment"
+                <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px'}"/>                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment"
                         class="btn btn-primary btn-sm"
-                        invisible="paid or allocation_state == 'full'"/>
+                        column_invisible="paid == True or allocation_state == 'full'"/>
                 <button name="action_view_reconciliations" type="object" string="View Details" title="View Allocation Details"
                         class="btn btn-secondary btn-sm"
-                        invisible="allocation_count == 0"/>
+                        column_invisible="allocation_count == 0"/>
                 <field name="state" widget="badge"
                        decoration-success="state == 'paid'"
                        decoration-info="state == 'allocated'"
