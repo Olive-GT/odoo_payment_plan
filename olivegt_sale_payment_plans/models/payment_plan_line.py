@@ -29,23 +29,25 @@ class PaymentPlanLine(models.Model):
     allocation_count = fields.Integer(compute='_compute_allocation_count', string='Allocations')
     allocated_amount = fields.Monetary(compute='_compute_allocated_amount', string='Allocated Amount', store=True)
     allocation_state = fields.Selection([
-        ('none', 'Not Allocated'),
-        ('partial', 'Partially Allocated'),
-        ('full', 'Fully Allocated')
-    ], compute='_compute_allocation_state', string='Allocation Status', store=True)
+        ('none', 'No Asignado'),
+        ('partial', 'Parcialmente Asignado'),
+        ('full', 'Totalmente Asignado')
+    ], compute='_compute_allocation_state', string='Allocation Status', store=True, translate=True)
     state = fields.Selection([
         ('pending', 'Pending'),
         ('partial', 'Partially Allocated'),
         ('allocated', 'Allocated'),
         ('paid', 'Paid'),
         ('overdue', 'Overdue')
-    ], compute='_compute_state', string='Status', store=True)
-    allocation_summary = fields.Html(compute='_compute_allocation_summary', string='Allocations', sanitize=False)
+    ], compute='_compute_state', string='Status', store=True)    # Vamos a usar un campo Char para mayor compatibilidad
+    allocation_summary = fields.Char(compute='_compute_allocation_summary', string='Allocations')
     
     @api.depends('reconciliation_ids.state')
     def _compute_allocation_count(self):
         for line in self:
-            line.allocation_count = len(line.reconciliation_ids.filtered(lambda r: r.state == 'confirmed'))
+            # Solo contar reconciliaciones confirmadas
+            confirmed_reconciliations = line.reconciliation_ids.filtered(lambda r: r.state == 'confirmed')
+            line.allocation_count = len(confirmed_reconciliations)
     
     @api.depends('reconciliation_ids.amount', 'reconciliation_ids.state', 'amount')
     def _compute_allocated_amount(self):
@@ -545,7 +547,7 @@ class PaymentPlanLine(models.Model):
                 line.state = 'overdue'
             else:
                 line.state = 'pending'
-
+                
     def action_toggle_allocations(self):
         """Toggle display of allocations in list view.
         This is a client-side action, no server side effect."""
@@ -571,16 +573,17 @@ class PaymentPlanLine(models.Model):
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
-                    'title': _('No Allocations'),
-                    'message': _('There are no confirmed allocations for this payment plan line.'),
+                    'title': _('Sin Asignaciones'),
+                    'message': _('No hay asignaciones confirmadas para esta línea del plan de pago.'),
                     'sticky': False,
                     'type': 'warning',
                 }
             }
-          # Return action to show reconciliations in a popup
+        
+        # Return action to show reconciliations in a popup
         return {
-            'name': _('Allocation Details'),
-            'view_mode': 'list,form',
+            'name': _('Detalles de Asignaciones'),
+            'view_mode': 'tree,form',  # Cambiamos de list a tree para mayor compatibilidad
             'res_model': 'payment.plan.reconciliation',
             'domain': [('id', 'in', reconciliations.ids)],
             'view_id': self.env.ref('olivegt_sale_payment_plans.view_payment_plan_reconciliation_detailed_tree').id,
@@ -591,55 +594,29 @@ class PaymentPlanLine(models.Model):
                 'edit': False,
                 'delete': False
             }
-        }    @api.depends('reconciliation_ids.state', 'reconciliation_ids.move_id', 'reconciliation_ids.amount', 
+        }@api.depends('reconciliation_ids.state', 'reconciliation_ids.move_id', 'reconciliation_ids.amount', 
                'reconciliation_ids.date', 'reconciliation_ids.journal_id')
     def _compute_allocation_summary(self):
         for line in self:
             confirmed_reconciliations = line.reconciliation_ids.filtered(lambda r: r.state == 'confirmed')
             if not confirmed_reconciliations:
-                line.allocation_summary = "<div><em>Sin asignaciones</em></div>"
+                line.allocation_summary = ""
                 continue
             
-            # Group reconciliations by journal for a more concise summary
-            journal_totals = {}
-            for rec in confirmed_reconciliations:
-                journal_name = rec.journal_id.name or 'Sin Diario'
-                if journal_name not in journal_totals:
-                    journal_totals[journal_name] = {
-                        'amount': 0.0,
-                        'count': 0,
-                        'latest_date': False,
-                        'move_names': []
-                    }
-                journal_totals[journal_name]['amount'] += rec.amount
-                journal_totals[journal_name]['count'] += 1
-                
-                # Track move names for reference
-                if rec.move_id and rec.move_id.name:
-                    move_name = rec.move_id.name
-                    if len(journal_totals[journal_name]['move_names']) < 3 and move_name not in journal_totals[journal_name]['move_names']:
-                        journal_totals[journal_name]['move_names'].append(move_name)
-                
-                rec_date = rec.date or fields.Date.today()
-                if (not journal_totals[journal_name]['latest_date'] or
-                        rec_date > journal_totals[journal_name]['latest_date']):
-                    journal_totals[journal_name]['latest_date'] = rec_date
+            # Mostrar de forma clara la cantidad de asignaciones y el total
+            total_amount = sum(confirmed_reconciliations.mapped('amount'))
+            formatted_amount = "{:,.2f}".format(total_amount)
+            count = len(confirmed_reconciliations)
             
-            # Format the summary with HTML for better display
-            summary_parts = []
-            for journal, data in journal_totals.items():
-                date_str = data['latest_date'].strftime('%d/%m/%Y') if data['latest_date'] else ''
-                amount_str = "{:,.2f}".format(data['amount']).replace(',', ' ')
-                trans_text = "transacción" if data['count'] == 1 else "transacciones"
-                
-                move_refs = ""
-                if data['move_names']:
-                    move_refs = f"<br/><small>Refs: {', '.join(data['move_names'])}</small>"
-                
-                summary_parts.append(
-                    f"<div style='margin-bottom:3px;'><strong>{journal}:</strong> {amount_str} "
-                    f"({data['count']} {trans_text})<br/>"
-                    f"<small>Última: {date_str}</small>{move_refs}</div>"
-                )
-                
-            line.allocation_summary = ''.join(summary_parts) if summary_parts else "<div><em>Sin asignaciones</em></div>"
+            # Obtener una lista de los journals involucrados
+            journals = confirmed_reconciliations.mapped('journal_id.name')
+            unique_journals = list(set([j for j in journals if j]))
+            
+            # Formatear mejor para mayor visibilidad en la vista de lista
+            if unique_journals:
+                journal_text = ", ".join(unique_journals[:2])
+                if len(unique_journals) > 2:
+                    journal_text += f" y {len(unique_journals) - 2} más"
+                line.allocation_summary = f"{count} asign: Q{formatted_amount} ({journal_text})"
+            else:
+                line.allocation_summary = f"{count} asignaciones: Q{formatted_amount}"
