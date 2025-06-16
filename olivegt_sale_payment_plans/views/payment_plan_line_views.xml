@@ -6,11 +6,7 @@
         <field name="arch" type="xml">            <tree editable="bottom">                <field name="date"/>
                 <field name="name"/>
                 <field name="amount" widget="monetary" sum="Total"/>
-                <field name="allocated_amount" widget="monetary" sum="Total Asignado"/>
-                <field name="allocation_state" widget="badge"
-                       decoration-success="allocation_state == 'full'" 
-                       decoration-warning="allocation_state == 'partial'"
-                       decoration-danger="allocation_state == 'none'"/>
+                <field name="allocated_amount" widget="monetary" sum="Total Asignado"/>                <field name="allocation_state"/>
                 <field name="allocation_summary" string="Asignaciones"/>
                 <field name="allocation_count" invisible="1"/>
                 <button name="action_show_allocations" type="object" 
@@ -123,7 +119,7 @@
                 <field name="move_id"/>
                 <field name="journal_id"/>
                 <field name="amount" widget="monetary" sum="Total"/>
-                <field name="currency_id" column_invisible="True"/>
+                <field name="currency_id" options="{'no_create': True}"/>
                 <field name="move_payment_reference"/>
                 <field name="move_date"/>
                 <field name="state" widget="badge" 

@@ -32,7 +32,7 @@ class PaymentPlanLine(models.Model):
         ('none', 'No Asignado'),
         ('partial', 'Parcialmente Asignado'),
         ('full', 'Totalmente Asignado')
-    ], compute='_compute_allocation_state', string='Allocation Status', store=True, translate=True)
+    ], compute='_compute_allocation_state', string='Allocation Status', store=True)
     state = fields.Selection([
         ('pending', 'Pending'),
         ('partial', 'Partially Allocated'),
@@ -592,9 +592,10 @@ class PaymentPlanLine(models.Model):
             'context': {
                 'create': False, 
                 'edit': False,
-                'delete': False
-            }
-        }@api.depends('reconciliation_ids.state', 'reconciliation_ids.move_id', 'reconciliation_ids.amount', 
+                'delete': False            }
+        }
+        
+    @api.depends('reconciliation_ids.state', 'reconciliation_ids.move_id', 'reconciliation_ids.amount', 
                'reconciliation_ids.date', 'reconciliation_ids.journal_id')
     def _compute_allocation_summary(self):
         for line in self:
