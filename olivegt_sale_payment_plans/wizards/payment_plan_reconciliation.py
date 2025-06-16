@@ -199,6 +199,25 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
         store=False
     )
     
+    # Added overdue related fields
+    overdue_days = fields.Integer(
+        string='Overdue Days',
+        related='payment_plan_line_id.overdue_days',
+        help='Number of days this payment is overdue'
+    )
+    
+    interest_amount = fields.Monetary(
+        string='Interest Amount',
+        related='payment_plan_line_id.interest_amount',
+        help='Interest calculated due to late payment'
+    )
+    
+    total_with_interest = fields.Monetary(
+        string='Total Amount with Interest',
+        related='payment_plan_line_id.total_with_interest',
+        help='Total amount to be paid including interest'
+    )
+    
     # We're using a different approach to show existing reconciliations
     
     allocated_amount = fields.Monetary(
