@@ -51,9 +51,9 @@
                 <field name="move_date"/>
                 <field name="journal_id"/>
                 <field name="move_payment_reference"/>                <field name="state"
-                       decoration-info="record.state.value == 'draft'"
-                       decoration-success="record.state.value == 'confirmed'"
-                       decoration-muted="record.state.value == 'cancelled'"/>
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'confirmed'"
+                       decoration-muted="state == 'cancelled'"/>
             </list>
         </field>
     </record>
