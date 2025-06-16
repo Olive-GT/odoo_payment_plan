@@ -17,6 +17,11 @@
                 <field name="currency_id" invisible="1"/>
                 <field name="allocation_count" invisible="1"/>
                 <field name="allocation_state" invisible="1"/>
+                <field name="state" widget="badge" 
+                       decoration-success="state == 'paid'" 
+                       decoration-info="state == 'allocated'" 
+                       decoration-warning="state == 'partial'"
+                       decoration-danger="state == 'overdue'"/>
                 <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment" 
                         class="btn btn-primary btn-sm" 
                         attrs="{'invisible': [('paid', '=', True)]}"/>

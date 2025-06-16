@@ -530,3 +530,17 @@ class PaymentPlanLine(models.Model):
                     'default_amount': self.amount - self.allocated_amount,
                 }
             }
+    
+    @api.depends('paid', 'allocation_state', 'overdue_days')
+    def _compute_state(self):
+        for line in self:
+            if line.paid:
+                line.state = 'paid'
+            elif line.allocation_state == 'full':
+                line.state = 'allocated'
+            elif line.allocation_state == 'partial':
+                line.state = 'partial'
+            elif line.overdue_days > 0:
+                line.state = 'overdue'
+            else:
+                line.state = 'pending'
