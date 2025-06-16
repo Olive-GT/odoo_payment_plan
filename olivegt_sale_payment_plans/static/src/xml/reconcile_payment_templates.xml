@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="reconcile_payment_templates" xml:space="preserve">
+    <t t-name="olivegt_sale_payment_plans.ReconcilePaymentInfoPanel">
+        <div class="payment_plan_overdue_info mb-3 border-top pt-3 mt-3">
+            <div t-if="overdue_days &gt; 0" class="alert alert-warning">
+                <div><strong>Overdue Days: </strong><span t-esc="overdue_days"/></div>
+                <div><strong>Interest Amount: </strong><span t-esc="interest_amount" t-options="{'widget': 'monetary', 'display_currency': currency_id}"/></div>
+                <div><strong>Total with Interest: </strong><span t-esc="total_with_interest" t-options="{'widget': 'monetary', 'display_currency': currency_id}"/></div>
+            </div>
+        </div>
+    </t>
+</templates>
