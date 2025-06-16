@@ -35,10 +35,9 @@
                 
                 <button name="mark_as_unpaid" type="object" string="" title="Mark as Unpaid" 
                         icon="fa-times" column_invisible="not paid" class="btn-sm"/>
-                
-                <button name="update_overdue_status" type="object" string="" title="Update Status" 
+                  <button name="update_overdue_status" type="object" string="" title="Update Status" 
                         icon="fa-refresh" column_invisible="paid" class="btn-sm"/>
-            </list>
+            </tree>
         </field>
     </record>
       <!-- Payment Plan Line Form View -->
@@ -126,7 +125,7 @@
                        decoration-info="state == 'draft'" 
                        decoration-success="state == 'confirmed'" 
                        decoration-muted="state == 'cancelled'"/>
-            </list>
+            </tree>
         </field>
     </record>
 </data>
