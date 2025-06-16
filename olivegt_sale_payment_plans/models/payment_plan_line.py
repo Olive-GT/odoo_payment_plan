@@ -33,6 +33,13 @@ class PaymentPlanLine(models.Model):
         ('partial', 'Partially Allocated'),
         ('full', 'Fully Allocated')
     ], compute='_compute_allocation_state', string='Allocation Status', store=True)
+    state = fields.Selection([
+        ('pending', 'Pending'),
+        ('partial', 'Partially Allocated'),
+        ('allocated', 'Allocated'),
+        ('paid', 'Paid'),
+        ('overdue', 'Overdue')
+    ], compute='_compute_state', string='Status', store=True)
     
     @api.depends('reconciliation_ids.state')
     def _compute_allocation_count(self):

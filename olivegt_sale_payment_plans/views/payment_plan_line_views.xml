@@ -6,6 +6,7 @@
         <field name="model">payment.plan.line</field>        <field name="arch" type="xml">            <list editable="bottom">                <field name="date"/>
                 <field name="name"/>
                 <field name="amount" widget="monetary"/>
+                <field name="allocated_amount" widget="monetary"/>
                 <field name="running_balance" widget="monetary"/>
                 <field name="overdue_days"/>
                 <field name="interest_amount" widget="monetary"/>
@@ -13,7 +14,16 @@
                 <field name="paid"/>
                 <field name="payment_date"/>
                 <field name="payment_reference"/>
-                <field name="currency_id" invisible="1"/>                <button name="mark_as_paid" type="object" string="" title="Mark as Paid" icon="fa-check" invisible="paid" class="btn-sm"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="allocation_count" invisible="1"/>
+                <field name="allocation_state" invisible="1"/>
+                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment" 
+                        class="btn btn-primary btn-sm" 
+                        attrs="{'invisible': [('paid', '=', True)]}"/>
+                <button name="action_view_reconciliations" type="object" string="View Allocations" title="View Allocations" 
+                        class="btn btn-secondary btn-sm" 
+                        attrs="{'invisible': [('allocation_count', '=', 0)]}"/>
+                <button name="mark_as_paid" type="object" string="" title="Mark as Paid" icon="fa-check" invisible="paid" class="btn-sm"/>
                 <button name="mark_as_unpaid" type="object" string="" title="Mark as Unpaid" icon="fa-times" invisible="not paid" class="btn-sm"/>
                 <button name="update_overdue_status" type="object" string="" title="Update Status" icon="fa-refresh" invisible="paid" class="btn-sm"/>
             </list></field>
@@ -24,21 +34,63 @@
         <field name="model">payment.plan.line</field>
         <field name="arch" type="xml">
             <form>
-                <group>
-                    <group>                        <field name="payment_plan_id"/>
-                        <field name="date"/>
-                        <field name="name"/>
-                        <field name="amount" widget="monetary"/>
-                        <field name="running_balance" widget="monetary"/>
-                        <field name="currency_id" invisible="1"/>
-                    </group>                    <group>                        <field name="overdue_days" invisible="overdue_days == 0"/>
-                        <field name="interest_amount" invisible="interest_amount == 0" widget="monetary"/>
-                        <field name="total_with_interest" widget="monetary"/>
-                        <field name="paid"/>
-                        <field name="payment_date"/>
-                        <field name="payment_reference"/>
+                <header>
+                    <button name="action_reconcile" type="object" string="Reconcile" 
+                            class="btn-primary" 
+                            attrs="{'invisible': [('paid', '=', True)]}"/>
+                    <button name="action_view_reconciliations" type="object" string="View Allocations" 
+                            class="btn-secondary" 
+                            attrs="{'invisible': [('allocation_count', '=', 0)]}"/>
+                    <button name="mark_as_paid" type="object" string="Mark as Paid" 
+                            attrs="{'invisible': [('paid', '=', True)]}"/>
+                    <button name="mark_as_unpaid" type="object" string="Mark as Unpaid" 
+                            attrs="{'invisible': [('paid', '=', False)]}"/>
+                    <button name="update_overdue_status" type="object" string="Update Status" 
+                            attrs="{'invisible': [('paid', '=', True)]}"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_reconciliations" type="object" class="oe_stat_button" icon="fa-money"
+                                attrs="{'invisible': [('allocation_count', '=', 0)]}">
+                            <field name="allocation_count" widget="statinfo" string="Allocations"/>
+                        </button>
+                    </div>
+                    <group>
+                        <group>                        <field name="payment_plan_id"/>
+                            <field name="date"/>
+                            <field name="name"/>
+                            <field name="amount" widget="monetary"/>
+                            <field name="allocated_amount" widget="monetary"/>
+                            <field name="allocation_state" widget="badge" 
+                                   decoration-success="allocation_state == 'full'" 
+                                   decoration-info="allocation_state == 'partial'" 
+                                   decoration-danger="allocation_state == 'none'"/>
+                            <field name="running_balance" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>                    <group>                        <field name="overdue_days" invisible="overdue_days == 0"/>
+                            <field name="interest_amount" invisible="interest_amount == 0" widget="monetary"/>
+                            <field name="total_with_interest" widget="monetary"/>
+                            <field name="paid"/>
+                            <field name="payment_date"/>
+                            <field name="payment_reference"/>
+                        </group>
                     </group>
-                </group>
+                    <notebook attrs="{'invisible': [('allocation_count', '=', 0)]}">
+                        <page string="Allocations">
+                            <field name="reconciliation_ids" domain="[('state', '=', 'confirmed')]" readonly="1">
+                                <tree>
+                                    <field name="move_date"/>
+                                    <field name="move_id"/>
+                                    <field name="journal_id"/>
+                                    <field name="amount" widget="monetary"/>
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="move_payment_reference"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'confirmed'" decoration-warning="state == 'draft'" decoration-danger="state == 'cancelled'"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
             </form>        </field>
     </record>
 </data>
