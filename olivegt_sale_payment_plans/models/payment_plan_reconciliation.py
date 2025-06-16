@@ -81,6 +81,23 @@ class PaymentPlanReconciliation(models.Model):
         ('cancelled', 'Cancelled')
     ], default='draft', string='Status', required=True)
     
+    # Campos relacionados para mostrar información de mora
+    overdue_days = fields.Integer(
+        related='payment_plan_line_id.overdue_days',
+        string='Overdue Days',
+        readonly=True
+    )
+    interest_amount = fields.Monetary(
+        related='payment_plan_line_id.interest_amount',
+        string='Interest Amount',
+        readonly=True
+    )
+    total_with_interest = fields.Monetary(
+        related='payment_plan_line_id.total_with_interest',
+        string='Total with Interest',
+        readonly=True
+    )
+    
     @api.constrains('amount')
     def _check_amount(self):
         """Ensure allocated amount is positive and not zero"""
@@ -165,17 +182,20 @@ class PaymentPlanReconciliation(models.Model):
             
             # Update payment plan line
             line = rec.payment_plan_line_id
-            
-            # Check if line is fully reconciled
+              # Check if line is fully reconciled
             all_confirmed_allocations = self.search([
                 ('payment_plan_line_id', '=', line.id),
                 ('state', '=', 'confirmed')
             ])
             total_allocated = sum(all_confirmed_allocations.mapped('amount'))
             
-            # If allocations cover the full amount, mark as paid
+            # Determinar si hay intereses por mora que deben ser considerados
+            is_overdue = line.overdue_days > 0 and line.interest_amount > 0
+            required_amount = line.amount + line.interest_amount if is_overdue else line.amount
+            
+            # If allocations cover the full amount (including interest if applicable), mark as paid
             precision = self.env['decimal.precision'].precision_get('Payment')
-            if float_compare(total_allocated, line.amount, 
+            if float_compare(total_allocated, required_amount, 
                           precision_digits=precision) >= 0 and not line.paid:
                 # Get payment date from the most recent allocation
                 latest_allocation = all_confirmed_allocations.sorted(
@@ -186,13 +206,25 @@ class PaymentPlanReconciliation(models.Model):
                 payment_reference = ', '.join(references[:3])
                 if len(references) > 3:
                     payment_reference += f' (+{len(references) - 3})'
+                  # Verificar si la línea está en mora (overdue) antes de marcarla como pagada
+                today = fields.Date.context_today(self)
+                is_overdue = line.date < latest_allocation.date
                 
-                # Mark the line as paid
-                line.write({
-                    'paid': True,
-                    'payment_date': latest_allocation.date,
-                    'payment_reference': payment_reference
-                })
+                if is_overdue:
+                    # Calcular intereses por mora usando la fecha del pago
+                    line.calculate_and_store_interest(latest_allocation.date)
+                    
+                    # Usar mark_as_paid que mantiene el cálculo de intereses
+                    line.payment_date = latest_allocation.date
+                    line.payment_reference = payment_reference
+                    line.mark_as_paid()
+                else:
+                    # Si no hay mora, simplemente marcar como pagada
+                    line.write({
+                        'paid': True,
+                        'payment_date': latest_allocation.date,
+                        'payment_reference': payment_reference
+                    })
     
     def action_cancel(self):
         """Cancel the reconciliation"""

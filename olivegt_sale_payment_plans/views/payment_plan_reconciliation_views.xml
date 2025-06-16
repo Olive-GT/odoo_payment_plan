@@ -14,9 +14,10 @@
                 </header>
                 <sheet>
                     <group>
-                        <group>
-                            <field name="payment_plan_id" readonly="state != 'draft'"/>                            <field name="payment_plan_line_id" domain="[('payment_plan_id', '=', payment_plan_id)]" readonly="state != 'draft'"/>                            <field name="partner_id" readonly="1"/>
-                            <field name="date" readonly="1" force_save="1" help="This date is automatically set to match the journal entry date"/>
+                        <group>                            <field name="payment_plan_id" readonly="state != 'draft'"/>                            <field name="payment_plan_line_id" domain="[('payment_plan_id', '=', payment_plan_id)]" readonly="state != 'draft'"/>                            <field name="partner_id" readonly="1"/>
+                            <field name="date" readonly="1" force_save="1" help="This date is automatically set to match the journal entry date"/>                            <field name="overdue_days" attrs="{'invisible': [('payment_plan_line_id.overdue_days', '=', 0)]}" readonly="1" string="Días de mora"/>
+                            <field name="interest_amount" attrs="{'invisible': [('payment_plan_line_id.interest_amount', '=', 0)]}" readonly="1" widget="monetary" string="Interés por mora"/>
+                            <field name="total_with_interest" attrs="{'invisible': [('payment_plan_line_id.interest_amount', '=', 0)]}" readonly="1" widget="monetary" string="Total con interés"/>
                             <field name="amount" widget="monetary" readonly="state != 'draft'"/>
                             <field name="currency_id" invisible="1"/>
                         </group>

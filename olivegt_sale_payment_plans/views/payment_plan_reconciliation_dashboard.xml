@@ -11,12 +11,13 @@
                   decoration-success="paid or allocation_state == 'full'">
                 <field name="payment_plan_id"/>
                 <field name="name"/>
-                <field name="date"/>
-                <field name="amount" sum="Total Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="date"/>                <field name="amount" sum="Total Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="overdue_days" invisible="overdue_days == 0"/>
+                <field name="interest_amount" sum="Total Interest" widget="monetary" options="{'currency_field': 'currency_id'}" invisible="interest_amount == 0"/>
+                <field name="total_with_interest" sum="Total + Interest" widget="monetary" options="{'currency_field': 'currency_id'}" invisible="interest_amount == 0"/>
                 <field name="allocated_amount" sum="Total Allocated" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                 <field name="allocation_state"/>
                 <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px'}"/>
-                <!-- NO se incluyen paid ni overdue_days -->
                 <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment"
                         class="btn btn-primary btn-sm"
                         invisible="paid or allocation_state == 'full'"/>

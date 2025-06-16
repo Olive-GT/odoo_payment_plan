@@ -56,18 +56,28 @@ class PaymentPlanLine(models.Model):
     def _compute_allocated_amount(self):
         for line in self:
             line.allocated_amount = sum(line.reconciliation_ids.filtered(
-                lambda r: r.state == 'confirmed').mapped('amount')
-            )
+                lambda r: r.state == 'confirmed').mapped('amount')            )
     
-    @api.depends('allocated_amount', 'amount')
+    @api.depends('allocated_amount', 'amount', 'interest_amount', 'overdue_days')
     def _compute_allocation_state(self):
         for line in self:
             if float_is_zero(line.allocated_amount, precision_rounding=line.currency_id.rounding):
                 line.allocation_state = 'none'
-            elif float_compare(line.allocated_amount, line.amount, precision_rounding=line.currency_id.rounding) >= 0:
-                line.allocation_state = 'full'
             else:
-                line.allocation_state = 'partial'
+                # Si hay intereses por mora, comparar con el total incluyendo intereses
+                if line.overdue_days > 0 and line.interest_amount > 0:
+                    total_required = line.amount + line.interest_amount
+                    if float_compare(line.allocated_amount, total_required, 
+                                    precision_rounding=line.currency_id.rounding) >= 0:
+                        line.allocation_state = 'full'
+                    else:
+                        line.allocation_state = 'partial'
+                # Si no hay intereses, comparar solo con el monto principal
+                elif float_compare(line.allocated_amount, line.amount, 
+                                precision_rounding=line.currency_id.rounding) >= 0:
+                    line.allocation_state = 'full'
+                else:
+                    line.allocation_state = 'partial'
     
     @api.depends('payment_plan_id.line_ids.amount', 'payment_plan_id.line_ids.paid')
     def _compute_running_balance(self):
