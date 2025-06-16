@@ -37,17 +37,13 @@
                         </group>
                     </group>
                     
-                    <notebook>
-                        <page string="Reconciliations" name="reconciliations">
+                    <notebook>                        <page string="Reconciliations" name="reconciliations">
                             <field name="reconciliation_ids" widget="one2many" mode="tree" 
                                    context="{'default_payment_plan_id': payment_plan_id, 'default_payment_plan_line_id': id}">
                                 <tree decoration-info="state == 'draft'" decoration-success="state == 'confirmed'" decoration-muted="state == 'cancelled'">
                                     <field name="date"/>
                                     <field name="amount" sum="Total" widget="monetary"/>
-                                    <field name="move_id"/>
-                                    <field name="move_date"/>
-                                    <field name="journal_id"/>
-                                    <field name="move_payment_reference"/>
+                                    <field name="move_line_id"/>
                                     <field name="state"/>
                                     <field name="currency_id" invisible="1"/>
                                     <button name="action_confirm" string="Confirm" type="object" icon="fa-check-circle" class="text-success" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
