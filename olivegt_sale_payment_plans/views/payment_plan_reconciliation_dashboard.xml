@@ -5,7 +5,7 @@
         <field name="name">payment.plan.line.dashboard.kanban</field>
         <field name="model">payment.plan.line</field>
         <field name="arch" type="xml">
-            <kanban create="0" class="o_kanban_dashboard" js_class="payment_plan_dashboard_kanban">
+            <kanban create="0" class="o_kanban_dashboard">
                 <field name="id"/>
                 <field name="name"/>
                 <field name="amount"/>
@@ -20,13 +20,11 @@
                 
                 <templates>
                     <t t-name="kanban-box">
-            <div t-attf-class="oe_kanban_card oe_kanban_global_click" t-att-data-record-id="record.id.raw_value" t-on-click="() => { kanban_view.trigger('kanban_click_custom_reconcile') }">
-                <div t-attf-class="oe_kanban_card_header
-                               #{record.paid.raw_value ? 'bg-success text-white' : ''}
-                               #{record.allocation_state.raw_value == 'full' and !record.paid.raw_value ? 'bg-warning' : ''}
-                               #{record.allocation_state.raw_value == 'partial' ? 'bg-info text-white' : ''}
-                               #{record.allocation_state.raw_value == 'none' and record.overdue_days.raw_value > 0 ? 'bg-danger text-white' : ''}"
-                     style="padding: 8px; border-radius: 3px 3px 0 0;">
+                        <div t-attf-class="oe_kanban_card oe_kanban_global_click
+                                           #{record.paid.raw_value ? 'oe_kanban_color_5' : ''}
+                                           #{record.allocation_state.raw_value == 'full' and !record.paid.raw_value ? 'oe_kanban_color_3' : ''}
+                                           #{record.allocation_state.raw_value == 'partial' ? 'oe_kanban_color_2' : ''}
+                                           #{record.allocation_state.raw_value == 'none' and record.overdue_days.raw_value > 0 ? 'oe_kanban_color_1' : ''}">
                             <div class="o_kanban_card_header">
                                 <div class="o_kanban_card_header_title">
                                     <div class="o_primary">

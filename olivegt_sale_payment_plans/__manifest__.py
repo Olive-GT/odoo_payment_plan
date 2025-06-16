@@ -18,14 +18,13 @@
         'base',
         'mail',
         'sale_management',
-    ],    'data': [
+    ],'data': [
         'security/ir.model.access.csv',
         'data/payment_plan_sequence.xml',
         'data/payment_plan_cron.xml',
-        'reports/payment_plan_report.xml',        'views/assets.xml',
+        'reports/payment_plan_report.xml',
         'views/payment_plan_line_views.xml',
         'views/payment_plan_line_actions.xml',
-        'views/payment_plan_line_reconciliation_view.xml',
         'views/payment_plan_reconciliation_views.xml',
         'views/payment_plan_reconciliation_dashboard.xml',
         'views/view_payment_plan.xml',
