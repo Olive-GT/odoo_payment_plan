@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <data>
-        <!-- Incluir el archivo JS en los assets backend -->
-        <record id="olivegt_payment_plans_assets" model="ir.asset">
-            <field name="name">Payment Plan Reconciliation Dashboard Assets</field>
-            <field name="bundle">web.assets_backend</field>
-            <field name="path">olivegt_sale_payment_plans/static/src/js/payment_plan_reconciliation_dashboard.js</field>
-        </record>
-    </data>
+    <!-- Assets for payment plan reconciliation dashboard -->
+    <asset name="web.assets_backend" path="olivegt_sale_payment_plans/static/src/js/payment_plan_reconciliation_dashboard.js"/>
 </odoo>
