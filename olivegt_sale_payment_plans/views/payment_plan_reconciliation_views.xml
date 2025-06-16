@@ -17,9 +17,9 @@
                             <field name="payment_plan_id" readonly="1"/>
                             <field name="payment_plan_line_id" domain="[('payment_plan_id', '=', payment_plan_id)]" readonly="1"/>
                             <field name="partner_id" readonly="1"/>
-                            <field name="date" force_save="1" help="This date is automatically set to match the journal entry date" readonly="1"/>                             <field name="overdue_days" string="Días de mora" readonly="1" attrs="{'invisible': [('overdue_days', '=', 0)]}"/>
-                            <field name="interest_amount" widget="monetary" string="Interés por mora" readonly="1" attrs="{'invisible': [('interest_amount', '=', 0)]}"/>
-                            <field name="total_with_interest" widget="monetary" string="Total con interés" readonly="1" attrs="{'invisible': [('interest_amount', '=', 0)]}"/>
+                            <field name="date" force_save="1" help="This date is automatically set to match the journal entry date" readonly="1"/>                            <field name="overdue_days" string="Días de mora" readonly="1" invisible="1"/>
+                            <field name="interest_amount" widget="monetary" string="Interés por mora" readonly="1" invisible="1"/>
+                            <field name="total_with_interest" widget="monetary" string="Total con interés" readonly="1" invisible="1"/>
                             <field name="amount" widget="monetary" readonly="1"/>
                             <field name="currency_id" invisible="1"/>
                         </group>
