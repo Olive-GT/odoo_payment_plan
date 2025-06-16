@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-<data>    <!-- Payment Plan Line List View -->
-    <record id="view_payment_plan_line_list" model="ir.ui.view">
+<data>    <!-- Payment Plan Line List View -->    <record id="view_payment_plan_line_list" model="ir.ui.view">
         <field name="name">payment.plan.line.list</field>
         <field name="model">payment.plan.line</field>        <field name="arch" type="xml">            <list editable="bottom">                <field name="date"/>
                 <field name="name"/>
@@ -13,15 +12,17 @@
                 <field name="total_with_interest" widget="monetary"/>
                 <field name="paid"/>
                 <field name="payment_date"/>
-                <field name="payment_reference"/>
-                <field name="currency_id" invisible="1"/>
-                <field name="allocation_count" invisible="1"/>
-                <field name="allocation_state" invisible="1"/>
-                <field name="state" widget="badge" 
+                <field name="payment_reference"/>                <field name="currency_id" invisible="1"/>
+                <field name="allocation_count" string="# Alloc."/>
+                
+                <!-- Button to show detailed allocations in a popup -->
+                <button name="action_show_allocations" type="object" 
+                       string="" title="Ver Detalles de Asignaciones" icon="fa-list" 
+                       attrs="{'invisible': [('allocation_count', '=', 0)]}"/><field name="state" widget="badge" 
                        decoration-success="state == 'paid'" 
                        decoration-info="state == 'allocated'" 
                        decoration-warning="state == 'partial'"
-                       decoration-danger="state == 'overdue'"/>                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment" 
+                       decoration-danger="state == 'overdue'"/><button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment" 
                         class="btn btn-primary btn-sm" 
                         invisible="paid"/>
                 <button name="action_view_reconciliations" type="object" string="View Allocations" title="View Allocations" 
@@ -82,7 +83,46 @@
                         </page>
                     </notebook>
                 </sheet>
-            </form>        </field>
+            </form>        </field>    </record>
+
+    <!-- Inline reconciliations tree view -->
+    <record id="view_payment_plan_reconciliation_inline_tree" model="ir.ui.view">
+        <field name="name">payment.plan.reconciliation.inline.tree</field>
+        <field name="model">payment.plan.reconciliation</field>
+        <field name="arch" type="xml">
+            <tree create="false" edit="false" delete="false">
+                <field name="date"/>
+                <field name="move_id"/>
+                <field name="journal_id"/>
+                <field name="amount" sum="Total"/>
+                <field name="move_payment_reference"/>
+                <field name="state" widget="badge" 
+                       decoration-info="state == 'draft'" 
+                       decoration-success="state == 'confirmed'" 
+                       decoration-muted="state == 'cancelled'"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Detailed reconciliation tree view for popup -->
+    <record id="view_payment_plan_reconciliation_detailed_tree" model="ir.ui.view">
+        <field name="name">payment.plan.reconciliation.detailed.tree</field>
+        <field name="model">payment.plan.reconciliation</field>
+        <field name="arch" type="xml">
+            <tree create="false" edit="false" delete="false">
+                <field name="date"/>
+                <field name="move_id"/>
+                <field name="journal_id"/>
+                <field name="amount" widget="monetary" sum="Total"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="move_payment_reference"/>
+                <field name="move_date"/>
+                <field name="state" widget="badge" 
+                       decoration-info="state == 'draft'" 
+                       decoration-success="state == 'confirmed'" 
+                       decoration-muted="state == 'cancelled'"/>
+            </tree>
+        </field>
     </record>
 </data>
 </odoo>

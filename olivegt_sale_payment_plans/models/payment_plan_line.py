@@ -544,3 +544,51 @@ class PaymentPlanLine(models.Model):
                 line.state = 'overdue'
             else:
                 line.state = 'pending'
+
+    def action_toggle_allocations(self):
+        """Toggle display of allocations in list view.
+        This is a client-side action, no server side effect."""
+        # This is primarily a client-side action to toggle visibility
+        # It doesn't need to do anything on the server side
+        # The JS will handle showing/hiding the allocations section
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
+
+    def action_show_allocations(self):
+        """
+        Open a popup window to show allocation details
+        """
+        self.ensure_one()
+        
+        # Get confirmed reconciliations for this line
+        reconciliations = self.reconciliation_ids.filtered(lambda r: r.state == 'confirmed')
+        
+        if not reconciliations:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('No Allocations'),
+                    'message': _('There are no confirmed allocations for this payment plan line.'),
+                    'sticky': False,
+                    'type': 'warning',
+                }
+            }
+        
+        # Return action to show reconciliations in a popup
+        return {
+            'name': _('Allocation Details'),
+            'view_mode': 'tree,form',
+            'res_model': 'payment.plan.reconciliation',
+            'domain': [('id', 'in', reconciliations.ids)],
+            'view_id': self.env.ref('olivegt_sale_payment_plans.view_payment_plan_reconciliation_detailed_tree').id,
+            'type': 'ir.actions.act_window',
+            'target': 'new',  # This opens in a dialog/popup
+            'context': {
+                'create': False, 
+                'edit': False,
+                'delete': False
+            }
+        }
