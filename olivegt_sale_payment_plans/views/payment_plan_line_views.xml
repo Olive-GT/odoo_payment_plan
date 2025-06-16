@@ -21,13 +21,12 @@
                        decoration-success="state == 'paid'" 
                        decoration-info="state == 'allocated'" 
                        decoration-warning="state == 'partial'"
-                       decoration-danger="state == 'overdue'"/>
-                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment" 
+                       decoration-danger="state == 'overdue'"/>                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment" 
                         class="btn btn-primary btn-sm" 
-                        attrs="{'invisible': [('paid', '=', True)]}"/>
+                        invisible="paid"/>
                 <button name="action_view_reconciliations" type="object" string="View Allocations" title="View Allocations" 
                         class="btn btn-secondary btn-sm" 
-                        attrs="{'invisible': [('allocation_count', '=', 0)]}"/>
+                        invisible="allocation_count == 0"/>
                 <button name="mark_as_paid" type="object" string="" title="Mark as Paid" icon="fa-check" invisible="paid" class="btn-sm"/>
                 <button name="mark_as_unpaid" type="object" string="" title="Mark as Unpaid" icon="fa-times" invisible="not paid" class="btn-sm"/>
                 <button name="update_overdue_status" type="object" string="" title="Update Status" icon="fa-refresh" invisible="paid" class="btn-sm"/>
@@ -38,25 +37,23 @@
         <field name="name">payment.plan.line.form</field>
         <field name="model">payment.plan.line</field>
         <field name="arch" type="xml">
-            <form>
-                <header>
+            <form>                <header>
                     <button name="action_reconcile" type="object" string="Reconcile" 
                             class="btn-primary" 
-                            attrs="{'invisible': [('paid', '=', True)]}"/>
+                            invisible="paid"/>
                     <button name="action_view_reconciliations" type="object" string="View Allocations" 
                             class="btn-secondary" 
-                            attrs="{'invisible': [('allocation_count', '=', 0)]}"/>
+                            invisible="allocation_count == 0"/>
                     <button name="mark_as_paid" type="object" string="Mark as Paid" 
-                            attrs="{'invisible': [('paid', '=', True)]}"/>
+                            invisible="paid"/>
                     <button name="mark_as_unpaid" type="object" string="Mark as Unpaid" 
-                            attrs="{'invisible': [('paid', '=', False)]}"/>
+                            invisible="not paid"/>
                     <button name="update_overdue_status" type="object" string="Update Status" 
-                            attrs="{'invisible': [('paid', '=', True)]}"/>
+                            invisible="paid"/>
                 </header>
-                <sheet>
-                    <div class="oe_button_box" name="button_box">
+                <sheet>                    <div class="oe_button_box" name="button_box">
                         <button name="action_view_reconciliations" type="object" class="oe_stat_button" icon="fa-money"
-                                attrs="{'invisible': [('allocation_count', '=', 0)]}">
+                                invisible="allocation_count == 0">
                             <field name="allocation_count" widget="statinfo" string="Allocations"/>
                         </button>
                     </div>
@@ -79,8 +76,7 @@
                             <field name="payment_date"/>
                             <field name="payment_reference"/>
                         </group>
-                    </group>
-                    <notebook attrs="{'invisible': [('allocation_count', '=', 0)]}">
+                    </group>                    <notebook invisible="allocation_count == 0">
                         <page string="Allocations">
                             <field name="reconciliation_ids" domain="[('state', '=', 'confirmed')]" readonly="1">
                                 <tree>

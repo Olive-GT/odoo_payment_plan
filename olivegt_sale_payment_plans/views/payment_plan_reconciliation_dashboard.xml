@@ -17,13 +17,12 @@
                 <field name="allocation_state" invisible="1"/>
                 <field name="allocation_count" invisible="1"/>
                 <field name="overdue_days" invisible="1"/>
-                <field name="paid" invisible="1"/>
-                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment" 
+                <field name="paid" invisible="1"/>                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment" 
                         class="btn btn-primary btn-sm" 
-                        attrs="{'invisible': ['|', ('paid', '=', True), ('allocation_state', '=', 'full')]}"/>
+                        invisible="paid or allocation_state == 'full'"/>
                 <button name="action_view_reconciliations" type="object" string="View Allocations" title="View Allocations" 
                         class="btn btn-secondary btn-sm" 
-                        attrs="{'invisible': [('allocation_count', '=', 0)]}"/>
+                        invisible="allocation_count == 0"/>
                 <field name="state" widget="badge" 
                        decoration-success="state == 'paid'" 
                        decoration-info="state == 'allocated'" 
