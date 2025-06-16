@@ -14,7 +14,14 @@
                 <field name="payment_date"/>
                 <field name="payment_reference"/>                <field name="currency_id" column_invisible="True"/>
                 <field name="allocation_count" string="# Alloc."/>
-                
+                  <!-- Allocation info -->
+                <field name="allocation_state" string="Allocation Status" widget="badge" 
+                       decoration-success="allocation_state == 'full'" 
+                       decoration-info="allocation_state == 'partial'" 
+                       decoration-danger="allocation_state == 'none'"/>
+                         <!-- Allocations summary -->
+                <field name="allocation_summary" string="Allocations" widget="html"/>
+                       
                 <!-- Button to show detailed allocations in a popup -->
                 <button name="action_show_allocations" type="object" 
                        string="" title="Ver Detalles de Asignaciones" icon="fa-list" 

@@ -40,6 +40,7 @@ class PaymentPlanLine(models.Model):
         ('paid', 'Paid'),
         ('overdue', 'Overdue')
     ], compute='_compute_state', string='Status', store=True)
+    allocation_summary = fields.Text(compute='_compute_allocation_summary', string='Allocations')
     
     @api.depends('reconciliation_ids.state')
     def _compute_allocation_count(self):
@@ -590,4 +591,42 @@ class PaymentPlanLine(models.Model):
                 'edit': False,
                 'delete': False
             }
-        }
+        }    @api.depends('reconciliation_ids.state', 'reconciliation_ids.move_id', 'reconciliation_ids.amount', 
+               'reconciliation_ids.date', 'reconciliation_ids.journal_id')
+    def _compute_allocation_summary(self):
+        for line in self:
+            confirmed_reconciliations = line.reconciliation_ids.filtered(lambda r: r.state == 'confirmed')
+            if not confirmed_reconciliations:
+                line.allocation_summary = False
+                continue
+            
+            # Group reconciliations by journal for a more concise summary
+            journal_totals = {}
+            for rec in confirmed_reconciliations:
+                journal_name = rec.journal_id.name or 'Sin Diario'
+                if journal_name not in journal_totals:
+                    journal_totals[journal_name] = {
+                        'amount': 0.0,
+                        'count': 0,
+                        'latest_date': False
+                    }
+                journal_totals[journal_name]['amount'] += rec.amount
+                journal_totals[journal_name]['count'] += 1
+                rec_date = rec.date or fields.Date.today()
+                if (not journal_totals[journal_name]['latest_date'] or
+                        rec_date > journal_totals[journal_name]['latest_date']):
+                    journal_totals[journal_name]['latest_date'] = rec_date
+              # Format the summary with HTML for better display
+            summary_parts = []
+            for journal, data in journal_totals.items():
+                date_str = data['latest_date'].strftime('%d/%m/%Y') if data['latest_date'] else ''
+                amount_str = "{:,.2f}".format(data['amount']).replace(',', ' ')
+                trans_text = "transacción" if data['count'] == 1 else "transacciones"
+                
+                summary_parts.append(
+                    f"<div><strong>{journal}:</strong> {amount_str} "
+                    f"({data['count']} {trans_text})<br/>"
+                    f"<small>Última: {date_str}</small></div>"
+                )
+                
+            line.allocation_summary = ''.join(summary_parts) if summary_parts else False
