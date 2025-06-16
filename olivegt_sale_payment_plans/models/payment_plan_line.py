@@ -579,11 +579,10 @@ class PaymentPlanLine(models.Model):
                     'type': 'warning',
                 }
             }
-        
-        # Return action to show reconciliations in a popup
+          # Return action to show reconciliations in a popup
         return {
             'name': _('Detalles de Asignaciones'),
-            'view_mode': 'tree,form',  # Cambiamos de list a tree para mayor compatibilidad
+            'view_mode': 'list,form',  # Usamos list para compatibilidad con Odoo 17
             'res_model': 'payment.plan.reconciliation',
             'domain': [('id', 'in', reconciliations.ids)],
             'view_id': self.env.ref('olivegt_sale_payment_plans.view_payment_plan_reconciliation_detailed_tree').id,

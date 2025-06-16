@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-<data>    <!-- Payment Plan Line List View -->    <record id="view_payment_plan_line_list" model="ir.ui.view">
-        <field name="name">payment.plan.line.list</field>
+<data>    <!-- Payment Plan Line List View -->    <record id="view_payment_plan_line_list" model="ir.ui.view">        <field name="name">payment.plan.line.list</field>
         <field name="model">payment.plan.line</field>
-        <field name="arch" type="xml">            <tree editable="bottom">                <field name="date"/>
+        <field name="arch" type="xml">            <list editable="bottom">                <field name="date"/>
                 <field name="name"/>
                 <field name="amount" widget="monetary" sum="Total"/>
                 <field name="allocated_amount" widget="monetary" sum="Total Asignado"/>                <field name="allocation_state"/>
@@ -34,10 +33,9 @@
                         icon="fa-check" column_invisible="paid" class="btn-sm"/>
                 
                 <button name="mark_as_unpaid" type="object" string="" title="Mark as Unpaid" 
-                        icon="fa-times" column_invisible="not paid" class="btn-sm"/>
-                  <button name="update_overdue_status" type="object" string="" title="Update Status" 
+                        icon="fa-times" column_invisible="not paid" class="btn-sm"/>                <button name="update_overdue_status" type="object" string="" title="Update Status" 
                         icon="fa-refresh" column_invisible="paid" class="btn-sm"/>
-            </tree>
+            </list>
         </field>
     </record>
       <!-- Payment Plan Line Form View -->
@@ -113,7 +111,7 @@
     <!-- Detailed reconciliation tree view for popup -->    <record id="view_payment_plan_reconciliation_detailed_tree" model="ir.ui.view">
         <field name="name">payment.plan.reconciliation.detailed.tree</field>
         <field name="model">payment.plan.reconciliation</field>
-        <field name="arch" type="xml">            <tree create="false" edit="false" delete="false">
+        <field name="arch" type="xml">            <list create="false" edit="false" delete="false">
                 <field name="date"/>
                 <field name="move_id"/>
                 <field name="journal_id"/>
@@ -125,7 +123,7 @@
                        decoration-info="state == 'draft'" 
                        decoration-success="state == 'confirmed'" 
                        decoration-muted="state == 'cancelled'"/>
-            </tree>
+            </list>
         </field>
     </record>
 </data>
