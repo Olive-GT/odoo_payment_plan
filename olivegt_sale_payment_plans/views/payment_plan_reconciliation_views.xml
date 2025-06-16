@@ -15,10 +15,8 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="payment_plan_id" readonly="state != 'draft'"/>
-                            <field name="payment_plan_line_id" domain="[('payment_plan_id', '=', payment_plan_id)]" readonly="state != 'draft'"/>
-                            <field name="partner_id" readonly="1"/>
-                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="payment_plan_id" readonly="state != 'draft'"/>                            <field name="payment_plan_line_id" domain="[('payment_plan_id', '=', payment_plan_id)]" readonly="state != 'draft'"/>                            <field name="partner_id" readonly="1"/>
+                            <field name="date" readonly="1" force_save="1" help="This date is automatically set to match the journal entry date"/>
                             <field name="amount" widget="monetary" readonly="state != 'draft'"/>
                             <field name="currency_id" invisible="1"/>
                         </group>

@@ -31,8 +31,7 @@ class PaymentPlanReconciliation(models.Model):
         store=True,
         string='Payment Plan'
     )
-    partner_id = fields.Many2one(
-        related='payment_plan_id.partner_id',
+    partner_id = fields.Many2one(        related='payment_plan_id.partner_id',
         store=True,
         string='Partner'
     )
@@ -48,7 +47,8 @@ class PaymentPlanReconciliation(models.Model):
     date = fields.Date(
         string='Date',
         default=lambda self: fields.Date.context_today(self),
-        required=True
+        required=True,
+        help="Date of reconciliation. Always matches the journal entry date."
     )
     company_id = fields.Many2one(
         related='payment_plan_id.company_id',
@@ -150,6 +150,13 @@ class PaymentPlanReconciliation(models.Model):
                     'amount': rec.amount
                 })
     
+    @api.constrains('date', 'move_date')
+    def _check_date_match(self):
+        """Ensure reconciliation date matches the journal entry date"""
+        for rec in self:
+            if rec.date != rec.move_date:
+                raise ValidationError(_("The reconciliation date must match the journal entry date."))
+                
     def action_confirm(self):
         """Confirm the reconciliation"""
         for rec in self:
@@ -203,8 +210,7 @@ class PaymentPlanReconciliation(models.Model):
                     ('id', '!=', rec.id)
                 ])
                 total_allocated = sum(remaining_allocations.mapped('amount'))
-                
-                # If remaining allocations don't cover full amount, mark as unpaid
+                  # If remaining allocations don't cover full amount, mark as unpaid
                 precision = self.env['decimal.precision'].precision_get('Payment')
                 if float_compare(total_allocated, line.amount, 
                               precision_digits=precision) < 0:
@@ -217,8 +223,12 @@ class PaymentPlanReconciliation(models.Model):
     
     @api.model
     def create(self, vals):
-        """Override create to set the date if not provided"""
-        if not vals.get('date'):
+        """Override create to set the date to match move date"""
+        if vals.get('move_line_id'):
+            move_line = self.env['account.move.line'].browse(vals.get('move_line_id'))
+            if move_line and move_line.move_id.date:
+                vals['date'] = move_line.move_id.date
+        elif not vals.get('date'):
             vals['date'] = fields.Date.context_today(self)
         return super().create(vals)
     
@@ -245,3 +255,10 @@ class PaymentPlanReconciliation(models.Model):
     def _onchange_partner_id(self):
         """When partner changes, recompute available move lines"""
         self._compute_available_move_lines()
+
+    @api.onchange('move_line_id')
+    def _onchange_move_line_id(self):
+        """When move line changes, set date to match move date"""
+        for rec in self:
+            if rec.move_line_id and rec.move_line_id.move_id.date:
+                rec.date = rec.move_line_id.move_id.date
