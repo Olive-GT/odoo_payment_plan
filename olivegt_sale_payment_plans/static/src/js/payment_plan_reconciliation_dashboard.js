@@ -71,5 +71,3 @@ export const paymentPlanDashboardKanbanView = {
 };
 
 registry.category("views").add("payment_plan_dashboard_kanban", paymentPlanDashboardKanbanView);
-
-});
