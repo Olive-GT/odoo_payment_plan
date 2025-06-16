@@ -1,25 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<odoo>    <!-- Payment Plan Dashboard List View -->
-    <record id="view_payment_plan_dashboard_list" model="ir.ui.view">        <field name="name">payment.plan.line.dashboard.list</field>
+<odoo>
+    <!-- Payment Plan Dashboard List View -->
+    <record id="view_payment_plan_dashboard_list" model="ir.ui.view">
+        <field name="name">payment.plan.line.dashboard.list</field>
         <field name="model">payment.plan.line</field>
         <field name="arch" type="xml">
-            <list create="0" delete="0" decoration-danger="overdue_days > 0 and allocation_state == 'none'"
+            <list create="0" delete="0"
+                  decoration-danger="overdue_days > 0 and allocation_state == 'none'"
                   decoration-warning="allocation_state == 'partial'"
                   decoration-success="paid or allocation_state == 'full'">
                 <field name="payment_plan_id"/>
                 <field name="name"/>
                 <field name="date"/>
-                <field name="amount" sum="Total Amount" widget="monetary"/>
-                <field name="allocated_amount" sum="Total Allocated" widget="monetary"/>                <field name="currency_id" invisible="1"/>                <field name="allocation_state"/>
+                <field name="amount" sum="Total Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="allocated_amount" sum="Total Allocated" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="allocation_state"/>
                 <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px'}"/>
-                <field name="overdue_days" invisible="1"/>
-                <field name="paid" invisible="1"/>                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment" 
-                        class="btn btn-primary btn-sm" 
-                        invisible="paid or allocation_state == 'full'"/>                <button name="action_view_reconciliations" type="object" string="View Details" title="View Allocation Details" 
-                        class="btn btn-secondary btn-sm" 
-                        invisible="allocation_count == 0"/><field name="state" widget="badge" 
-                       decoration-success="state == 'paid'" 
-                       decoration-info="state == 'allocated'" 
+                <field name="overdue_days" attrs="{'invisible': [('id', '!=', 'id')]}"/>
+                <field name="paid" attrs="{'invisible': [('id', '!=', 'id')]}"/>
+                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment"
+                        class="btn btn-primary btn-sm"
+                        invisible="paid or allocation_state == 'full'"/>
+                <button name="action_view_reconciliations" type="object" string="View Details" title="View Allocation Details"
+                        class="btn btn-secondary btn-sm"
+                        invisible="allocation_count == 0"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'paid'"
+                       decoration-info="state == 'allocated'"
                        decoration-warning="state == 'partial'"
                        decoration-danger="state == 'overdue'"/>
             </list>
@@ -51,7 +58,8 @@
         </field>
     </record>
 
-    <!-- Payment Plan Reconciliation Dashboard Action -->    <record id="action_payment_plan_reconciliation_dashboard" model="ir.actions.act_window">
+    <!-- Payment Plan Reconciliation Dashboard Action -->
+    <record id="action_payment_plan_reconciliation_dashboard" model="ir.actions.act_window">
         <field name="name">Payment Reconciliation Dashboard</field>
         <field name="res_model">payment.plan.line</field>
         <field name="view_mode">list,form</field>
@@ -67,7 +75,7 @@
             </p>
         </field>
     </record>
-      
+
     <!-- Dashboard Menu Item -->
     <menuitem id="menu_payment_plan_reconciliation_dashboard"
         name="Reconciliation Dashboard"
