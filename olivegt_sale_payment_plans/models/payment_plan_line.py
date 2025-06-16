@@ -473,7 +473,8 @@ class PaymentPlanLine(models.Model):
                     complete_months = math.ceil(months_passed)
                     interest_amount = self.payment_plan_id.fixed_interest_amount * complete_months
         return interest_amount
-          def action_view_reconciliations(self):
+        
+    def action_view_reconciliations(self):
         """View reconciliations for this line"""
         self.ensure_one()
         
