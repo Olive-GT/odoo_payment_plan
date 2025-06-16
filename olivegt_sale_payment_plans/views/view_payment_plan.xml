@@ -85,8 +85,9 @@
                                                 <field name="currency_id" invisible="1"/>
                                                 <field name="allocation_count" invisible="1"/>
                                             </group>
-                                            <group>                                                <field name="overdue_days" optional="hide"/>
-                                                <field name="interest_amount" optional="hide" widget="monetary"/>
+                                            <group>
+                                                <field name="overdue_days" invisible="overdue_days == 0"/>
+                                                <field name="interest_amount" invisible="interest_amount == 0" widget="monetary"/>
                                                 <field name="total_with_interest" widget="monetary"/>
                                                 <field name="paid"/>
                                                 <field name="payment_date" invisible="not paid"/>
@@ -104,7 +105,7 @@
                                 <field name="total_amount" widget="monetary"/>
                                 <field name="amount_paid" widget="monetary"/>
                                 <field name="amount_residual" widget="monetary"/>
-                                <field name="total_interest" widget="monetary" optional="hide"/>
+                                <field name="total_interest" widget="monetary" invisible="total_interest == 0"/>
                                 <field name="total_with_interest" class="oe_subtotal_footer_separator" widget="monetary"/>
                                 <field name="currency_id" invisible="1"/>
                             </group>
