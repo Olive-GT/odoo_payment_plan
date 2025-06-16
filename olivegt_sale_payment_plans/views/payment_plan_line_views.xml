@@ -78,17 +78,7 @@
                         </group>
                     </group>                    <notebook invisible="allocation_count == 0">
                         <page string="Allocations">
-                            <field name="reconciliation_ids" domain="[('state', '=', 'confirmed')]" readonly="1">
-                                <tree>
-                                    <field name="move_date"/>
-                                    <field name="move_id"/>
-                                    <field name="journal_id"/>
-                                    <field name="amount" widget="monetary"/>
-                                    <field name="currency_id" invisible="1"/>
-                                    <field name="move_payment_reference"/>
-                                    <field name="state" widget="badge" decoration-success="state == 'confirmed'" decoration-warning="state == 'draft'" decoration-danger="state == 'cancelled'"/>
-                                </tree>
-                            </field>
+                            <field name="reconciliation_ids" domain="[('state', '=', 'confirmed')]" readonly="1"/>
                         </page>
                     </notebook>
                 </sheet>
