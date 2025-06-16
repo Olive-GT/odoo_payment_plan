@@ -6,7 +6,7 @@
         <field name="model">payment.plan.line</field>
         <field name="arch" type="xml">
             <list create="0" delete="0"
-                  decoration-danger="overdue_days > 0 and allocation_state == 'none'"
+                  decoration-danger="overdue_days &gt; 0 and allocation_state == 'none'"
                   decoration-warning="allocation_state == 'partial'"
                   decoration-success="paid or allocation_state == 'full'">
                 <field name="payment_plan_id"/>
@@ -16,8 +16,7 @@
                 <field name="allocated_amount" sum="Total Allocated" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                 <field name="allocation_state"/>
                 <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px'}"/>
-                <field name="overdue_days" attrs="{'invisible': [('id', '!=', 'id')]}"/>
-                <field name="paid" attrs="{'invisible': [('id', '!=', 'id')]}"/>
+                <!-- NO se incluyen paid ni overdue_days -->
                 <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment"
                         class="btn btn-primary btn-sm"
                         invisible="paid or allocation_state == 'full'"/>
