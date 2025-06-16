@@ -1,23 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <template id="assets_backend" name="Payment Plan Assets" inherit_id="web.assets_backend">
-        <xpath expr="." position="inside">            <script type="text/javascript" src="/olivegt_sale_payment_plans/static/src/js/payment_plan_reconciliation.js"></script>
-            <script type="text/javascript" src="/olivegt_sale_payment_plans/static/src/js/payment_reconciliation_direct.js"></script>
-            <script type="text/javascript" src="/olivegt_sale_payment_plans/static/src/js/qweb_templates.js"></script>
-            <script type="text/javascript" src="/olivegt_sale_payment_plans/static/src/js/enhanced_payment_reconciliation.js"></script>
-            <script type="text/javascript" src="/olivegt_sale_payment_plans/static/src/js/direct_dom_injection.js"></script>
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/olivegt_sale_payment_plans/static/src/js/payment_plan_reconciliation.js"></script>
         </xpath>
-    </template>
-    
-    <!-- Add QWeb templates -->
-    <template id="qweb_templates" name="Payment Plan QWeb Templates">
-        <t t-call="web.assets_qweb">
-            <t t-foreach="[
-                'static/src/xml/reconcile_payment_templates.xml',
-                'static/src/xml/payment_reconciliation_templates.xml',
-            ]" t-as="template">
-                <script t-att-src="'/olivegt_sale_payment_plans/' + template" type="text/xml" />
-            </t>
-        </t>
     </template>
 </odoo>

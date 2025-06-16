@@ -506,8 +506,8 @@ class PaymentPlanLine(models.Model):
             'view_mode': 'list,form',
             'domain': [('payment_plan_line_id', '=', self.id)],
             'context': {
-                'default_payment_plan_id': self.payment_plan_id.id,                'default_payment_plan_line_id': self.id,
-                },
+                'default_payment_plan_id': self.payment_plan_id.id,
+                'default_payment_plan_line_id': self.id,            },
         }
     
     def action_reconcile(self):
@@ -517,11 +517,13 @@ class PaymentPlanLine(models.Model):
         # Check if we have a wizard model first
         model = 'payment.plan.reconciliation.wizard'
         if model in self.env:
-            # Get context values from the helper method
-            context_vals = self.prepare_payment_registration_vals() if hasattr(self, 'prepare_payment_registration_vals') else {}
-            
-            if not context_vals:
-                context_vals = {
+            return {
+                'name': _('Reconcile Payment'),
+                'type': 'ir.actions.act_window',
+                'res_model': model,
+                'view_mode': 'form',
+                'target': 'new',
+                'context': {
                     'default_payment_plan_id': self.payment_plan_id.id,
                     'default_payment_plan_line_id': self.id,
                     'default_partner_id': self.payment_plan_id.partner_id.id,
@@ -529,17 +531,8 @@ class PaymentPlanLine(models.Model):
                     'default_overdue_days': self.overdue_days,
                     'default_interest_amount': self.interest_amount,
                     'default_total_with_interest': self.total_with_interest,
-                    'payment_plan_line_id': self.id,
-                    'show_overdue_info': True, # Always try to show overdue info
+                    'payment_plan_line_id': self.id,  # Used by our JS extension
                 }
-            
-            return {
-                'name': _('Reconcile Payment'),
-                'type': 'ir.actions.act_window',
-                'res_model': model,
-                'view_mode': 'form',
-                'target': 'new',
-                'context': context_vals
             }
         else:
             # If wizard doesn't exist yet, create a simple form
