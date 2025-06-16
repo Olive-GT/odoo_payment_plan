@@ -23,7 +23,6 @@
                         <group>                            <field name="move_line_id" readonly="state != 'draft'"/>
                             <field name="available_move_line_ids" invisible="1"/>
                             <field name="move_id" readonly="1"/>
-                            <field name="journal_id" readonly="1"/>
                             <field name="move_date" readonly="1"/>
                             <field name="move_payment_reference" readonly="1"/>
                             <field name="company_id" groups="base.group_multi_company" readonly="1"/>
