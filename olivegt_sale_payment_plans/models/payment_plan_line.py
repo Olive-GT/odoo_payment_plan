@@ -42,6 +42,9 @@ class PaymentPlanLine(models.Model):
     ], compute='_compute_state', string='Status', store=True)    # Vamos a usar un campo Char para mayor compatibilidad
     allocation_summary = fields.Char(compute='_compute_allocation_summary', string='Allocations')
     
+    # New field to show move lines details in the dashboard
+    move_lines_summary = fields.Html(compute='_compute_move_lines_summary', string='Payment Details')
+    
     @api.depends('reconciliation_ids.state')
     def _compute_allocation_count(self):
         for line in self:
@@ -619,4 +622,66 @@ class PaymentPlanLine(models.Model):
                     journal_text += f" y {len(unique_journals) - 2} más"
                 line.allocation_summary = f"{count} asign: Q{formatted_amount} ({journal_text})"
             else:
-                line.allocation_summary = f"{count} asignaciones: Q{formatted_amount}"
+                line.allocation_summary = f"{count} asignaciones: Q{formatted_amount}"    @api.depends('reconciliation_ids.state', 'reconciliation_ids.move_id', 'reconciliation_ids.amount', 
+                'reconciliation_ids.date', 'reconciliation_ids.journal_id', 'reconciliation_ids.move_payment_reference')
+    def _compute_move_lines_summary(self):
+        """Generate a formatted HTML table with the move lines details for this payment plan line"""
+        for line in self:
+            # Only include confirmed reconciliations
+            confirmed_reconciliations = line.reconciliation_ids.filtered(lambda r: r.state == 'confirmed')
+            if not confirmed_reconciliations:
+                line.move_lines_summary = ""
+                continue
+            
+            currency_symbol = line.currency_id.symbol or 'Q'
+                
+            # Create a mini HTML table for the move lines
+            html = '<div class="o_payment_details" style="font-size: 0.85em;">'
+            
+            # Use table format for better alignment
+            html += '<table style="width: 100%; border-collapse: separate; border-spacing: 0 2px;">'
+            
+            for rec in confirmed_reconciliations:
+                amount_str = "{:,.2f}".format(rec.amount)
+                date_str = rec.date.strftime('%d/%m/%Y') if rec.date else ''
+                journal_name = rec.journal_id.name or ''
+                move_ref = rec.move_id.name or ''
+                reference = rec.move_payment_reference or ''
+                
+                # Truncate long text
+                if len(journal_name) > 15:
+                    journal_name = journal_name[:12] + '...'
+                if len(reference) > 15:
+                    reference = reference[:12] + '...'
+                
+                # Set background color based on journal type
+                bg_color = '#f0f8ff'  # Default light blue
+                if rec.journal_id.type == 'bank':
+                    bg_color = '#e6f7e6'  # Light green for bank
+                elif rec.journal_id.type == 'cash':
+                    bg_color = '#fff7e6'  # Light yellow for cash
+                
+                html += f'<tr style="background-color: {bg_color}; border-radius: 4px;">'
+                
+                # Amount column with currency
+                html += f'<td style="padding: 3px; font-weight: bold; white-space: nowrap;">'
+                html += f'{currency_symbol} {amount_str}'
+                html += '</td>'
+                
+                # Date column
+                html += f'<td style="padding: 3px; white-space: nowrap;">{date_str}</td>'
+                
+                # Journal column
+                html += f'<td style="padding: 3px;" title="{rec.journal_id.name}">{journal_name}</td>'
+                
+                # Reference column (if available)
+                if reference:
+                    html += f'<td style="padding: 3px;" title="{rec.move_payment_reference}">'
+                    html += f'{reference}</td>'
+                else:
+                    html += f'<td style="padding: 3px;" title="{move_ref}">{move_ref}</td>'
+                
+                html += '</tr>'
+            
+            html += '</table></div>'
+            line.move_lines_summary = html

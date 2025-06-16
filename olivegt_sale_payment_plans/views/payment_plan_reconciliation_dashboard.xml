@@ -12,7 +12,7 @@
                 <field name="amount" sum="Total Amount" widget="monetary"/>
                 <field name="allocated_amount" sum="Total Allocated" widget="monetary"/>
                 <field name="currency_id" invisible="1"/>                <field name="allocation_state"/>                <field name="allocation_count"/>
-                <field name="allocation_summary" string="Allocations"/>
+                <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px'}"/>
                 <field name="overdue_days"/>
                 <field name="paid" invisible="1"/>                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment" 
                         class="btn btn-primary btn-sm" 
