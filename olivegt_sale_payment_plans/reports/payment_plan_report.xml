@@ -71,7 +71,7 @@
                                 <tbody>
                                     <t t-foreach="o.line_ids.sorted(key=lambda l: l.date)" t-as="line">
                                         <t t-set="line_index" t-value="line_index + 1"/>
-                                        <t t-set="line_style" t-value="padding: 1px; text-align: center; border: 1px; font-weight: 500; font-size: 7px;"/>
+                                        <t t-set="line_style" t-value=""/>
                                         <t t-set="text_color" t-value="''"/>
                                         <t t-if="line.paid">
                                             <t t-set="line_style" t-value="'background-color: #d4edda;'"/>
