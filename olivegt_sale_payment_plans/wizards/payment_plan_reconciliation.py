@@ -360,13 +360,14 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
         # Create reconciliations
         reconciliations = []
         for line in valid_lines:
-                
+                  # Siempre usar la fecha del asiento contable para la reconciliación
+            move_date = line.move_line_id.move_id.date
             reconciliation = self.env['payment.plan.reconciliation'].create({
                 'payment_plan_id': self.payment_plan_id.id,
                 'payment_plan_line_id': self.payment_plan_line_id.id,
                 'move_line_id': line.move_line_id.id,
                 'amount': line.amount,
-                'date': self.date,
+                'date': move_date,  # Usar la fecha del move_id, no la fecha del wizard
                 'state': 'draft',
             })
             reconciliations.append(reconciliation.id)
@@ -419,3 +420,18 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
                 ]
             }
         }
+    
+    @api.onchange('wizard_line_ids', 'wizard_line_ids.move_line_id')
+    def _onchange_wizard_line_ids(self):
+        """When a line's move_line_id changes, update the wizard date to match the last selected move date"""
+        for wizard in self:
+            # Only consider lines that have a move_line_id and are not readonly
+            valid_lines = wizard.wizard_line_ids.filtered(lambda l: l.move_line_id and not l.is_readonly)
+            if valid_lines:
+                # Get the move dates from the selected move_line_ids
+                move_dates = valid_lines.mapped('move_line_id.move_id.date')
+                if move_dates:
+                    # Use the most recent date
+                    latest_move_date = max(move_dates)
+                    # Update the wizard date
+                    wizard.date = latest_move_date

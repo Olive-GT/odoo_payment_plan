@@ -200,9 +200,9 @@ class PaymentPlanReconciliation(models.Model):
             payment_reference = ', '.join(references[:3])
             if len(references) > 3:
                 payment_reference += f' (+{len(references) - 3})'
-            
-            # Almacena el payment_date para usarlo después
-            payment_date = latest_allocation.date
+              # Utiliza la fecha del asiento contable más reciente para el payment_date
+            # Esto asegura que se use la fecha correcta para los cálculos de overdue
+            payment_date = latest_allocation.move_date  # Usar move_date en lugar de date
             
             # Actualiza en la base de datos
             self.env.cr.execute("""
@@ -216,7 +216,7 @@ class PaymentPlanReconciliation(models.Model):
             self.env.invalidate_all()
             line = self.env['payment.plan.line'].browse(line.id)
             
-            # SOLUCIÓN: Asegúrate de que payment_date se preserve
+            # SOLUCIÓN: Asegúrate de que payment_date se preserve con la fecha del asiento
             if line.payment_date != payment_date:
                 # Si se perdió, fuerza la actualización nuevamente usando write
                 line.write({'payment_date': payment_date})
@@ -230,8 +230,7 @@ class PaymentPlanReconciliation(models.Model):
             
             # Check if there's overdue interest to consider
             required_amount = line.total_with_interest if line.overdue_days > 0 else line.amount
-            
-            # If allocations cover the full amount (including interest if applicable), mark as paid
+              # If allocations cover the full amount (including interest if applicable), mark as paid
             precision = self.env['decimal.precision'].precision_get('Payment')
             if float_compare(total_allocated, required_amount, precision_digits=precision) >= 0 and not line.paid:
                 line.mark_as_paid()
@@ -252,7 +251,7 @@ class PaymentPlanReconciliation(models.Model):
                     ('id', '!=', rec.id)
                 ])
                 total_allocated = sum(remaining_allocations.mapped('amount'))
-                  # If remaining allocations don't cover full amount, mark as unpaid
+                # If remaining allocations don't cover full amount, mark as unpaid
                 precision = self.env['decimal.precision'].precision_get('Payment')
                 if float_compare(total_allocated, line.amount, 
                               precision_digits=precision) < 0:
@@ -269,6 +268,7 @@ class PaymentPlanReconciliation(models.Model):
         if vals.get('move_line_id'):
             move_line = self.env['account.move.line'].browse(vals.get('move_line_id'))
             if move_line and move_line.move_id.date:
+                # Siempre forzar la fecha del asiento contable, incluso si ya hay una fecha en vals
                 vals['date'] = move_line.move_id.date
         elif not vals.get('date'):
             vals['date'] = fields.Date.context_today(self)
