@@ -53,6 +53,12 @@
                 vertical-align:middle;
               }
 
+              /* Redondeo esquinas */
+              .table-condensed thead th:first-child { border-top-left-radius:8px; }
+              .table-condensed thead th:last-child  { border-top-right-radius:8px; }
+              .table-condensed tbody tr:last-child td:first-child { border-bottom-left-radius:8px; }
+              .table-condensed tbody tr:last-child td:last-child  { border-bottom-right-radius:8px; }
+
               /* Progreso */
               .progress-container {
                 background:#eee; height:6px; border-radius:3px;
