@@ -98,9 +98,8 @@
                             <field name="payment_reference"/>
                         </group>                    
                     </group>
-                    
-                    <!-- Payment Details Section -->
-                    <group string="Payment Details" attrs="{'invisible': [('allocation_count', '=', 0)]}">
+                      <!-- Payment Details Section -->
+                    <group string="Payment Details" invisible="allocation_count == 0">
                         <div class="o_payment_details_container" style="width: 100%;">
                             <field name="move_lines_summary" widget="html" nolabel="1"/>
                             <div class="oe_right oe_button_box" name="payment_action_buttons" style="margin-top: 10px;">
@@ -113,7 +112,7 @@
                                         invisible="allocation_count == 0"/>
                             </div>
                         </div>
-                    </group>            <notebook>                        <page string="Allocations" attrs="{'invisible': [('allocation_count', '=', 0)]}">
+                    </group>            <notebook>                        <page string="Allocations" invisible="allocation_count == 0">
                             <field name="reconciliation_ids" context="{'tree_view_ref': 'olivegt_sale_payment_plans.view_payment_plan_reconciliation_inline_tree'}">
                                 <!-- Use the predefined tree view to avoid field reference errors -->
                             </field>
