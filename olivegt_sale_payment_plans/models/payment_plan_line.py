@@ -113,8 +113,8 @@ class PaymentPlanLine(models.Model):
                     break
                 if payment_line.date:  # Only include lines with dates
                     total_amount += payment_line.amount
-                    if payment_line.paid:
-                        paid_amount += payment_line.amount
+                    if payment_line.allocated_amount > 0 or payment_line.paid:
+                        paid_amount += payment_line.allocated_amount
             
             # Add current line's amount to the total
             total_amount += line.amount
@@ -164,7 +164,7 @@ class PaymentPlanLine(models.Model):
             if not line.date or line.date >= reference_date or line.overdue_days <= 0:
                 # No interest for future due dates or no overdue days
                 line.interest_amount = 0
-            elif line.paid and line.payment_date and line.date < line.payment_date:
+            elif line.payment_date and line.date < line.payment_date:
                 # For paid lines with payment date, use the payment date for interest calculation
                 # Only if the stored interest_amount is zero, calculate it
                 if not line.interest_amount:
