@@ -49,7 +49,6 @@
                 <field name="amount" sum="Total"/>
                 <field name="move_id"/>
                 <field name="move_date"/>
-                <field name="journal_id"/>
                 <field name="move_payment_reference"/>                <field name="state" widget="badge"/>
             </list>
         </field>

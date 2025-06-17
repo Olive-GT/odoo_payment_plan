@@ -37,7 +37,6 @@
                                     ('is_fully_consumed', '=', False),
                                     ('debit', '>', 0.0)
                                 ]" readonly="is_readonly" placeholder="Select a journal item"/>
-                                <field name="journal_id" readonly="is_readonly"/>
                                 <field name="date" readonly="is_readonly"/>
                                 <field name="payment_reference" readonly="is_readonly"/>
                                 <field name="original_amount" widget="monetary" readonly="is_readonly"/>
