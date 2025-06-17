@@ -647,17 +647,18 @@ class PaymentPlanLine(models.Model):
                 continue
             
             currency_symbol = line.currency_id.symbol or 'Q'
-              # Create a mini HTML table with explicit inline styling
-            html = '<div style="margin: 2px 0; max-width: 350px; min-width: 250px; font-size: 0.9em;">'
             
-            # Use table format for better alignment with inline styles
-            html += '<table style="width: 100%; border-collapse: separate; border-spacing: 0 4px;">'
+            # Create a mini HTML table for the move lines with improved styling
+            html = '<div class="o_payment_details">'
+            
+            # Use table format for better alignment
+            html += '<table>'
             
             # Add a header for multiple payments
             if len(confirmed_reconciliations) > 1:
                 total_amount = sum(confirmed_reconciliations.mapped('amount'))
                 total_amount_str = "{:,.2f}".format(total_amount)
-                html += f'<tr><td colspan="3" style="text-align: center; font-weight: bold; padding: 5px; color: #333; background-color: #f8f9fa; border-bottom: 1px solid #dee2e6; border-radius: 4px;">{len(confirmed_reconciliations)} pagos: {currency_symbol} {total_amount_str}</td></tr>'
+                html += f'<tr class="header"><td colspan="3" style="text-align: center; font-weight: bold; padding: 3px; color: #333; background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">{len(confirmed_reconciliations)} pagos: {currency_symbol} {total_amount_str}</td></tr>'
             
             for rec in confirmed_reconciliations:
                 amount_str = "{:,.2f}".format(rec.amount)
@@ -684,7 +685,7 @@ class PaymentPlanLine(models.Model):
                     bg_color = '#fff7e6'  # Light yellow for cash
                     icon = '💰'  # Cash icon
                 
-                html += f'<tr style="background-color: {bg_color}; border-radius: 6px; margin-bottom: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">'
+                html += f'<tr style="background-color: {bg_color}; border-radius: 6px;">'
                 
                 # Amount column with currency - using stronger green
                 html += f'<td style="padding: 4px 6px; font-weight: bold; white-space: nowrap; color: #1a8b1a;">'
