@@ -195,7 +195,7 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
     
     line_amount = fields.Monetary(
         string='Line Amount',
-        related='payment_plan_line_id.amount',
+        related='payment_plan_line_id.total_with_interest',
         store=False
     )
     
