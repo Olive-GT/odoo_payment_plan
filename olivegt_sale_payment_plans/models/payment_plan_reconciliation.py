@@ -201,11 +201,13 @@ class PaymentPlanReconciliation(models.Model):
             if len(references) > 3:
                 payment_reference += f' (+{len(references) - 3})'
             
-            # First update the payment date - this should trigger recalculations in Odoo 18
-            line.write({
-                'payment_date': latest_allocation.date,
-                'payment_reference': payment_reference
-            })
+            # Force update payment date and reference
+            payment_date = latest_allocation.date
+            line.payment_date = payment_date
+            line.payment_reference = payment_reference
+            
+            # Explicitly commit the changes to the database
+            self.env.cr.commit()
             
             # Now that date is updated, fetch the fresh values with recalculated interest
             self.env.cache.invalidate([(line._fields['payment_date'], line.ids)])
@@ -218,6 +220,7 @@ class PaymentPlanReconciliation(models.Model):
             precision = self.env['decimal.precision'].precision_get('Payment')
             if float_compare(total_allocated, required_amount, precision_digits=precision) >= 0 and not line.paid:
                 line.mark_as_paid()
+
     def action_cancel(self):
         """Cancel the reconciliation"""
         for rec in self:
