@@ -18,69 +18,127 @@
         <t t-foreach="docs" t-as="o">
           <t t-call="web.external_layout">
             <style>
-              .page { font-family:'Lato','Helvetica',sans-serif; line-height:1.2; font-size:8px; }
-              .report-title    { font-size:12px; font-weight:600; text-align:center; margin-bottom:4px; }
-              .report-subtitle { font-size:8px; color:#555; text-align:center; margin-bottom:8px; }
-              .section-title   { font-size:9px; font-weight:600; margin:12px 0 4px; }
-              .footer-note     { font-size:7px; color:#888; text-align:center; margin-top:10px; }
+              /* Página y tipografía */
+              .page { font-family:'Lato','Helvetica',sans-serif; font-size:8px; line-height:1.2; }
+              .report-title { text-align:center; font-size:12px; font-weight:600; margin-bottom:4px; }
+              .report-subtitle { text-align:center; font-size:8px; color:#555; margin-bottom:8px; }
+              .section-title { font-size:9px; font-weight:600; margin:12px 0 4px; }
+              .footer-note { text-align:center; font-size:7px; color:#888; margin-top:10px; }
 
+              /* Resumen cabecera */
               .summary-table { width:100%; border-collapse: collapse; margin-bottom:8px; }
               .summary-table td { padding:2px 4px; vertical-align:top; }
               .summary-table strong { font-weight:600; color:#333; }
 
-              .table-condensed { width:100%; border-collapse: collapse; }
-              .table-condensed th, .table-condensed td {
-                padding:4px 6px; border-top:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0;
+              /* Detalle cuotas */
+              .table-condensed {
+                width:100%;
+                border-collapse: separate;
+                border-spacing: 0;
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                overflow: hidden;
+              }
+              .table-condensed thead {
+                background: #2c3e50;
+                color: #fff;
+              }
+              .table-condensed thead th {
+                padding: 8px;
+                font-weight:600;
+                text-align:center;
+              }
+              .table-condensed tbody tr:nth-child(odd) {
+                background: #ecf0f1;
+              }
+              .table-condensed tbody tr:nth-child(even) {
+                background: #fff;
+              }
+              .table-condensed tbody td {
+                padding: 8px;
+                border-bottom: 1px solid #ddd;
                 vertical-align:middle;
               }
-              .table-condensed th { background:#fafafa; font-weight:600; text-align:center; }
-              .zebra tbody tr:nth-child(even) { background:#fafafa; }
 
-              .progress-container {
-                background:#eee; height:6px; border-radius:3px; overflow:hidden; margin-top:2px;
+              /* Pill de pagos */
+              .payments-container {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
               }
-              .progress-bar { background:#28a745; height:6px; }
-
-              .payments-container { display:flex; flex-direction:column; gap:2px; }
               .payment-pill {
-                background:#e6f7e6; padding:2px 4px; border-radius:4px;
-                display:flex; justify-content:space-between; font-size:7px; line-height:1;
+                background: #dff0d8;
+                border-radius: 6px;
+                padding: 6px 8px;
+                display: grid;
+                grid-template-columns: auto auto 1fr;
+                align-items: center;
+                font-size: 7px;
               }
-              .payment-pill .date { color:#555; margin:0 6px; white-space:nowrap; }
-              .payment-pill .ref  {
-                flex-shrink:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-                color:#333; margin-left:6px;
+              .payment-pill .amount {
+                font-weight: 600;
+                white-space: nowrap;
+              }
+              .payment-pill .date {
+                color: #555;
+                white-space: nowrap;
+                text-align: center;
+              }
+              .payment-pill .ref {
+                color: #333;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                padding-left: 8px;
               }
 
+              /* Alineaciones */
               .text-center { text-align:center; }
-              .text-right  { text-align:right; }
+              .text-right { text-align:right; }
             </style>
 
             <div class="page">
               <div class="report-title">ESTADO DE CUENTA</div>
               <div class="report-subtitle">Plan de Pagos: <span t-field="o.name"/></div>
 
+              <!-- Resumen cabecera -->
               <table class="summary-table">
                 <tr>
-                  <td><strong>Cliente:</strong><br/><span t-field="o.partner_id"/></td>
-                  <td><strong>Orden de Venta:</strong><br/><span t-field="o.sale_id.name"/></td>
-                  <td><strong>Fecha:</strong><br/><span t-field="o.date" t-options='{"format":"dd/MM/yyyy"}'/></td>
+                  <td>
+                    <strong>Cliente:</strong><br/>
+                    <span t-field="o.partner_id"/>
+                  </td>
+                  <td>
+                    <strong>Orden de Venta:</strong><br/>
+                    <span t-field="o.sale_id.name"/>
+                  </td>
+                  <td>
+                    <strong>Fecha:</strong><br/>
+                    <span t-field="o.date" t-options='{"format":"dd/MM/yyyy"}'/>
+                  </td>
                 </tr>
                 <tr>
-                  <td><strong>Precio Inmueble:</strong><br/>
-                    <span t-field="o.sale_id.amount_untaxed" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                  <td>
+                    <strong>Precio Inmueble:</strong><br/>
+                    <span t-field="o.sale_id.amount_untaxed"
+                          t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
                   </td>
-                  <td><strong>Monto Total:</strong><br/>
-                    <span t-field="o.total_amount" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                  <td>
+                    <strong>Monto Total:</strong><br/>
+                    <span t-field="o.total_amount"
+                          t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
                   </td>
-                  <td><strong>Saldo Pendiente:</strong><br/>
-                    <span t-field="o.amount_residual" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                  <td>
+                    <strong>Saldo Pendiente:</strong><br/>
+                    <span t-field="o.amount_residual"
+                          t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
                   </td>
                 </tr>
               </table>
 
+              <!-- Detalle de cuotas -->
               <div class="section-title">DETALLE DE CUOTAS</div>
-              <table class="table-condensed zebra">
+              <table class="table-condensed">
                 <thead>
                   <tr>
                     <th>Cuota</th>
@@ -98,25 +156,29 @@
                   <t t-foreach="o.line_ids.sorted(key=lambda l: l.date)" t-as="line">
                     <t t-set="idx" t-value="idx + 1"/>
                     <tr>
-                      <td class="text-center"><t t-esc="line.name or 'Cuota '+str(idx)"/></td>
-                      <td class="text-center"><span t-field="line.date" t-options='{"format":"dd/MM/yyyy"}'/></td>
+                      <td class="text-center">
+                        <t t-esc="line.name or 'Cuota ' + str(idx)"/>
+                      </td>
+                      <td class="text-center">
+                        <span t-field="line.date" t-options='{"format":"dd/MM/yyyy"}'/>
+                      </td>
                       <td class="text-right">
-                        <span t-field="line.amount" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                        <span t-field="line.amount"
+                              t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
                       </td>
                       <td class="text-right">
                         <t t-if="line.interest_amount &gt; 0">
-                          <span t-field="line.interest_amount" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                          <span t-field="line.interest_amount"
+                                t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
                         </t>
                       </td>
                       <td class="text-right">
-                        <span t-field="line.total_with_interest" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                        <span t-field="line.total_with_interest"
+                              t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
                       </td>
                       <td class="text-right">
-                        <span t-field="line.allocated_amount" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
-                        <div class="progress-container">
-                          <div class="progress-bar"
-                               t-att-style="'width: {}%;'.format(int(((line.allocated_amount or 0.0) / ((line.total_with_interest or line.amount) or 1.0)) * 100))"/>
-                        </div>
+                        <span t-field="line.allocated_amount"
+                              t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
                       </td>
                       <td class="text-right">
                         <t t-esc="(line.total_with_interest or line.amount) - (line.allocated_amount or 0.0)"/>
@@ -126,9 +188,16 @@
                           <div class="payments-container">
                             <t t-foreach="line.reconciliation_ids.filtered(lambda r: r.state=='confirmed')" t-as="rec">
                               <div class="payment-pill">
-                                <span t-field="rec.amount" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
-                                <span class="date" t-field="rec.date" t-options='{"format":"dd/MM/yyyy"}'/>
-                                <span class="ref" t-esc="rec.move_payment_reference or rec.move_id.name"/>
+                                <div class="amount">
+                                  <span t-field="rec.amount"
+                                        t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                                </div>
+                                <div class="date">
+                                  <span t-field="rec.date" t-options='{"format":"dd/MM/yyyy"}'/>
+                                </div>
+                                <div class="ref" title="&#60;span t-esc=&quot;rec.move_payment_reference or rec.move_id.name&quot;/&#62;">
+                                  <t t-esc="rec.move_payment_reference or rec.move_id.name"/>
+                                </div>
                               </div>
                             </t>
                           </div>
