@@ -134,10 +134,7 @@
                               t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
                         <div class="progress-container">
                           <div class="progress-bar"
-                               t-att-style="'width: %s%%;' % (
-                                 (line.allocated_amount or 0.0) /
-                                 ((line.total_with_interest or line.amount) or 1.0) * 100
-                               )"/>
+                               t-att-style="'width: {}%;'.format(int((line.allocated_amount or 0.0) / ((line.total_with_interest or line.amount) or 1.0) * 100))"/>
                         </div>
                       </td>
 
