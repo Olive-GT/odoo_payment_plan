@@ -526,6 +526,17 @@ class PaymentPlanLine(models.Model):
             },
         }
     
+    def action_view_line(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Payment Plan Line',
+            'res_model': 'payment.plan.line',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'current',  # puedes usar 'new' si quieres que sea en modal
+        }
+    
     def action_reconcile(self):
         """Open reconciliation wizard"""
         self.ensure_one()

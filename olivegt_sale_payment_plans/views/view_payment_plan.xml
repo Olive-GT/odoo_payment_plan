@@ -49,7 +49,7 @@
                                     <field name="interest_amount" widget="monetary"/>
                                     <field name="total_with_interest" widget="monetary"/>
                                     <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px'}"/>
-                                    <button name="action_view_reconciliations" type="object" string="View Details" title="View Allocation Details"
+                                    <button name="action_view_line" type="object" string="View Details" title="View Details"
                                             class="btn btn-secondary btn-sm"/>
                                     <field name="state" widget="badge"/>
                                 </list>
@@ -115,7 +115,9 @@
                 </sheet>
             </form>
         </field>
-    </record>    <!-- Payment Plan List View -->
+    </record>
+    
+    <!-- Payment Plan List View -->
     <record id="view_payment_plan_list" model="ir.ui.view">
         <field name="name">payment.plan.list</field>
         <field name="model">payment.plan</field>        <field name="arch" type="xml">            <list>                <field name="name"/>

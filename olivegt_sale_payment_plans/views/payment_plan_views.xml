@@ -5,7 +5,8 @@
         <field name="name">payment.plan.form</field>
         <field name="model">payment.plan</field>
         <field name="arch" type="xml">
-            <form>                <header>
+            <form>
+                <header>
                     <button name="action_post" type="object" string="Post" class="oe_highlight" invisible="state != 'draft'" />
                     <button name="action_cancel" type="object" string="Cancel" invisible="state not in ['draft', 'posted']" />
                     <button name="action_draft" type="object" string="Set to Draft" invisible="state != 'canceled'" />
@@ -28,16 +29,20 @@
                         </group>
                         <group>
                             <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="currency_id"/>                        </group>                        
+                            <field name="currency_id"/>
+                        </group>                        
                     </group>
                     <group>
-                        <group string="Interest Calculation">                            <field name="interest_calculation_method" widget="radio"/>
+                        <group string="Interest Calculation">
+                            <field name="interest_calculation_method" widget="radio"/>
                             <field name="interest_rate" invisible="interest_calculation_method != 'percentage'"/>
                             <field name="fixed_interest_amount" invisible="interest_calculation_method != 'fixed'" widget="monetary"/>
                             <field name="currency_id" invisible="1"/>
                         </group>
                     </group>
-                    <notebook>                        <page string="Payment Schedule">                            <field name="line_ids">
+                    <notebook>
+                        <page string="Payment Schedule">
+                            <field name="line_ids">
                                 <list editable="bottom" 
                                        decoration-danger="overdue_days > 0 and not paid" 
                                        decoration-success="paid" 
@@ -87,7 +92,10 @@
                 </div>
             </form>
         </field>
-    </record>    <!-- Payment Plan List View -->
+    </record>
+    
+    
+    <!-- Payment Plan List View -->
     <record id="payment_plan_view_tree" model="ir.ui.view">
         <field name="name">payment.plan.list</field>
         <field name="model">payment.plan</field>
