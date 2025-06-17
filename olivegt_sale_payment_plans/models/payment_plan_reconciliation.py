@@ -182,50 +182,42 @@ class PaymentPlanReconciliation(models.Model):
             
             # Update payment plan line
             line = rec.payment_plan_line_id
-              # Check if line is fully reconciled
+            
+            # Check if line is fully reconciled
             all_confirmed_allocations = self.search([
                 ('payment_plan_line_id', '=', line.id),
                 ('state', '=', 'confirmed')
             ])
+            
             total_allocated = sum(all_confirmed_allocations.mapped('amount'))
             
-            # Determinar si hay intereses por mora que deben ser considerados
-            is_overdue = line.overdue_days > 0 and line.interest_amount > 0
-            required_amount = line.amount + line.interest_amount if is_overdue else line.amount
+            # Get payment date from the most recent allocation
+            latest_allocation = all_confirmed_allocations.sorted(
+                key=lambda r: r.date, reverse=True)[0]
+            
+            # Set payment reference from allocations
+            references = list(filter(None, all_confirmed_allocations.mapped('move_payment_reference')))
+            payment_reference = ', '.join(references[:3])
+            if len(references) > 3:
+                payment_reference += f' (+{len(references) - 3})'
+            
+            # First update the payment date - this should trigger recalculations in Odoo 18
+            line.write({
+                'payment_date': latest_allocation.date,
+                'payment_reference': payment_reference
+            })
+            
+            # Now that date is updated, fetch the fresh values with recalculated interest
+            line.invalidate_cache()
+            line = line.with_context(force_refresh=True).browse(line.id)
+            
+            # Check if there's overdue interest to consider
+            required_amount = line.total_with_interest if line.overdue_days > 0 else line.amount
             
             # If allocations cover the full amount (including interest if applicable), mark as paid
             precision = self.env['decimal.precision'].precision_get('Payment')
-            if float_compare(total_allocated, required_amount, 
-                          precision_digits=precision) >= 0 and not line.paid:
-                # Get payment date from the most recent allocation
-                latest_allocation = all_confirmed_allocations.sorted(
-                    key=lambda r: r.date, reverse=True)[0]
-                
-                # Set payment reference from allocations
-                references = list(filter(None, all_confirmed_allocations.mapped('move_payment_reference')))
-                payment_reference = ', '.join(references[:3])
-                if len(references) > 3:
-                    payment_reference += f' (+{len(references) - 3})'
-                  # Verificar si la línea está en mora (overdue) antes de marcarla como pagada
-                today = fields.Date.context_today(self)
-                is_overdue = line.date < latest_allocation.date
-                
-                if is_overdue:
-                    # Calcular intereses por mora usando la fecha del pago
-                    line.calculate_and_store_interest(latest_allocation.date)
-                    
-                    # Usar mark_as_paid que mantiene el cálculo de intereses
-                    line.payment_date = latest_allocation.date
-                    line.payment_reference = payment_reference
-                    line.mark_as_paid()
-                else:
-                    # Si no hay mora, simplemente marcar como pagada
-                    line.write({
-                        'paid': True,
-                        'payment_date': latest_allocation.date,
-                        'payment_reference': payment_reference
-                    })
-    
+            if float_compare(total_allocated, required_amount, precision_digits=precision) >= 0 and not line.paid:
+                line.mark_as_paid()
     def action_cancel(self):
         """Cancel the reconciliation"""
         for rec in self:
