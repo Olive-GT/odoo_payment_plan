@@ -5,46 +5,44 @@
         <field name="name">payment.plan.line.dashboard.list</field>
         <field name="model">payment.plan.line</field>
         <field name="arch" type="xml">
-            <tree create="0" delete="0">
+            <list create="0" delete="0">
                 <field name="payment_plan_id"/>
                 <field name="name"/>
                 <field name="date"/>
-                <field name="amount" sum="Total Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="allocated_amount" sum="Total Allocated" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="amount" sum="Total Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>                <field name="allocated_amount" sum="Total Allocated" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                 <field name="allocation_state" 
                        decoration-success="allocation_state == 'full'" 
                        decoration-warning="allocation_state == 'partial'" 
                        decoration-danger="allocation_state == 'none'"
-                       options="{'classes': {'full': 'font-weight-bold', 'partial': 'font-weight-bold', 'none': 'font-weight-bold'}}"/>
+                       options="{'classes': {'full': 'fw-bold', 'partial': 'fw-bold', 'none': 'fw-bold'}}"/>
                 
                 <!-- Payment Details - HTML widget with more space -->
-                <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px', 'resizable': true}"/>
-                
-                <!-- Improved Button Styling with inline styles -->
+                <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px', 'resizable': true}"/>                <!-- Improved Button Styling with inline styles -->
                 <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment"
-                        class="oe_highlight"/>
-                          
+                        class="oe_highlight btn btn-primary"
+                        style="background-color: #756AB6; color: white; font-weight: 500; padding: 4px 10px; border-radius: 4px;"/>
+                        
                 <button name="action_view_reconciliations" type="object" string="View Details" title="View Allocation Details"
-                        class="btn-secondary"/>
-                
-                <!-- Status with better badge formatting -->
+                        class="btn btn-secondary"
+                        style="background-color: #E5E5E5; color: #333; font-weight: 500; padding: 4px 10px; border-radius: 4px;"/>
+                  <!-- Status with better badge formatting -->
                 <field name="state" widget="badge" 
                        decoration-success="state == 'paid'" 
                        decoration-info="state == 'allocated'" 
                        decoration-warning="state == 'partial'" 
                        decoration-danger="state == 'overdue'"
                        decoration-muted="state == 'pending'"
-                       options="{'classes': {'paid': 'badge-success', 
-                                             'allocated': 'badge-info', 
-                                             'partial': 'badge-warning',
-                                             'overdue': 'badge-danger', 
-                                             'pending': 'badge-secondary'}}"/>
+                       options="{'classes': {'paid': 'bg-success text-white fw-bold', 
+                                             'allocated': 'bg-info text-white fw-bold', 
+                                             'partial': 'bg-warning text-dark fw-bold',
+                                             'overdue': 'bg-danger text-white fw-bold', 
+                                             'pending': 'bg-secondary text-white'}}"/>
                        
                 <!-- Hidden fields that can be made visible if needed -->
                 <field name="overdue_days" optional="hide"/>
                 <field name="interest_amount" sum="Total Interest" widget="monetary" options="{'currency_field': 'currency_id'}" optional="hide"/>
                 <field name="total_with_interest" sum="Total + Interest" widget="monetary" options="{'currency_field': 'currency_id'}" optional="hide"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -77,7 +75,7 @@
     <record id="action_payment_plan_reconciliation_dashboard" model="ir.actions.act_window">
         <field name="name">Payment Reconciliation Dashboard</field>
         <field name="res_model">payment.plan.line</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="view_id" ref="view_payment_plan_dashboard_list"/>
         <field name="domain">[('payment_plan_id.state', '=', 'posted')]</field>
         <field name="context">{'search_default_unpaid': 1}</field>
