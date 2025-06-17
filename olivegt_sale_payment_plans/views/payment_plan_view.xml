@@ -122,17 +122,19 @@
     <record id="view_payment_plan_list" model="ir.ui.view">
         <field name="name">payment.plan.list</field>
         <field name="model">payment.plan</field>
-        <field name="arch" type="xml">            
-            <list>
+        <field name="arch" type="xml">
+            <list decoration-info="state == 'draft'"
+                decoration-success="state == 'posted'"
+                decoration-danger="state == 'canceled'">
                 <field name="name"/>
                 <field name="sale_id"/>
                 <field name="partner_id"/>
                 <field name="date"/>
-                <field name="total_amount" widget="monetary"/>
-                <field name="amount_paid" widget="monetary"/>
-                <field name="amount_residual" widget="monetary"/>
-                <field name="total_interest" widget="monetary"/>
-                <field name="total_with_interest" widget="monetary"/>
+                <field name="total_amount" widget="monetary" string="Total"/>
+                <field name="amount_paid" widget="monetary" string="Paid"/>
+                <field name="amount_residual" widget="monetary" string="Due"/>
+                <field name="total_interest" widget="monetary" string="Interest"/>
+                <field name="total_with_interest" widget="monetary" string="Total + Interest"/>
                 <field name="state"/>
                 <field name="currency_id" invisible="1"/>
             </list>
