@@ -1,210 +1,185 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <data>
-        <record id="action_report_payment_plan" model="ir.actions.report">
-            <field name="name">Payment Plan</field>
-            <field name="model">payment.plan</field>
-            <field name="report_type">qweb-pdf</field>
-            <field name="report_name">olivegt_sale_payment_plans.report_payment_plan</field>
-            <field name="report_file">olivegt_sale_payment_plans.report_payment_plan</field>
-            <field name="binding_model_id" ref="model_payment_plan"/>
-            <field name="binding_type">report</field>
-        </record>
+  <data>
+    <!-- Acción de reporte -->
+    <record id="action_report_payment_plan" model="ir.actions.report">
+      <field name="name">Payment Plan</field>
+      <field name="model">payment.plan</field>
+      <field name="report_type">qweb-pdf</field>
+      <field name="report_name">olivegt_sale_payment_plans.report_payment_plan</field>
+      <field name="report_file">olivegt_sale_payment_plans.report_payment_plan</field>
+      <field name="binding_model_id" ref="model_payment_plan"/>
+      <field name="binding_type">report</field>
+    </record>
 
-        <template id="report_payment_plan">
-            <t t-call="web.html_container">
-                <t t-foreach="docs" t-as="o">
-                    <t t-call="web.external_layout">
-                        <style>
-                            .clean-table th, .clean-table td {
-                                padding: 3px 5px;
-                                border: 0.5px solid #ccc;
-                                font-size: 8px;
-                                vertical-align: middle;
-                            }
+    <!-- Template QWeb -->
+    <template id="report_payment_plan">
+      <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="o">
+          <t t-call="web.external_layout">
+            <!-- Estilos -->
+            <style>
+              .report-title { font-size:12px; font-weight:600; text-align:center; margin-bottom:5px; }
+              .report-subtitle { font-size:8px; color:#555; text-align:center; margin-bottom:8px; }
+              .section-title { font-size:9px; font-weight:600; margin-top:10px; margin-bottom:4px; }
+              .summary-table td { border:none; padding:2px 4px; font-size:8px; }
+              .summary-table strong { font-weight:600; color:#333; }
+              .small-table th, .small-table td {
+                padding:4px 6px; font-size:8px; border:0.5px solid #e0e0e0; vertical-align:middle;
+              }
+              .small-table th { background-color:#fafafa; font-weight:600; color:#333; }
+              .table-rounded { border-collapse: separate; border-spacing:0; border-radius:6px; overflow:hidden; }
+              .badge { display:inline-block; padding:1px 5px; border-radius:4px; font-size:7px; font-weight:600; }
+              .badge-paid { color:#28a745; border:0.5px solid #28a745; }
+              .badge-overdue { color:#dc3545; border:0.5px solid #dc3545; }
+              .badge-allocated { color:#007bff; border:0.5px solid #007bff; }
+              .badge-partial { color:#ffc107; border:0.5px solid #ffc107; }
+              .badge-pending { color:#6c757d; border:0.5px solid #ccc; }
+              .text-right { text-align:right; }
+              .text-center { text-align:center; }
+              .footer-note { font-size:7px; color:#888; text-align:center; margin-top:10px; }
+            </style>
 
-                            .clean-table th {
-                                font-weight: 600;
-                                color: #333;
-                                background-color: #f9f9f9;
-                            }
+            <div class="page" style="font-family: 'Lato', 'Helvetica', sans-serif; line-height:1.2;">
+              <!-- Título -->
+              <h5 class="report-title">ESTADO DE CUENTA</h5>
+              <div class="report-subtitle">
+                Plan de Pagos: <span t-field="o.name"/>
+              </div>
 
-                            .badge {
-                                display: inline-block;
-                                padding: 1px 4px;
-                                border-radius: 4px;
-                                font-size: 7px;
-                                font-weight: 600;
-                            }
-
-                            .badge-paid {
-                                border: 0.5px solid #28a745;
-                                color: #28a745;
-                            }
-
-                            .badge-overdue {
-                                border: 0.5px solid #dc3545;
-                                color: #dc3545;
-                            }
-
-                            .badge-draft {
-                                border: 0.5px solid #6c757d;
-                                color: #6c757d;
-                            }
-
-                            .table-rounded {
-                                border-collapse: separate;
-                                border-spacing: 0;
-                                border-radius: 6px;
-                                overflow: hidden;
-                            }
-
-                            .text-right { text-align: right; }
-                            .text-center { text-align: center; }
-                            .totals-row td {
-                                font-weight: 600;
-                                background-color: #f0f0f0;
-                            }
-                            .muted { color: #888; font-size: 7px; }
-                        </style>
-
-                        <div class="page" style="font-size: 8px; line-height: 1.2; font-family: 'Lato', 'Helvetica', sans-serif;">
-                            <div style="text-align: center; margin-bottom: 6px;">
-                                <h5 style="margin: 0; font-weight: 600; font-size: 10px;">ESTADO DE CUENTA</h5>
-                                <p style="margin: 0; font-size: 8px;">Plan de Pagos: <span t-field="o.name"/></p>
-                            </div>
-
-                            <table style="width: 100%; margin-bottom: 10px;">
-                                <tr>
-                                    <td style="width: 15%; font-weight: 600;">Cliente:</td>
-                                    <td style="width: 35%;"><span t-field="o.partner_id"/></td>
-                                    <td style="width: 25%; font-weight: 600;">Precio Inmueble:</td>
-                                    <td style="width: 25%;" class="text-right"><span t-field="o.sale_id.amount_untaxed" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: 600;">Orden de Venta:</td>
-                                    <td><span t-field="o.sale_id.name"/></td>
-                                    <td style="font-weight: 600;">Monto Total Plan de Pago:</td>
-                                    <td class="text-right"><span t-field="o.total_amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: 600;">Fecha:</td>
-                                    <td><span t-field="o.date" t-options='{"format": "dd/MM/yyyy"}'/></td>
-                                    <td style="font-weight: 600;">Monto Pagado:</td>
-                                    <td class="text-right"><span t-field="o.amount_paid" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
-                                </tr>
-                                <tr>
-                                    <td style="font-weight: 600;">Estado:</td>
-                                    <td>
-                                        <t t-if="o.state == 'draft'"><span class="badge badge-draft">Borrador</span></t>
-                                        <t t-elif="o.state == 'posted'"><span class="badge badge-paid">Publicado</span></t>
-                                        <t t-elif="o.state == 'canceled'"><span class="badge badge-overdue">Cancelado</span></t>
-                                    </td>
-                                    <td style="font-weight: 600;">Saldo Pendiente:</td>
-                                    <td class="text-right"><span t-field="o.amount_residual" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
-                                </tr>
-                            </table>
-
-                            <p style="margin: 3px 0; font-weight: 600; font-size: 8px;">DETALLE DE CUOTAS</p>
-                            <table class="clean-table table-rounded" style="width: 100%; margin-bottom: 8px;">
-                                <thead>
-                                    <tr>
-                                        <th class="text-center">CUOTA</th>
-                                        <th class="text-center">FECHA PROGRAMADA</th>
-                                        <th class="text-center">MONTO PROGRAMADO</th>
-                                        <th class="text-center">FECHA DE PAGO</th>
-                                        <th class="text-center">ABONO</th>
-                                        <th class="text-center">SALDO</th>
-                                        <th class="text-center">DÍAS EN MORA</th>
-                                        <th class="text-center">INTERESES</th>
-                                        <th class="text-center">REFERENCIA DE PAGO</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <t t-set="line_index" t-value="0"/>
-                                    <t t-foreach="o.line_ids.sorted(key=lambda l: l.date)" t-as="line">
-                                        <t t-set="line_index" t-value="line_index + 1"/>
-                                        <tr>
-                                            <td class="text-center">
-                                                <t t-if="line.name"><span t-field="line.name"/></t>
-                                                <t t-else="">Cuota <t t-esc="line_index"/></t>
-                                            </td>
-                                            <td class="text-center"><span t-field="line.date" t-options='{"format": "dd/MM/yyyy"}'/></td>
-                                            <td class="text-right"><span t-field="line.amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
-                                            <td class="text-center"><span t-field="line.payment_date" t-options='{"format": "dd/MM/yyyy"}'/></td>
-                                            <td class="text-right">
-                                                <t t-if="line.paid">
-                                                    <span t-field="line.amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                                </t>
-                                            </td>
-                                            <td class="text-right">
-                                                <t t-if="line.paid">
-                                                    <span t-esc="0.0"/>
-                                                </t>
-                                                <t t-else="">
-                                                    <span t-field="line.amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                                </t>
-                                            </td>
-                                            <td class="text-center">
-                                                <t t-if="line.overdue_days &gt; 0">
-                                                    <span t-field="line.overdue_days"/>
-                                                </t>
-                                            </td>
-                                            <td class="text-right">
-                                                <t t-if="line.interest_amount &gt; 0">
-                                                    <span t-field="line.interest_amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                                </t>
-                                            </td>
-                                            <td>
-                                                <t t-if="line.reconciliation_ids.filtered(lambda r: r.state == 'confirmed')">
-                                                    <table style="width: 100%; border-collapse: collapse; font-size: 7px;">
-                                                        <t t-foreach="line.reconciliation_ids.filtered(lambda r: r.state == 'confirmed')" t-as="rec">
-                                                            <tr>
-                                                                <td style="width: 30%;"><span t-field="rec.date" t-options='{"format": "dd/MM/yy"}'/></td>
-                                                                <td style="width: 45%;">
-                                                                    <t t-if="rec.move_payment_reference">
-                                                                        <span t-field="rec.move_payment_reference"/>
-                                                                    </t>
-                                                                    <t t-else="">
-                                                                        <span t-field="rec.move_id.name"/>
-                                                                    </t>
-                                                                </td>
-                                                                <td style="text-align: right;"><span t-field="rec.amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
-                                                            </tr>
-                                                        </t>
-                                                    </table>
-                                                </t>
-                                            </td>
-                                        </tr>
-                                    </t>
-                                </tbody>
-                                <tfoot>
-                                    <tr class="totals-row">
-                                        <td colspan="2" class="text-right">Totales:</td>
-                                        <td class="text-right"><span t-field="o.total_amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
-                                        <td></td>
-                                        <td class="text-right"><span t-field="o.amount_paid" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
-                                        <td class="text-right"><span t-field="o.amount_residual" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
-                                        <td></td>
-                                        <td class="text-right"><span t-field="o.total_interest" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-
-                            <t t-if="o.notes">
-                                <p style="margin-top: 4px; font-weight: 500;">NOTAS:</p>
-                                <p class="muted" t-field="o.notes"/>
-                            </t>
-
-                            <div class="text-center muted" style="margin-top: 5px;">
-                                <p>Este documento es un estado de cuenta informativo y no representa una factura o comprobante fiscal.</p>
-                                <p>Página 1/1</p>
-                            </div>
-                        </div>
+              <!-- Resumen -->
+              <table class="summary-table" style="width:100%; margin-bottom:8px;">
+                <tr>
+                  <td><strong>Cliente:</strong> <span t-field="o.partner_id"/></td>
+                  <td><strong>Precio Inmueble:</strong>
+                    <span t-field="o.sale_id.amount_untaxed"
+                          t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                  </td>
+                  <td><strong>Monto Total:</strong>
+                    <span t-field="o.total_amount"
+                          t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Orden de Venta:</strong> <span t-field="o.sale_id.name"/></td>
+                  <td><strong>Monto Pagado:</strong>
+                    <span t-field="o.amount_paid"
+                          t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                  </td>
+                  <td><strong>Saldo Pendiente:</strong>
+                    <span t-field="o.amount_residual"
+                          t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Fecha:</strong>
+                    <span t-field="o.date" t-options='{"format":"dd/MM/yyyy"}'/>
+                  </td>
+                  <td colspan="2"><strong>Estado:</strong>
+                    <t t-switch="o.state">
+                      <t t-case="'draft'">
+                        <span class="badge badge-pending">Borrador</span>
+                      </t>
+                      <t t-case="'posted'">
+                        <span class="badge badge-allocated">Publicado</span>
+                      </t>
+                      <t t-case="'canceled'">
+                        <span class="badge badge-overdue">Cancelado</span>
+                      </t>
                     </t>
-                </t>
-            </t>
-        </template>
-    </data>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Detalle de cuotas -->
+              <div class="section-title">DETALLE DE CUOTAS</div>
+              <table class="small-table table-rounded" style="width:100%;">
+                <thead>
+                  <tr>
+                    <th class="text-center">Cuota</th>
+                    <th class="text-center">Vencimiento</th>
+                    <th class="text-right">Monto</th>
+                    <th class="text-right">Interés</th>
+                    <th class="text-right">Total C/Int.</th>
+                    <th class="text-right">Asignado</th>
+                    <th class="text-right">Saldo Acum.</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">Días Mora</th>
+                    <th class="text-center">Pago</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <t t-set="idx" t-value="0"/>
+                  <t t-foreach="o.line_ids.sorted(key=lambda l: l.date)" t-as="line">
+                    <t t-set="idx" t-value="idx + 1"/>
+                    <tr>
+                      <td class="text-center">
+                        <t t-esc="line.name or 'Cuota ' + str(idx)"/>
+                      </td>
+                      <td class="text-center">
+                        <span t-field="line.date" t-options='{"format":"dd/MM/yyyy"}'/>
+                      </td>
+                      <td class="text-right">
+                        <span t-field="line.amount"
+                              t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                      </td>
+                      <td class="text-right">
+                        <t t-if="line.interest_amount &gt; 0">
+                          <span t-field="line.interest_amount"
+                                t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                        </t>
+                      </td>
+                      <td class="text-right">
+                        <span t-field="line.total_with_interest"
+                              t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                      </td>
+                      <td class="text-right">
+                        <span t-field="line.allocated_amount"
+                              t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                      </td>
+                      <td class="text-right">
+                        <span t-field="line.running_balance"
+                              t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                      </td>
+                      <td class="text-center">
+                        <t t-switch="line.state">
+                          <t t-case="'paid'">
+                            <span class="badge badge-paid">Pagado</span>
+                          </t>
+                          <t t-case="'overdue'">
+                            <span class="badge badge-overdue">Mora</span>
+                          </t>
+                          <t t-case="'allocated'">
+                            <span class="badge badge-allocated">Asignado</span>
+                          </t>
+                          <t t-case="'partial'">
+                            <span class="badge badge-partial">Parcial</span>
+                          </t>
+                          <t t-default>
+                            <span class="badge badge-pending">Pendiente</span>
+                          </t>
+                        </t>
+                      </td>
+                      <td class="text-center">
+                        <t t-esc="line.overdue_days if line.overdue_days &gt; 0 else ''"/>
+                      </td>
+                      <td>
+                        <t t-raw="line.move_lines_summary"/>
+                      </td>
+                    </tr>
+                  </t>
+                </tbody>
+              </table>
+
+              <!-- Pie de página -->
+              <div class="footer-note">
+                <p>Este documento es un estado de cuenta informativo y no representa comprobante fiscal.</p>
+                <p>Página 1/1</p>
+              </div>
+            </div>
+          </t>
+        </t>
+      </t>
+    </template>
+  </data>
 </odoo>
