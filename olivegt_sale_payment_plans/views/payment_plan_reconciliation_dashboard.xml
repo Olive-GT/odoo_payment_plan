@@ -9,9 +9,12 @@
                 <field name="payment_plan_id"/>
                 <field name="name"/>
                 <field name="date"/>
-                <field name="amount" sum="Total Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="allocated_amount" sum="Total Allocated" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="allocation_state" decoration-success="allocation_state == 'full'" decoration-warning="allocation_state == 'partial'" decoration-danger="allocation_state == 'none'"/>
+                <field name="amount" sum="Total Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>                <field name="allocated_amount" sum="Total Allocated" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="allocation_state" 
+                       decoration-success="allocation_state == 'full'" 
+                       decoration-warning="allocation_state == 'partial'" 
+                       decoration-danger="allocation_state == 'none'"
+                       options="{'classes': {'full': 'fw-bold', 'partial': 'fw-bold', 'none': 'fw-bold'}}"/>
                 
                 <!-- Payment Details - HTML widget with more space -->
                 <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px', 'resizable': true}"/>                <!-- Improved Button Styling with inline styles -->
@@ -22,14 +25,18 @@
                 <button name="action_view_reconciliations" type="object" string="View Details" title="View Allocation Details"
                         class="btn btn-secondary"
                         style="background-color: #E5E5E5; color: #333; font-weight: 500; padding: 4px 10px; border-radius: 4px;"/>
-                
-                <!-- Status with better badge formatting -->
+                  <!-- Status with better badge formatting -->
                 <field name="state" widget="badge" 
                        decoration-success="state == 'paid'" 
                        decoration-info="state == 'allocated'" 
                        decoration-warning="state == 'partial'" 
                        decoration-danger="state == 'overdue'"
-                       decoration-muted="state == 'pending'"/>
+                       decoration-muted="state == 'pending'"
+                       options="{'classes': {'paid': 'bg-success text-white fw-bold', 
+                                             'allocated': 'bg-info text-white fw-bold', 
+                                             'partial': 'bg-warning text-dark fw-bold',
+                                             'overdue': 'bg-danger text-white fw-bold', 
+                                             'pending': 'bg-secondary text-white'}}"/>
                        
                 <!-- Hidden fields that can be made visible if needed -->
                 <field name="overdue_days" optional="hide"/>
