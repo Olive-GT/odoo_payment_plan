@@ -39,10 +39,8 @@
                                     <field name="running_balance" widget="monetary"/>
                                     <field name="overdue_days"/>
                                     <field name="interest_amount" widget="monetary"/>
-                                    <field name="total_with_interest" widget="monetary"/>                                    <field name="paid"/>
-                                    <field name="payment_date"/>
+                                    <field name="total_with_interest" widget="monetary"/>
                                     <field name="currency_id" invisible="1"/>
-                                    <field name="payment_reference"/>                                    
                                     <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px'}"/>                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment"
                                             class="btn btn-primary btn-sm"/>
                                     <button name="action_view_reconciliations" type="object" string="View Details" title="View Allocation Details"
