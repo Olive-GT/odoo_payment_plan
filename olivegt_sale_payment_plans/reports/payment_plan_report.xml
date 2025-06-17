@@ -23,7 +23,7 @@
                             </div>
                             
                             <!-- Summary Section - Using a simple table -->
-                            <table class="table table-sm" style="border: 1px solid #ddd; margin-bottom: 6px; font-size: 8px;">
+                            <table class="table table-sm" style="border: 1px; margin-bottom: 6px; font-size: 8px;">
                                 <tr style="line-height: 1;">
                                     <td style="width: 15%; padding: 1px; font-weight: 500;">Cliente:</td>
                                     <td style="width: 35%; padding: 1px;"><span t-field="o.partner_id"/></td>
@@ -55,23 +55,23 @@
                             
                             <!-- Payment Plan Table -->
                             <p style="margin: 3px 0; font-weight: 600; font-size: 9px;">DETALLE DE CUOTAS</p>
-                            <table class="table" style="font-size: 8px; margin-bottom: 3px; border: 1px solid #ddd;">                                <thead>
+                            <table class="table" style="font-size: 8px; margin-bottom: 3px; border: 1px;">                                <thead>
                                     <tr style="background-color: #f2f2f2; line-height: 1;">
-                                        <th style="padding: 1px; text-align: center; border: 1px solid #ddd; font-weight: 500; font-size: 7px;">CUOTA</th>
-                                        <th style="padding: 1px; text-align: center; border: 1px solid #ddd; font-weight: 500; font-size: 7px;">FECHA PROGRAMADA</th>
-                                        <th style="padding: 1px; text-align: center; border: 1px solid #ddd; font-weight: 500; font-size: 7px;">MONTO PROGRAMADO</th>
-                                        <th style="padding: 1px; text-align: center; border: 1px solid #ddd; font-weight: 500; font-size: 7px;">FECHA DE PAGO</th>
-                                        <th style="padding: 1px; text-align: center; border: 1px solid #ddd; font-weight: 500; font-size: 7px;">ABONO</th>
-                                        <th style="padding: 1px; text-align: center; border: 1px solid #ddd; font-weight: 500; font-size: 7px;">SALDO</th>
-                                        <th style="padding: 1px; text-align: center; border: 1px solid #ddd; font-weight: 500; font-size: 7px;">DÍAS EN MORA</th>
-                                        <th style="padding: 1px; text-align: center; border: 1px solid #ddd; font-weight: 500; font-size: 7px;">INTERESES</th>
-                                        <th style="padding: 1px; text-align: center; border: 1px solid #ddd; font-weight: 500; font-size: 7px;">REFERENCIA DE PAGO</th>
+                                        <th style="padding: 1px; text-align: center; border: 1px; font-weight: 500; font-size: 7px;">CUOTA</th>
+                                        <th style="padding: 1px; text-align: center; border: 1px; font-weight: 500; font-size: 7px;">FECHA PROGRAMADA</th>
+                                        <th style="padding: 1px; text-align: center; border: 1px; font-weight: 500; font-size: 7px;">MONTO PROGRAMADO</th>
+                                        <th style="padding: 1px; text-align: center; border: 1px; font-weight: 500; font-size: 7px;">FECHA DE PAGO</th>
+                                        <th style="padding: 1px; text-align: center; border: 1px; font-weight: 500; font-size: 7px;">ABONO</th>
+                                        <th style="padding: 1px; text-align: center; border: 1px; font-weight: 500; font-size: 7px;">SALDO</th>
+                                        <th style="padding: 1px; text-align: center; border: 1px; font-weight: 500; font-size: 7px;">DÍAS EN MORA</th>
+                                        <th style="padding: 1px; text-align: center; border: 1px; font-weight: 500; font-size: 7px;">INTERESES</th>
+                                        <th style="padding: 1px; text-align: center; border: 1px; font-weight: 500; font-size: 7px;">REFERENCIA DE PAGO</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <t t-foreach="o.line_ids.sorted(key=lambda l: l.date)" t-as="line">
                                         <t t-set="line_index" t-value="line_index + 1"/>
-                                        <t t-set="line_style" t-value="''"/>
+                                        <t t-set="line_style" t-value="padding: 1px; text-align: center; border: 1px; font-weight: 500; font-size: 7px;"/>
                                         <t t-set="text_color" t-value="''"/>
                                         <t t-if="line.paid">
                                             <t t-set="line_style" t-value="'background-color: #d4edda;'"/>
@@ -79,7 +79,7 @@
                                         <t t-elif="line.overdue_days > 0">
                                             <t t-set="line_style" t-value="'background-color: #f8d7da;'"/>
                                         </t>                                        <tr t-att-style="line_style" style="line-height: 1;">
-                                            <td style="padding: 1px; text-align: center; border: 1px solid #ddd; vertical-align: middle;" t-att-style="text_color">
+                                            <td style="padding: 1px; text-align: center; border: 1px; vertical-align: middle;" t-att-style="text_color">
                                                 <t t-if="line.name">
                                                     <span t-field="line.name"/>
                                                 </t>
@@ -87,20 +87,20 @@
                                                     Cuota <t t-esc="line_index"/>
                                                 </t>
                                             </td>
-                                            <td style="padding: 1px; text-align: center; border: 1px solid #ddd; vertical-align: middle;" t-att-style="text_color">
+                                            <td style="padding: 1px; text-align: center; border: 1px; vertical-align: middle;" t-att-style="text_color">
                                                 <span t-field="line.date" t-options='{"format": "dd/MM/yyyy"}'/>
                                             </td>
-                                            <td style="padding: 1px; text-align: right; border: 1px solid #ddd; vertical-align: middle;" t-att-style="text_color">
+                                            <td style="padding: 1px; text-align: right; border: 1px; vertical-align: middle;" t-att-style="text_color">
                                                 <span t-field="line.amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                             </td>
-                                            <td style="padding: 1px; text-align: center; border: 1px solid #ddd; vertical-align: middle;" t-att-style="text_color">
+                                            <td style="padding: 1px; text-align: center; border: 1px; vertical-align: middle;" t-att-style="text_color">
                                                 <span t-field="line.payment_date" t-options='{"format": "dd/MM/yyyy"}'/>
                                             </td>
-                                            <td style="padding: 1px; text-align: right; border: 1px solid #ddd; vertical-align: middle;" t-att-style="text_color">
+                                            <td style="padding: 1px; text-align: right; border: 1px; vertical-align: middle;" t-att-style="text_color">
                                                 <span t-if="line.paid" t-field="line.amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                                 <span t-else="" t-esc="''" />
                                             </td>
-                                            <td style="padding: 1px; text-align: right; border: 1px solid #ddd; vertical-align: middle;" t-att-style="text_color">
+                                            <td style="padding: 1px; text-align: right; border: 1px; vertical-align: middle;" t-att-style="text_color">
                                                 <t t-if="line.paid">
                                                     <span t-esc="0.0" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                                 </t>
@@ -108,17 +108,17 @@
                                                     <span t-field="line.amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                                 </t>
                                             </td>
-                                            <td style="padding: 1px; text-align: center; border: 1px solid #ddd; vertical-align: middle;" t-att-style="text_color">
+                                            <td style="padding: 1px; text-align: center; border: 1px; vertical-align: middle;" t-att-style="text_color">
                                                 <t t-if="line.overdue_days > 0">
                                                     <span t-field="line.overdue_days" />
                                                 </t>
                                             </td>
-                                            <td style="padding: 1px; text-align: right; border: 1px solid #ddd; vertical-align: middle;" t-att-style="text_color">
+                                            <td style="padding: 1px; text-align: right; border: 1px; vertical-align: middle;" t-att-style="text_color">
                                                 <t t-if="line.interest_amount > 0">
                                                     <span t-field="line.interest_amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                                 </t>
                                             </td>
-                                            <td style="padding: 1px; border: 1px solid #ddd; font-size: 7px;" t-att-style="text_color">
+                                            <td style="padding: 1px; border: 1px; font-size: 7px;" t-att-style="text_color">
                                                 <!-- Subtabla de referencias de pago -->
                                                 <t t-if="line.reconciliation_ids.filtered(lambda r: r.state == 'confirmed')">
                                                     <table style="width: 100%; border-collapse: collapse; margin: 0; padding: 0;">
@@ -147,22 +147,22 @@
                                     </t>
                                 </tbody>                                <tfoot>
                                     <tr style="background-color: #f2f2f2; font-weight: 500; line-height: 1;">
-                                        <td colspan="2" style="text-align: right; padding: 1px; border: 1px solid #ddd;">Totales:</td>
-                                        <td style="text-align: right; padding: 1px; border: 1px solid #ddd;">
+                                        <td colspan="2" style="text-align: right; padding: 1px; border: 1px;">Totales:</td>
+                                        <td style="text-align: right; padding: 1px; border: 1px;">
                                             <span t-field="o.total_amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                         </td>
-                                        <td style="border: 1px solid #ddd;"></td>
-                                        <td style="text-align: right; padding: 1px; border: 1px solid #ddd;">
+                                        <td style="border: 1px;"></td>
+                                        <td style="text-align: right; padding: 1px; border: 1px;">
                                             <span t-field="o.amount_paid" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                         </td>
-                                        <td style="text-align: right; padding: 1px; border: 1px solid #ddd;">
+                                        <td style="text-align: right; padding: 1px; border: 1px;">
                                             <span t-field="o.amount_residual" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                         </td>
-                                        <td style="border: 1px solid #ddd;"></td>
-                                        <td style="text-align: right; padding: 1px; border: 1px solid #ddd;">
+                                        <td style="border: 1px;"></td>
+                                        <td style="text-align: right; padding: 1px; border: 1px;">
                                             <span t-field="o.total_interest" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                         </td>
-                                        <td style="border: 1px solid #ddd;"></td>
+                                        <td style="border: 1px;"></td>
                                     </tr>
                                 </tfoot>
                             </table>
