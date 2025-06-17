@@ -25,20 +25,6 @@
                         widget="html" 
                         string="Payment Details" 
                         options="{'width': '350px'}"/>
-                <button name="action_reconcile" 
-                    type="object" 
-                    string="Reconcile" 
-                    title="Reconcile Payment"
-                    class="btn btn-primary btn-sm"
-                    invisible="[('show_reconcile_button', '=', False)]"/>
-                <field name="show_reconcile_button"/>
-
-                <button name="action_view_reconciliations" 
-                        type="object" 
-                        string="View Details" 
-                        title="View Allocation Details"
-                        class="btn btn-secondary btn-sm"
-                        invisible="[('allocated_amount', '=', 0.0)]"/>
                 <field name="state" widget="badge"/>
             </list>
         </field>
