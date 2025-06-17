@@ -17,102 +17,87 @@
       <t t-call="web.html_container">
         <t t-foreach="docs" t-as="o">
           <t t-call="web.external_layout">
+
             <!-- Estilos globales -->
             <style>
-              .summary-table td { border:none; padding:4px 6px; font-size:8px; }
+              /* Tipografía y márgenes */
+              .page { font-family: 'Lato','Helvetica',sans-serif; line-height:1.2; font-size:8px; }
+              .report-title { font-size:12px; font-weight:600; text-align:center; margin-bottom:4px; }
+              .report-subtitle { font-size:8px; color:#555; text-align:center; margin-bottom:8px; }
+              .section-title { font-size:9px; font-weight:600; margin:12px 0 4px; }
+              .footer-note { font-size:7px; color:#888; text-align:center; margin-top:10px; }
+              
+              /* Tabla resumen */
+              .summary-table { width:100%; border-collapse: collapse; margin-bottom:8px; }
+              .summary-table td { padding:2px 4px; vertical-align:top; }
               .summary-table strong { font-weight:600; color:#333; }
+
+              /* Tabla de cuotas */
               .table-condensed { width:100%; border-collapse: collapse; }
               .table-condensed th, .table-condensed td {
-                padding:4px 6px; font-size:8px;
-                border-top:1px solid #e0e0e0;
-                border-bottom:1px solid #e0e0e0;
+                padding:4px 6px; border-top:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0;
                 vertical-align:middle;
               }
               .table-condensed th { background:#fafafa; font-weight:600; text-align:center; }
               .zebra tbody tr:nth-child(even) { background:#fafafa; }
-              .badge {
-                display:inline-block; padding:1px 5px; border-radius:4px;
-                font-size:7px; font-weight:600; margin:0 2px;
-              }
-              .badge-paid    { color:#28a745; border:0.5px solid #28a745; }
-              .badge-overdue { color:#dc3545; border:0.5px solid #dc3545; }
-              .badge-partial { color:#ffc107; border:0.5px solid #ffc107; }
-              .badge-pending { color:#6c757d; border:0.5px solid #ccc; }
+
+              /* Progreso */
               .progress-container {
-                background:#eee; height:6px; border-radius:3px;
-                overflow:hidden; margin-top:2px;
+                background:#eee; height:6px; border-radius:3px; overflow:hidden; margin-top:2px;
               }
               .progress-bar { background:#28a745; height:6px; }
+
+              /* Alineaciones */
               .text-center { text-align:center; }
               .text-right  { text-align:right; }
-              .report-title    { font-size:12px; font-weight:600; text-align:center; margin-bottom:4px; }
-              .report-subtitle { font-size:8px; color:#555; text-align:center; margin-bottom:8px; }
-              .section-title   { font-size:9px; font-weight:600; margin:12px 0 4px; }
-              .footer-note     { font-size:7px; color:#888; text-align:center; margin-top:10px; }
             </style>
 
-            <div class="page" style="font-family:'Lato','Helvetica',sans-serif; line-height:1.2;">
-              <!-- Título principal -->
+            <div class="page">
+              <!-- Título -->
               <div class="report-title">ESTADO DE CUENTA</div>
               <div class="report-subtitle">
                 Plan de Pagos: <span t-field="o.name"/>
               </div>
 
-              <!-- Datos resumidos -->
-              <table class="summary-table" style="width:100%; margin-bottom:8px;">
+              <!-- Resumen de cabecera -->
+              <table class="summary-table">
                 <tr>
-                  <td><strong>Cliente:</strong> <span t-field="o.partner_id"/></td>
-                  <td><strong>Precio Inmueble:</strong>
-                    <span t-field="o.sale_id.amount_untaxed"
-                          t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
-                  </td>
-                  <td><strong>Monto Total:</strong>
-                    <span t-field="o.total_amount"
-                          t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                  <td><strong>Cliente:</strong><br/><span t-field="o.partner_id"/></td>
+                  <td><strong>Orden de Venta:</strong><br/><span t-field="o.sale_id.name"/></td>
+                  <td><strong>Fecha:</strong><br/>
+                    <span t-field="o.date" t-options='{"format":"dd/MM/yyyy"}'/>
                   </td>
                 </tr>
                 <tr>
-                  <td><strong>Orden de Venta:</strong> <span t-field="o.sale_id.name"/></td>
-                  <td><strong>Monto Pagado:</strong>
-                    <span t-field="o.amount_paid"
+                  <td><strong>Precio Inmueble:</strong><br/>
+                    <span t-field="o.sale_id.amount_untaxed"
                           t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
                   </td>
-                  <td><strong>Saldo Pendiente:</strong>
+                  <td><strong>Monto Total:</strong><br/>
+                    <span t-field="o.total_amount"
+                          t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                  </td>
+                  <td><strong>Saldo Pendiente:</strong><br/>
                     <span t-field="o.amount_residual"
                           t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
                   </td>
                 </tr>
-                <tr>
-                  <td><strong>Fecha:</strong>
-                    <span t-field="o.date" t-options='{"format":"dd/MM/yyyy"}'/>
-                  </td>
-                  <td colspan="2"><strong>Estado:</strong>
-                    <t t-switch="o.state">
-                      <t t-case="'draft'">
-                        <span class="badge badge-pending">⏳ Borrador</span>
-                      </t>
-                      <t t-case="'posted'">
-                        <span class="badge badge-paid">✅ Publicado</span>
-                      </t>
-                      <t t-case="'canceled'">
-                        <span class="badge badge-overdue">❌ Cancelado</span>
-                      </t>
-                    </t>
-                  </td>
-                </tr>
               </table>
 
-              <!-- Detalle de cuotas -->
+              <!-- Detalle de Cuotas -->
               <div class="section-title">DETALLE DE CUOTAS</div>
-              <table class="table-condensed zebra" style="width:100%;">
+              <table class="table-condensed zebra">
                 <thead>
                   <tr>
                     <th>Cuota</th>
-                    <th>Vence</th>
+                    <th>Vencimiento</th>
                     <th>Monto</th>
-                    <th>Resumen</th>
-                    <th>Estado</th>
-                    <th>Pago</th>
+                    <th>Interés</th>
+                    <th>Total C/Int.</th>
+                    <th>Asignado</th>
+                    <th>Saldo</th>
+                    <th>Avance</th>
+                    <th>Pagos</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -120,64 +105,48 @@
                   <t t-foreach="o.line_ids.sorted(key=lambda l: l.date)" t-as="line">
                     <t t-set="idx" t-value="idx + 1"/>
                     <tr>
-                      <!-- Cuota y Fecha -->
+                      <!-- Cuota -->
                       <td class="text-center">
-                        <t t-esc="line.name or 'Cuota '+str(idx)"/>
+                        <t t-esc="line.name or 'Cuota ' + str(idx)"/>
                       </td>
+                      <!-- Vencimiento -->
                       <td class="text-center">
                         <span t-field="line.date" t-options='{"format":"dd/MM/yyyy"}'/>
                       </td>
-
-                      <!-- Monto + barra de progreso corregida -->
+                      <!-- Monto -->
                       <td class="text-right">
                         <span t-field="line.amount"
                               t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
-                        <div class="progress-container">
-                          <div class="progress-bar"
-                               t-att-style="'width: {}%;'.format(int((line.allocated_amount or 0.0) / ((line.total_with_interest or line.amount) or 1.0) * 100))"/>
-                        </div>
                       </td>
-
-                      <!-- Resumen compacto -->
-                      <td style="font-size:7px; line-height:1.1;">
-                        <div><strong>Int:</strong>
-                          <t t-if="line.interest_amount &gt; 0">
-                            <span t-field="line.interest_amount"
-                                  t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
-                          </t>
-                        </div>
-                        <div><strong>Tot:</strong>
-                          <span t-field="line.total_with_interest"
+                      <!-- Interés -->
+                      <td class="text-right">
+                        <t t-if="line.interest_amount &gt; 0">
+                          <span t-field="line.interest_amount"
                                 t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
-                        </div>
-                        <div><strong>Asig:</strong>
-                          <span t-field="line.allocated_amount"
-                                t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
-                        </div>
-                        <div><strong>Sal:</strong>
-                          <t t-esc="(line.total_with_interest or line.amount) - (line.allocated_amount or 0.0)"/>
-                        </div>
-                      </td>
-
-                      <!-- Estado único -->
-                      <td class="text-center">
-                        <t t-switch="line.state">
-                          <t t-case="'paid'">
-                            <span class="badge badge-paid">✅ Pagado</span>
-                          </t>
-                          <t t-case="'overdue'">
-                            <span class="badge badge-overdue">❌ Mora</span>
-                          </t>
-                          <t t-case="'partial'">
-                            <span class="badge badge-partial">⚠️ Parcial</span>
-                          </t>
-                          <t t-default="">
-                            <span class="badge badge-pending">⏳ Pendiente</span>
-                          </t>
                         </t>
                       </td>
-
-                      <!-- Detalle de pagos -->
+                      <!-- Total con Interés -->
+                      <td class="text-right">
+                        <span t-field="line.total_with_interest"
+                              t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                      </td>
+                      <!-- Asignado -->
+                      <td class="text-right">
+                        <span t-field="line.allocated_amount"
+                              t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                      </td>
+                      <!-- Saldo -->
+                      <td class="text-right">
+                        <t t-esc="(line.total_with_interest or line.amount) - (line.allocated_amount or 0.0)"/>
+                      </td>
+                      <!-- Barra de Progreso -->
+                      <td class="text-right">
+                        <div class="progress-container">
+                          <div class="progress-bar"
+                               t-att-style="'width: {}%;'.format(int(((line.allocated_amount or 0.0) / ((line.total_with_interest or line.amount) or 1.0)) * 100))"/>
+                        </div>
+                      </td>
+                      <!-- Detalle Pagos -->
                       <td style="font-size:7px; line-height:1.1;">
                         <t t-raw="line.move_lines_summary"/>
                       </td>
