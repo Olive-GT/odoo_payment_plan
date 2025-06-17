@@ -33,7 +33,7 @@
               /* Cuotas */
               .table-condensed {
                 width:100%; border-collapse: separate; border-spacing:0;
-                border-radius:8px; overflow:hidden;
+                border: 0px; border-radius:8px; overflow:hidden;
               }
               .table-condensed thead { background:#2c3e50; color:#fff; }
               .table-condensed thead th {
@@ -42,7 +42,7 @@
               .table-condensed tbody tr:nth-child(odd)  { background:#ecf0f1; }
               .table-condensed tbody tr:nth-child(even) { background:#fff; }
               .table-condensed tbody td {
-                padding:8px; border-bottom:1px solid #ddd; vertical-align:middle;
+                padding:8px; border-bottom: 0px; vertical-align:middle;
               }
 
               /* Redondear esquinas del encabezado */
