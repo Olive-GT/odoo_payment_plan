@@ -50,7 +50,7 @@
                 background:#eee; height:6px; border-radius:3px;
                 overflow:hidden; margin-top:4px;
               }
-              .progress-bar { background:#28a745; height:6px; }
+              .progress-bar { background:#2c3e50; height:6px; }
 
               /* Pagos – nuevo diseño */
               .payments-container {
@@ -58,10 +58,11 @@
               }
               .payment-group {
                 display:inline-flex;
-                background:#dff0d8;
+                background:#2c3e50;
                 border-radius:6px;
                 overflow:hidden;
                 margin-bottom:2px;
+                color:#fff;
               }
               .payment-group span {
                 padding:6px 8px;
