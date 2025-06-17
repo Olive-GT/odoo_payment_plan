@@ -5,7 +5,8 @@
         <field name="name">payment.plan.reconciliation.form</field>
         <field name="model">payment.plan.reconciliation</field>
         <field name="arch" type="xml">
-            <form>                <header>
+            <form>
+            <header>
                     <button name="action_confirm" type="object" string="Confirm" class="oe_highlight" invisible="state != 'draft'"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state != 'confirmed'"/>
                     <button name="action_draft" type="object" string="Reset to Draft" invisible="state != 'cancelled'"/>
@@ -17,7 +18,8 @@
                             <field name="payment_plan_id" readonly="1"/>
                             <field name="payment_plan_line_id" domain="[('payment_plan_id', '=', payment_plan_id)]" readonly="1"/>
                             <field name="partner_id" readonly="1"/>
-                            <field name="date" force_save="1" help="This date is automatically set to match the journal entry date" readonly="1"/>                            <field name="overdue_days" string="Días de mora" readonly="1" invisible="1"/>
+                            <field name="date" force_save="1" help="This date is automatically set to match the journal entry date" readonly="1"/>
+                            <field name="overdue_days" string="Días de mora" readonly="1" invisible="1"/>
                             <field name="interest_amount" widget="monetary" string="Interés por mora" readonly="1" invisible="1"/>
                             <field name="total_with_interest" widget="monetary" string="Total con interés" readonly="1" invisible="1"/>
                             <field name="amount" widget="monetary" readonly="1"/>
@@ -49,7 +51,8 @@
                 <field name="amount" sum="Total"/>
                 <field name="move_id"/>
                 <field name="move_date"/>
-                <field name="move_payment_reference"/>                <field name="state" widget="badge"/>
+                <field name="move_payment_reference"/>
+                <field name="state" widget="badge"/>
             </list>
         </field>
     </record>
