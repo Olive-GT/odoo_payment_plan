@@ -201,17 +201,26 @@ class PaymentPlanReconciliation(models.Model):
             if len(references) > 3:
                 payment_reference += f' (+{len(references) - 3})'
             
-            # Force update payment date and reference
+            # Almacenar valores para uso posterior
             payment_date = latest_allocation.date
-            line.payment_date = payment_date
-            line.payment_reference = payment_reference
             
-            # Explicitly commit the changes to the database
+            # Actualizar directamente en la base de datos para evitar problemas de caché
+            self.env.cr.execute("""
+                UPDATE payment_plan_line 
+                SET payment_date = %s, payment_reference = %s
+                WHERE id = %s
+            """, (payment_date, payment_reference, line.id))
             self.env.cr.commit()
             
-            # Now that date is updated, fetch the fresh values with recalculated interest
-            self.env.cache.invalidate([(line._fields['payment_date'], line.ids)])
-            line = self.env['payment.plan.line'].with_context(force_refresh=True).browse(line.id)
+            # Recargar el registro completamente
+            self.env.invalidate_all()
+            line = self.env['payment.plan.line'].browse(line.id)
+            
+            # Forzar recálculo de campos dependientes
+            line._compute_overdue_days()
+            line._compute_interest_amount()
+            line._compute_total_with_interest()
+            line._compute_state()
             
             # Check if there's overdue interest to consider
             required_amount = line.total_with_interest if line.overdue_days > 0 else line.amount
