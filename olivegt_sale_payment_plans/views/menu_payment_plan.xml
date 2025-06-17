@@ -33,12 +33,5 @@
         parent="menu_payment_plans_root" 
         action="action_payment_plans" 
         sequence="10"/>
-    
-    <menuitem 
-        id="menu_payment_plan_lines" 
-        name="Payment Lines" 
-        parent="menu_payment_plans_root" 
-        action="action_all_payment_plan_lines" 
-        sequence="20"/>
 </data>
 </odoo>
