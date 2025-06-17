@@ -28,7 +28,6 @@
         'views/payment_plan_reconciliation_views.xml',
         'views/payment_plan_reconciliation_dashboard.xml',
         'views/view_payment_plan.xml',
-        'views/simplified_view.xml',
         'views/menu_payment_plan.xml',
         'views/sale_order_views.xml',
         'wizards/payment_plan_calculator_views.xml',

@@ -3,7 +3,8 @@
 <!-- License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl). -->
 <odoo>
 <data>
-    <!-- Payment Plan Form View --><record id="view_payment_plan_form" model="ir.ui.view">
+    <!-- Payment Plan Form View -->
+    <record id="view_payment_plan_form" model="ir.ui.view">
         <field name="name">payment.plan.form</field>
         <field name="model">payment.plan</field>
         <field name="arch" type="xml">
@@ -133,7 +134,9 @@
                 <field name="currency_id" invisible="1"/>
             </list>
         </field>
-    </record><!-- Payment Plan Search View -->
+    </record>
+    
+    <!-- Payment Plan Search View -->
     <record id="view_payment_plan_search" model="ir.ui.view">
         <field name="name">payment.plan.search</field>
         <field name="model">payment.plan</field>
@@ -154,6 +157,7 @@
             </search>
         </field>
     </record>
+    
       <!-- Payment Plan Kanban View -->
     <record id="view_payment_plan_kanban" model="ir.ui.view">
         <field name="name">payment.plan.kanban</field>
