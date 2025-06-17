@@ -28,20 +28,18 @@ class PaymentPlanLine(models.Model):
     reconciliation_ids = fields.One2many('payment.plan.reconciliation', 'payment_plan_line_id', string='Reconciliations')
     allocation_count = fields.Integer(compute='_compute_allocation_count', string='Allocations')
     allocated_amount = fields.Monetary(compute='_compute_allocated_amount', string='Allocated Amount', store=True)
-    
     allocation_state = fields.Selection([
         ('none', 'No Asignado'),
         ('partial', 'Parcialmente Asignado'),
         ('full', 'Totalmente Asignado')
     ], compute='_compute_allocation_state', string='Allocation Status', store=True)
-    
     state = fields.Selection([
         ('pending', 'Pending'),
-        ('partial', 'Parcialmente Asignado'),
-        ('allocated', 'Asignado'),
-        ('paid', 'Pagado'),
-        ('overdue', 'Vencido')
-    ], compute='_compute_state', string='Status', store=True)# Vamos a usar un campo Char para mayor compatibilidad
+        ('partial', 'Partially Allocated'),
+        ('allocated', 'Allocated'),
+        ('paid', 'Paid'),
+        ('overdue', 'Overdue')
+    ], compute='_compute_state', string='Status', store=True)    # Vamos a usar un campo Char para mayor compatibilidad
     allocation_summary = fields.Char(compute='_compute_allocation_summary', string='Allocations')
     
     # New field to show move lines details in the dashboard
@@ -608,6 +606,7 @@ class PaymentPlanLine(models.Model):
                 'edit': False,
                 'delete': False            }
         }
+        
     @api.depends('reconciliation_ids.state', 'reconciliation_ids.move_id', 'reconciliation_ids.amount', 
                'reconciliation_ids.date', 'reconciliation_ids.journal_id')
     def _compute_allocation_summary(self):
@@ -633,9 +632,7 @@ class PaymentPlanLine(models.Model):
                     journal_text += f" y {len(unique_journals) - 2} más"
                 line.allocation_summary = f"{count} asign: Q{formatted_amount} ({journal_text})"
             else:
-                line.allocation_summary = f"{count} asignaciones: Q{formatted_amount}"
-                
-    @api.depends('reconciliation_ids.state', 'reconciliation_ids.move_id', 'reconciliation_ids.amount', 
+                line.allocation_summary = f"{count} asignaciones: Q{formatted_amount}"    @api.depends('reconciliation_ids.state', 'reconciliation_ids.move_id', 'reconciliation_ids.amount', 
                 'reconciliation_ids.date', 'reconciliation_ids.journal_id', 'reconciliation_ids.move_payment_reference')
     def _compute_move_lines_summary(self):
         """Generate a formatted HTML table with the move lines details for this payment plan line"""
@@ -647,18 +644,12 @@ class PaymentPlanLine(models.Model):
                 continue
             
             currency_symbol = line.currency_id.symbol or 'Q'
-            
-            # Create a mini HTML table for the move lines with improved styling
-            html = '<div class="o_payment_details">'
+                
+            # Create a mini HTML table for the move lines
+            html = '<div class="o_payment_details" style="font-size: 0.85em;">'
             
             # Use table format for better alignment
-            html += '<table>'
-            
-            # Add a header for multiple payments
-            if len(confirmed_reconciliations) > 1:
-                total_amount = sum(confirmed_reconciliations.mapped('amount'))
-                total_amount_str = "{:,.2f}".format(total_amount)
-                html += f'<tr class="header"><td colspan="3" style="text-align: center; font-weight: bold; padding: 3px; color: #333; background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">{len(confirmed_reconciliations)} pagos: {currency_symbol} {total_amount_str}</td></tr>'
+            html += '<table style="width: 100%; border-collapse: separate; border-spacing: 0 2px;">'
             
             for rec in confirmed_reconciliations:
                 amount_str = "{:,.2f}".format(rec.amount)
@@ -666,41 +657,32 @@ class PaymentPlanLine(models.Model):
                 move_ref = rec.move_id.name or ''
                 reference = rec.move_payment_reference or ''
                 
-                # Get journal info for better display
-                journal_name = rec.journal_id.name or ''
-                journal_type = rec.journal_id.type or ''
-                
-                # Limit reference length if too long
                 if len(reference) > 15:
                     reference = reference[:12] + '...'
                 
                 # Set background color based on journal type
                 bg_color = '#f0f8ff'  # Default light blue
-                icon = '💳'  # Default icon
-                
-                if journal_type == 'bank':
+                if rec.journal_id.type == 'bank':
                     bg_color = '#e6f7e6'  # Light green for bank
-                    icon = '🏦'  # Bank icon
-                elif journal_type == 'cash':
+                elif rec.journal_id.type == 'cash':
                     bg_color = '#fff7e6'  # Light yellow for cash
-                    icon = '💰'  # Cash icon
                 
-                html += f'<tr style="background-color: {bg_color}; border-radius: 6px;">'
+                html += f'<tr style="background-color: {bg_color}; border-radius: 4px;">'
                 
-                # Amount column with currency - using stronger green
-                html += f'<td style="padding: 4px 6px; font-weight: bold; white-space: nowrap; color: #1a8b1a;">'
+                # Amount column with currency
+                html += f'<td style="padding: 3px; font-weight: bold; white-space: nowrap; color: #389B38FF;">'
                 html += f'{currency_symbol} {amount_str}'
                 html += '</td>'
                 
-                # Date column with better formatting
-                html += f'<td style="padding: 4px; white-space: nowrap; color: #555;">{date_str}</td>'
+                # Date column
+                html += f'<td style="padding: 3px; white-space: nowrap;">{date_str}</td>'
                 
-                # Reference column (if available) with better styling and journal type indicator
-                reference_text = reference or move_ref
-                journal_title = f"{journal_name} ({journal_type})" if journal_name else journal_type
-                
-                html += f'<td style="padding: 4px;" title="{journal_title}">'
-                html += f'{icon} {reference_text}</td>'
+                # Reference column (if available)
+                if reference:
+                    html += f'<td style="padding: 3px;" title="{rec.move_payment_reference}">'
+                    html += f'{reference}</td>'
+                else:
+                    html += f'<td style="padding: 3px;" title="{move_ref}">{move_ref}</td>'
                 
                 html += '</tr>'
             

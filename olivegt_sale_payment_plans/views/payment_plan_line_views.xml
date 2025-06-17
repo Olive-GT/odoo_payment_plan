@@ -7,6 +7,7 @@
                 <field name="name"/>
                 <field name="amount" widget="monetary"/>
                 <field name="allocated_amount" widget="monetary"/>
+                <field name="allocation_state"/>
                 <field name="allocation_summary" string="Asignaciones"/>
                 <field name="allocation_count" invisible="1"/>
                 <button name="action_show_allocations" type="object" 

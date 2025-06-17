@@ -1,46 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- Include CSS assets for payment plan dashboard -->
-    <template id="assets_backend_payment_plan_dashboard" inherit_id="web.assets_backend">
-        <xpath expr="." position="inside">
-            <link rel="stylesheet" href="/olivegt_sale_payment_plans/static/src/css/payment_plan_dashboard.css"/>
-        </xpath>
-    </template>
-    
     <!-- Payment Plan Dashboard List View -->
     <record id="view_payment_plan_dashboard_list" model="ir.ui.view">
         <field name="name">payment.plan.line.dashboard.list</field>
         <field name="model">payment.plan.line</field>
-        <field name="arch" type="xml">
-            <list create="0" delete="0">
+        <field name="arch" type="xml">            <list create="0" delete="0">
                 <field name="payment_plan_id"/>
-                <field name="name"/>
-                <field name="date"/>
-                <field name="amount" sum="Total Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="allocated_amount" sum="Total Allocated" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="allocation_state" decoration-success="allocation_state == 'full'" decoration-warning="allocation_state == 'partial'" decoration-danger="allocation_state == 'none'"/>
-                
-                <!-- Payment Details - HTML widget with more space -->
-                <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px', 'resizable': true}"/>
-                  <!-- Improved Button Styling using custom CSS classes -->
-                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment"
-                        class="oe_highlight btn btn-primary reconcile_button"/>
-                        
-                <button name="action_view_reconciliations" type="object" string="View Details" title="View Allocation Details"
-                        class="btn btn-secondary view_details_button"/>
-                
-                <!-- Status with better badge formatting -->
-                <field name="state" widget="badge" 
-                       decoration-success="state == 'paid'" 
-                       decoration-info="state == 'allocated'" 
-                       decoration-warning="state == 'partial'" 
-                       decoration-danger="state == 'overdue'"
-                       decoration-muted="state == 'pending'"/>
-                       
-                <!-- Hidden fields that can be made visible if needed -->
-                <field name="overdue_days" optional="hide"/>
+                <field name="name"/>                <field name="date"/>                <field name="amount" sum="Total Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>                <field name="overdue_days" optional="hide"/>
                 <field name="interest_amount" sum="Total Interest" widget="monetary" options="{'currency_field': 'currency_id'}" optional="hide"/>
                 <field name="total_with_interest" sum="Total + Interest" widget="monetary" options="{'currency_field': 'currency_id'}" optional="hide"/>
+                <field name="allocated_amount" sum="Total Allocated" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="allocation_state"/>
+                <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px'}"/>                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment"
+                        class="btn btn-primary btn-sm"/>
+                <button name="action_view_reconciliations" type="object" string="View Details" title="View Allocation Details"
+                        class="btn btn-secondary btn-sm"/>                <field name="state" widget="badge"/>
             </list>
         </field>
     </record>
