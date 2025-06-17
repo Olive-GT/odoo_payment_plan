@@ -58,7 +58,6 @@
               }
               .payment-group {
                 display:inline-flex;
-                padding:1px 2px;
                 background:#2c3e50;
                 border-radius:3px;
                 overflow:hidden;
@@ -66,12 +65,12 @@
                 color:#fff;
               }
               .payment-group span {
-                padding:6px 8px;
+                padding:10px 14px;
                 font-size:7px;
                 white-space:nowrap;
               }
               .payment-amount { flex:2; text-align:left; font-weight:600; }
-              .payment-date   { flex:1; text-align:center; color:#555; }
+              .payment-date   { flex:1; text-align:center; }
               .payment-ref    { flex:3; text-align:right; overflow:hidden; text-overflow:ellipsis; }
 
               /* Utilidades */
