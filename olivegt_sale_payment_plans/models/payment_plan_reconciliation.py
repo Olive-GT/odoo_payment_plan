@@ -208,8 +208,8 @@ class PaymentPlanReconciliation(models.Model):
             })
             
             # Now that date is updated, fetch the fresh values with recalculated interest
-            line.invalidate_cache()
-            line = line.with_context(force_refresh=True).browse(line.id)
+            self.env.cache.invalidate([(line._fields['payment_date'], line.ids)])
+            line = self.env['payment.plan.line'].with_context(force_refresh=True).browse(line.id)
             
             # Check if there's overdue interest to consider
             required_amount = line.total_with_interest if line.overdue_days > 0 else line.amount
