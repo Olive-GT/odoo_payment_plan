@@ -23,7 +23,9 @@
               .summary-table strong { font-weight:600; color:#333; }
               .table-condensed { width:100%; border-collapse: collapse; }
               .table-condensed th, .table-condensed td {
-                padding:4px 6px; font-size:8px; border-top:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0;
+                padding:4px 6px; font-size:8px;
+                border-top:1px solid #e0e0e0;
+                border-bottom:1px solid #e0e0e0;
                 vertical-align:middle;
               }
               .table-condensed th { background:#fafafa; font-weight:600; text-align:center; }
@@ -37,7 +39,8 @@
               .badge-partial { color:#ffc107; border:0.5px solid #ffc107; }
               .badge-pending { color:#6c757d; border:0.5px solid #ccc; }
               .progress-container {
-                background:#eee; height:6px; border-radius:3px; overflow:hidden; margin-top:2px;
+                background:#eee; height:6px; border-radius:3px;
+                overflow:hidden; margin-top:2px;
               }
               .progress-bar { background:#28a745; height:6px; }
               .text-center { text-align:center; }
@@ -117,17 +120,15 @@
                   <t t-foreach="o.line_ids.sorted(key=lambda l: l.date)" t-as="line">
                     <t t-set="idx" t-value="idx + 1"/>
                     <tr>
-                      <!-- Nombre de cuota -->
+                      <!-- Cuota y Fecha -->
                       <td class="text-center">
                         <t t-esc="line.name or 'Cuota '+str(idx)"/>
                       </td>
-
-                      <!-- Fecha de vencimiento -->
                       <td class="text-center">
                         <span t-field="line.date" t-options='{"format":"dd/MM/yyyy"}'/>
                       </td>
 
-                      <!-- Monto y barra de progreso -->
+                      <!-- Monto + barra de progreso corregida -->
                       <td class="text-right">
                         <span t-field="line.amount"
                               t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
@@ -161,7 +162,7 @@
                         </div>
                       </td>
 
-                      <!-- Estado con icono único -->
+                      <!-- Estado único -->
                       <td class="text-center">
                         <t t-switch="line.state">
                           <t t-case="'paid'">
@@ -179,7 +180,7 @@
                         </t>
                       </td>
 
-                      <!-- Detalle de pagos reconciliados -->
+                      <!-- Detalle de pagos -->
                       <td style="font-size:7px; line-height:1.1;">
                         <t t-raw="line.move_lines_summary"/>
                       </td>
