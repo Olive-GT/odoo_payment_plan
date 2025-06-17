@@ -144,10 +144,6 @@ class PaymentPlanLine(models.Model):
                 # For unpaid lines with payment_date set (unusual case, but handle it)
                 delta = line.payment_date - line.date
                 line.overdue_days = delta.days if delta.days > 0 else 0
-            elif line.date < today:
-                # Only if no payment_date is available, use today as reference
-                delta = today - line.date
-                line.overdue_days = delta.days
             else:
                 # Future dates have no overdue days
                 line.overdue_days = 0
