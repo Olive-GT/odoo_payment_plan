@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
+        <record id="action_report_payment_plan" model="ir.actions.report">
+            <field name="name">Payment Plan</field>
+            <field name="model">payment.plan</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">olivegt_sale_payment_plans.report_payment_plan</field>
+            <field name="report_file">olivegt_sale_payment_plans.report_payment_plan</field>
+            <field name="binding_model_id" ref="model_payment_plan"/>
+            <field name="binding_type">report</field>
+        </record>
+
         <template id="report_payment_plan">
             <t t-call="web.html_container">
                 <t t-foreach="docs" t-as="o">
@@ -12,91 +22,102 @@
                                 font-size: 8px;
                                 vertical-align: middle;
                             }
+
                             .clean-table th {
                                 font-weight: 600;
                                 color: #333;
-                                text-transform: uppercase;
+                                background-color: #f9f9f9;
                             }
+
                             .badge {
                                 display: inline-block;
-                                padding: 1px 5px;
+                                padding: 1px 4px;
                                 border-radius: 4px;
-                                font-weight: 600;
                                 font-size: 7px;
-                                border: 0.5px solid;
+                                font-weight: 600;
                             }
-                            .badge-paid { border-color: #28a745; color: #28a745; }
-                            .badge-overdue { border-color: #dc3545; color: #dc3545; }
-                            .badge-draft { border-color: #6c757d; color: #6c757d; }
+
+                            .badge-paid {
+                                border: 0.5px solid #28a745;
+                                color: #28a745;
+                            }
+
+                            .badge-overdue {
+                                border: 0.5px solid #dc3545;
+                                color: #dc3545;
+                            }
+
+                            .badge-draft {
+                                border: 0.5px solid #6c757d;
+                                color: #6c757d;
+                            }
+
                             .table-rounded {
                                 border-collapse: separate;
                                 border-spacing: 0;
                                 border-radius: 6px;
                                 overflow: hidden;
                             }
+
                             .text-right { text-align: right; }
                             .text-center { text-align: center; }
                             .totals-row td {
                                 font-weight: 600;
-                                background-color: #f9f9f9;
+                                background-color: #f0f0f0;
                             }
-                            .text-muted { color: #888; font-size: 7px; }
+                            .muted { color: #888; font-size: 7px; }
                         </style>
 
-                        <div class="page" style="font-size: 8px; line-height: 1.2;">
-
-                            <!-- Encabezado -->
-                            <div style="text-align: center; margin-bottom: 8px;">
-                                <h5 style="margin: 0; font-size: 11px;">ESTADO DE CUENTA</h5>
+                        <div class="page" style="font-size: 8px; line-height: 1.2; font-family: 'Lato', 'Helvetica', sans-serif;">
+                            <div style="text-align: center; margin-bottom: 6px;">
+                                <h5 style="margin: 0; font-weight: 600; font-size: 10px;">ESTADO DE CUENTA</h5>
                                 <p style="margin: 0; font-size: 8px;">Plan de Pagos: <span t-field="o.name"/></p>
                             </div>
 
-                            <!-- Resumen -->
-                            <table class="clean-table" style="margin-bottom: 8px; width: 100%;">
+                            <table style="width: 100%; margin-bottom: 10px;">
                                 <tr>
-                                    <td><strong>Cliente:</strong></td>
-                                    <td><span t-field="o.partner_id"/></td>
-                                    <td><strong>Precio Inmueble:</strong></td>
-                                    <td class="text-right"><span t-field="o.sale_id.amount_untaxed" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
+                                    <td style="width: 15%; font-weight: 600;">Cliente:</td>
+                                    <td style="width: 35%;"><span t-field="o.partner_id"/></td>
+                                    <td style="width: 25%; font-weight: 600;">Precio Inmueble:</td>
+                                    <td style="width: 25%;" class="text-right"><span t-field="o.sale_id.amount_untaxed" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Orden de Venta:</strong></td>
+                                    <td style="font-weight: 600;">Orden de Venta:</td>
                                     <td><span t-field="o.sale_id.name"/></td>
-                                    <td><strong>Monto Total Plan de Pago:</strong></td>
+                                    <td style="font-weight: 600;">Monto Total Plan de Pago:</td>
                                     <td class="text-right"><span t-field="o.total_amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Fecha:</strong></td>
+                                    <td style="font-weight: 600;">Fecha:</td>
                                     <td><span t-field="o.date" t-options='{"format": "dd/MM/yyyy"}'/></td>
-                                    <td><strong>Monto Pagado:</strong></td>
+                                    <td style="font-weight: 600;">Monto Pagado:</td>
                                     <td class="text-right"><span t-field="o.amount_paid" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Estado:</strong></td>
+                                    <td style="font-weight: 600;">Estado:</td>
                                     <td>
                                         <t t-if="o.state == 'draft'"><span class="badge badge-draft">Borrador</span></t>
                                         <t t-elif="o.state == 'posted'"><span class="badge badge-paid">Publicado</span></t>
                                         <t t-elif="o.state == 'canceled'"><span class="badge badge-overdue">Cancelado</span></t>
                                     </td>
-                                    <td><strong>Saldo Pendiente:</strong></td>
+                                    <td style="font-weight: 600;">Saldo Pendiente:</td>
                                     <td class="text-right"><span t-field="o.amount_residual" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
                                 </tr>
                             </table>
 
-                            <!-- Detalle de cuotas -->
-                            <p style="margin: 4px 0; font-weight: 600; font-size: 8px;">DETALLE DE CUOTAS</p>
-                            <table class="clean-table table-rounded" style="width: 100%; margin-bottom: 5px;">
+                            <p style="margin: 3px 0; font-weight: 600; font-size: 8px;">DETALLE DE CUOTAS</p>
+                            <table class="clean-table table-rounded" style="width: 100%; margin-bottom: 8px;">
                                 <thead>
                                     <tr>
-                                        <th class="text-center">Cuota</th>
-                                        <th class="text-center">Fecha Programada</th>
-                                        <th class="text-center">Monto</th>
-                                        <th class="text-center">Fecha Pago</th>
-                                        <th class="text-center">Abono</th>
-                                        <th class="text-center">Saldo</th>
-                                        <th class="text-center">Días Mora</th>
-                                        <th class="text-center">Interés</th>
-                                        <th class="text-center">Referencias</th>
+                                        <th class="text-center">CUOTA</th>
+                                        <th class="text-center">FECHA PROGRAMADA</th>
+                                        <th class="text-center">MONTO PROGRAMADO</th>
+                                        <th class="text-center">FECHA DE PAGO</th>
+                                        <th class="text-center">ABONO</th>
+                                        <th class="text-center">SALDO</th>
+                                        <th class="text-center">DÍAS EN MORA</th>
+                                        <th class="text-center">INTERESES</th>
+                                        <th class="text-center">REFERENCIA DE PAGO</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -105,36 +126,53 @@
                                         <t t-set="line_index" t-value="line_index + 1"/>
                                         <tr>
                                             <td class="text-center">
-                                                <t t-if="line.name">
-                                                    <span t-field="line.name"/>
-                                                </t>
+                                                <t t-if="line.name"><span t-field="line.name"/></t>
                                                 <t t-else="">Cuota <t t-esc="line_index"/></t>
                                             </td>
                                             <td class="text-center"><span t-field="line.date" t-options='{"format": "dd/MM/yyyy"}'/></td>
                                             <td class="text-right"><span t-field="line.amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
                                             <td class="text-center"><span t-field="line.payment_date" t-options='{"format": "dd/MM/yyyy"}'/></td>
                                             <td class="text-right">
-                                                <t t-if="line.paid"><span t-field="line.amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></t>
+                                                <t t-if="line.paid">
+                                                    <span t-field="line.amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                                </t>
                                             </td>
                                             <td class="text-right">
-                                                <t t-if="line.paid">0.00</t>
-                                                <t t-else=""><span t-field="line.amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></t>
+                                                <t t-if="line.paid">
+                                                    <span t-esc="0.0"/>
+                                                </t>
+                                                <t t-else="">
+                                                    <span t-field="line.amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                                </t>
                                             </td>
                                             <td class="text-center">
-                                                <t t-if="line.overdue_days &gt; 0"><span t-esc="line.overdue_days"/></t>
+                                                <t t-if="line.overdue_days &gt; 0">
+                                                    <span t-field="line.overdue_days"/>
+                                                </t>
                                             </td>
                                             <td class="text-right">
-                                                <t t-if="line.interest_amount &gt; 0"><span t-field="line.interest_amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></t>
+                                                <t t-if="line.interest_amount &gt; 0">
+                                                    <span t-field="line.interest_amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                                </t>
                                             </td>
                                             <td>
                                                 <t t-if="line.reconciliation_ids.filtered(lambda r: r.state == 'confirmed')">
-                                                    <t t-foreach="line.reconciliation_ids.filtered(lambda r: r.state == 'confirmed')" t-as="rec">
-                                                        <div style="font-size: 7px;">
-                                                            <span t-field="rec.date" t-options='{"format": "dd/MM/yy"}'/> –
-                                                            <span t-field="rec.move_payment_reference"/>:
-                                                            <span t-field="rec.amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                                        </div>
-                                                    </t>
+                                                    <table style="width: 100%; border-collapse: collapse; font-size: 7px;">
+                                                        <t t-foreach="line.reconciliation_ids.filtered(lambda r: r.state == 'confirmed')" t-as="rec">
+                                                            <tr>
+                                                                <td style="width: 30%;"><span t-field="rec.date" t-options='{"format": "dd/MM/yy"}'/></td>
+                                                                <td style="width: 45%;">
+                                                                    <t t-if="rec.move_payment_reference">
+                                                                        <span t-field="rec.move_payment_reference"/>
+                                                                    </t>
+                                                                    <t t-else="">
+                                                                        <span t-field="rec.move_id.name"/>
+                                                                    </t>
+                                                                </td>
+                                                                <td style="text-align: right;"><span t-field="rec.amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
+                                                            </tr>
+                                                        </t>
+                                                    </table>
                                                 </t>
                                             </td>
                                         </tr>
@@ -154,14 +192,12 @@
                                 </tfoot>
                             </table>
 
-                            <!-- Notas -->
                             <t t-if="o.notes">
-                                <p style="font-weight: 600; font-size: 8px;">Notas:</p>
-                                <p style="font-size: 7px;" t-field="o.notes"/>
+                                <p style="margin-top: 4px; font-weight: 500;">NOTAS:</p>
+                                <p class="muted" t-field="o.notes"/>
                             </t>
 
-                            <!-- Footer -->
-                            <div style="text-align: center; font-size: 7px; color: #888; margin-top: 8px;">
+                            <div class="text-center muted" style="margin-top: 5px;">
                                 <p>Este documento es un estado de cuenta informativo y no representa una factura o comprobante fiscal.</p>
                                 <p>Página 1/1</p>
                             </div>
