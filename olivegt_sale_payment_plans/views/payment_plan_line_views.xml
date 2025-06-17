@@ -3,40 +3,19 @@
 <data>    <!-- Payment Plan Line List View -->    <record id="view_payment_plan_line_list" model="ir.ui.view">        <field name="name">payment.plan.line.list</field>
         <field name="model">payment.plan.line</field>
         <field name="arch" type="xml">            <list>
-                <field name="payment_plan_id"/>
                 <field name="date"/>
                 <field name="name"/>
-                <field name="amount" sum="Total Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="allocated_amount" sum="Total Allocated" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="allocation_state" 
-                       decoration-success="allocation_state == 'full'" 
-                       decoration-warning="allocation_state == 'partial'" 
-                       decoration-danger="allocation_state == 'none'"/>
-                
-                <!-- Payment Details with more space -->
-                <field name="move_lines_summary" widget="html" string="Payment Details"/>
+                <field name="amount" widget="monetary"/>
+                <field name="allocated_amount" widget="monetary"/>
+                <field name="allocation_summary" string="Asignaciones"/>
                 <field name="allocation_count" invisible="1"/>
-                
-                <!-- Improved Button Styling -->
-                <button name="action_reconcile" type="object" 
-                        string="Reconcile" title="Reconcile Payment"
-                        class="oe_highlight"
-                        invisible="paid"/>
-                        
-                <button name="action_view_reconciliations" type="object" 
-                        string="View Details" title="View Allocation Details"
-                        class="btn-secondary"
+                <button name="action_show_allocations" type="object" 
+                        string="Ver Detalles" icon="fa-list"
                         invisible="allocation_count == 0"/>
-                
                 <field name="currency_id" invisible="1"/>
-                
-                <!-- Status badge with better formatting -->
-                <field name="state" widget="badge" 
-                       decoration-success="state == 'paid'" 
-                       decoration-info="state == 'allocated'" 
-                       decoration-warning="state == 'partial'" 
-                       decoration-danger="state == 'overdue'"
-                       decoration-muted="state == 'pending'"/>
+                <field name="paid"/>
+                <field name="payment_date"/>
+                <field name="state" widget="badge"/>
             </list>
         </field>
     </record>
@@ -58,83 +37,29 @@
                             invisible="not paid"/>
                     <button name="update_overdue_status" type="object" string="Update Status" 
                             invisible="paid"/>
-                </header>                <sheet>                    <div class="oe_button_box" name="button_box">
+                </header>
+                <sheet>                    <div class="oe_button_box" name="button_box">
                         <button name="action_view_reconciliations" type="object" class="oe_stat_button" icon="fa-money"
                                 invisible="allocation_count == 0">
                             <field name="allocation_count" widget="statinfo" string="Allocations"/>
                         </button>
                     </div>
-                    
-                    <div class="oe_title">
-                        <h1>
-                            <field name="name" placeholder="Description"/>
-                        </h1>
-                    </div>
-                    
                     <group>
                         <group>                        <field name="payment_plan_id"/>
                             <field name="date"/>
+                            <field name="name"/>
                             <field name="amount" widget="monetary"/>
-                            <field name="allocated_amount" widget="monetary"/>                            
-                            <field name="allocation_state" widget="badge" 
-                                   decoration-success="allocation_state == 'full'" 
-                                   decoration-warning="allocation_state == 'partial'" 
-                                   decoration-danger="allocation_state == 'none'"/>
-                            <field name="running_balance" widget="monetary"/>
+                            <field name="allocated_amount" widget="monetary"/>                            <field name="allocation_state" widget="badge"/>                            <field name="running_balance" widget="monetary"/>
                             <field name="currency_id" invisible="1"/>
-                        </group>                        
-                        <group>                        
-                            <field name="state" widget="badge" 
-                                   decoration-success="state == 'paid'" 
-                                   decoration-info="state == 'allocated'" 
-                                   decoration-warning="state == 'partial'" 
-                                   decoration-danger="state == 'overdue'"
-                                   decoration-muted="state == 'pending'"/>
-                            <field name="overdue_days"/>
+                        </group>                        <group>                        <field name="overdue_days"/>
                             <field name="interest_amount" widget="monetary"/>
                             <field name="total_with_interest" widget="monetary"/>
                             <field name="paid"/>
                             <field name="payment_date"/>
                             <field name="payment_reference"/>
-                        </group>                    
-                    </group>
-                    
-                    <!-- Payment Details Section -->
-                    <group string="Payment Details" attrs="{'invisible': [('allocation_count', '=', 0)]}">
-                        <div class="o_payment_details_container" style="width: 100%;">
-                            <field name="move_lines_summary" widget="html" nolabel="1"/>
-                            <div class="oe_right oe_button_box" name="payment_action_buttons" style="margin-top: 10px;">
-                                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment"
-                                        class="btn btn-primary oe_highlight"
-                                        style="margin-right: 5px;"
-                                        invisible="paid"/>
-                                <button name="action_view_reconciliations" type="object" string="View Details" title="View Allocation Details"
-                                        class="btn btn-secondary"
-                                        invisible="allocation_count == 0"/>
-                            </div>
-                        </div>
-                    </group>            <notebook>
-                        <page string="Allocations" attrs="{'invisible': [('allocation_count', '=', 0)]}">
-                            <field name="reconciliation_ids">
-                                <tree>
-                                    <field name="date"/>
-                                    <field name="move_id"/>
-                                    <field name="journal_id"/>
-                                    <field name="amount" widget="monetary"/>
-                                    <field name="currency_id" invisible="1"/>
-                                    <field name="move_payment_reference"/>
-                                    <field name="state" widget="badge"
-                                           decoration-success="state == 'confirmed'"
-                                           decoration-warning="state == 'draft'"
-                                           decoration-danger="state == 'cancelled'"/>
-                                </tree>
-                            </field>
-                        </page>
-                        <page string="Payment History">
-                            <group>
-                                <field name="payment_date"/>
-                                <field name="payment_reference"/>
-                            </group>
+                        </group>                    </group>            <notebook invisible="allocation_count == 0">
+                        <page string="Allocations">
+                            <field name="reconciliation_ids"/>
                         </page>
                     </notebook>
                 </sheet>

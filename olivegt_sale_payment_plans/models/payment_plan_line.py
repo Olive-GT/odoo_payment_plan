@@ -625,14 +625,16 @@ class PaymentPlanLine(models.Model):
             # Obtener una lista de los journals involucrados
             journals = confirmed_reconciliations.mapped('journal_id.name')
             unique_journals = list(set([j for j in journals if j]))
-              # Formatear mejor para mayor visibilidad en la vista de lista
+            
+            # Formatear mejor para mayor visibilidad en la vista de lista
             if unique_journals:
                 journal_text = ", ".join(unique_journals[:2])
                 if len(unique_journals) > 2:
                     journal_text += f" y {len(unique_journals) - 2} más"
                 line.allocation_summary = f"{count} asign: Q{formatted_amount} ({journal_text})"
             else:
-                line.allocation_summary = f"{count} asignaciones: Q{formatted_amount}"                
+                line.allocation_summary = f"{count} asignaciones: Q{formatted_amount}"
+                
     @api.depends('reconciliation_ids.state', 'reconciliation_ids.move_id', 'reconciliation_ids.amount', 
                 'reconciliation_ids.date', 'reconciliation_ids.journal_id', 'reconciliation_ids.move_payment_reference')
     def _compute_move_lines_summary(self):
@@ -645,18 +647,17 @@ class PaymentPlanLine(models.Model):
                 continue
             
             currency_symbol = line.currency_id.symbol or 'Q'
+              # Create a mini HTML table with explicit inline styling
+            html = '<div style="margin: 2px 0; max-width: 350px; min-width: 250px; font-size: 0.9em;">'
             
-            # Create a mini HTML table with explicit inline styling for better display in all views
-            html = '<div class="payment_details_container" style="margin: 2px 0; max-width: 400px; min-width: 280px; font-size: 0.9em;">'
-            
-            # Use table format for better alignment with enhanced inline styles
+            # Use table format for better alignment with inline styles
             html += '<table style="width: 100%; border-collapse: separate; border-spacing: 0 4px;">'
             
-            # Add a header for multiple payments with improved styling
+            # Add a header for multiple payments
             if len(confirmed_reconciliations) > 1:
                 total_amount = sum(confirmed_reconciliations.mapped('amount'))
                 total_amount_str = "{:,.2f}".format(total_amount)
-                html += f'<tr><td colspan="3" style="text-align: center; font-weight: bold; padding: 6px; color: #333; background-color: #f8f9fa; border-bottom: 1px solid #dee2e6; border-radius: 4px;">{len(confirmed_reconciliations)} pagos: {currency_symbol} {total_amount_str}</td></tr>'
+                html += f'<tr><td colspan="3" style="text-align: center; font-weight: bold; padding: 5px; color: #333; background-color: #f8f9fa; border-bottom: 1px solid #dee2e6; border-radius: 4px;">{len(confirmed_reconciliations)} pagos: {currency_symbol} {total_amount_str}</td></tr>'
             
             for rec in confirmed_reconciliations:
                 amount_str = "{:,.2f}".format(rec.amount)
@@ -672,7 +673,7 @@ class PaymentPlanLine(models.Model):
                 if len(reference) > 15:
                     reference = reference[:12] + '...'
                 
-                # Set background color based on journal type with improved visuals
+                # Set background color based on journal type
                 bg_color = '#f0f8ff'  # Default light blue
                 icon = '💳'  # Default icon
                 
@@ -683,22 +684,21 @@ class PaymentPlanLine(models.Model):
                     bg_color = '#fff7e6'  # Light yellow for cash
                     icon = '💰'  # Cash icon
                 
-                # Enhance row styling for better visibility
-                html += f'<tr style="background-color: {bg_color}; border-radius: 6px; margin-bottom: 5px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">'
+                html += f'<tr style="background-color: {bg_color}; border-radius: 6px; margin-bottom: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">'
                 
-                # Amount column with currency - using stronger green for better visibility
-                html += f'<td style="padding: 5px 7px; font-weight: bold; white-space: nowrap; color: #1a8b1a;">'
+                # Amount column with currency - using stronger green
+                html += f'<td style="padding: 4px 6px; font-weight: bold; white-space: nowrap; color: #1a8b1a;">'
                 html += f'{currency_symbol} {amount_str}'
                 html += '</td>'
                 
                 # Date column with better formatting
-                html += f'<td style="padding: 5px; white-space: nowrap; color: #555;">{date_str}</td>'
+                html += f'<td style="padding: 4px; white-space: nowrap; color: #555;">{date_str}</td>'
                 
                 # Reference column (if available) with better styling and journal type indicator
                 reference_text = reference or move_ref
                 journal_title = f"{journal_name} ({journal_type})" if journal_name else journal_type
                 
-                html += f'<td style="padding: 5px;" title="{journal_title}">'
+                html += f'<td style="padding: 4px;" title="{journal_title}">'
                 html += f'{icon} {reference_text}</td>'
                 
                 html += '</tr>'
