@@ -155,7 +155,7 @@
                           <t t-case="'partial'">
                             <span class="badge badge-partial">Parcial</span>
                           </t>
-                          <t t-default>
+                          <t t-else="">
                             <span class="badge badge-pending">Pendiente</span>
                           </t>
                         </t>
