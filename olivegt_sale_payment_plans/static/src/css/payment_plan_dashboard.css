@@ -1,0 +1,94 @@
+/* Payment Plan Dashboard Styles */
+
+.o_payment_details {
+    margin: 2px 0;
+    max-width: 350px;
+    min-width: 250px;
+}
+
+.o_payment_details table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 4px;
+}
+
+.o_payment_details tr {
+    margin-bottom: 4px;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.o_payment_details td {
+    padding: 5px 8px;
+    vertical-align: middle;
+}
+
+.o_payment_details td:first-child {
+    font-weight: bold;
+    white-space: nowrap;
+    color: #1a8b1a;
+}
+
+/* Status Badge enhancements */
+.o_field_widget.o_field_badge.text-bg-success {
+    background-color: #28a745 !important;
+    color: white !important;
+    font-weight: 500 !important;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.o_field_widget.o_field_badge.text-bg-warning {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+    font-weight: 500 !important;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.o_field_widget.o_field_badge.text-bg-danger {
+    background-color: #dc3545 !important;
+    color: white !important;
+    font-weight: 500 !important;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.o_field_widget.o_field_badge.text-bg-info {
+    background-color: #17a2b8 !important;
+    color: white !important;
+    font-weight: 500 !important;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Custom button classes for reconciliation action buttons */
+.reconcile_button {
+    background-color: #756AB6 !important;
+    color: white !important;
+    font-weight: 500 !important;
+    padding: 4px 10px !important;
+    border-radius: 4px !important;
+    border: none !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+.reconcile_button:hover {
+    background-color: #645996 !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
+}
+
+.view_details_button {
+    background-color: #E5E5E5 !important;
+    color: #333 !important;
+    font-weight: 500 !important;
+    padding: 4px 10px !important;
+    border-radius: 4px !important;
+    border: 1px solid #D4D4D4 !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+}
+
+.view_details_button:hover {
+    background-color: #D8D8D8 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
