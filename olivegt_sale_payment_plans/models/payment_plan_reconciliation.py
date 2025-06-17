@@ -153,7 +153,7 @@ class PaymentPlanReconciliation(models.Model):
             allocated_amount = sum(allocations.mapped('amount'))
             
             # Check if allocation exceeds line amount
-            plan_line_amount = rec.payment_plan_line_id.amount
+            plan_line_amount = rec.payment_plan_line_id.total_with_interest if rec.payment_plan_line_id.overdue_days > 0 else rec.payment_plan_line_id.amount
             if float_compare(allocated_amount + rec.amount, plan_line_amount, 
                            precision_rounding=rec.currency_id.rounding) > 0:
                 raise ValidationError(_(
