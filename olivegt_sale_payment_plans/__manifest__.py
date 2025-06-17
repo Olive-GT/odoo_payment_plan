@@ -13,7 +13,8 @@
     'category': 'Sales',
     'author': 'Olive GT',
     'website': '',
-    'license': 'LGPL-3',    'depends': [
+    'license': 'LGPL-3',
+    'depends': [
         'account',
         'base',
         'mail',
