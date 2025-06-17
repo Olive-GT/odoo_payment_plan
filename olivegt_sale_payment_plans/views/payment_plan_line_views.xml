@@ -113,21 +113,9 @@
                                         invisible="allocation_count == 0"/>
                             </div>
                         </div>
-                    </group>            <notebook>
-                        <page string="Allocations" attrs="{'invisible': [('allocation_count', '=', 0)]}">
-                            <field name="reconciliation_ids">
-                                <tree>
-                                    <field name="date"/>
-                                    <field name="move_id"/>
-                                    <field name="journal_id"/>
-                                    <field name="amount" widget="monetary"/>
-                                    <field name="currency_id" invisible="1"/>
-                                    <field name="move_payment_reference"/>
-                                    <field name="state" widget="badge"
-                                           decoration-success="state == 'confirmed'"
-                                           decoration-warning="state == 'draft'"
-                                           decoration-danger="state == 'cancelled'"/>
-                                </tree>
+                    </group>            <notebook>                        <page string="Allocations" attrs="{'invisible': [('allocation_count', '=', 0)]}">
+                            <field name="reconciliation_ids" context="{'tree_view_ref': 'olivegt_sale_payment_plans.view_payment_plan_reconciliation_inline_tree'}">
+                                <!-- Use the predefined tree view to avoid field reference errors -->
                             </field>
                         </page>
                         <page string="Payment History">
@@ -145,12 +133,17 @@
             <list>
                 <field name="date"/>
                 <field name="move_id"/>
-                <field name="amount"/>
+                <field name="journal_id"/>
+                <field name="amount" widget="monetary"/>
+                <field name="currency_id" invisible="1"/>
                 <field name="move_payment_reference"/>
-                <field name="state" widget="badge"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'confirmed'"
+                       decoration-warning="state == 'draft'"
+                       decoration-danger="state == 'cancelled'"/>
             </list>
         </field>
-    </record>    <!-- Detailed reconciliation tree view for popup -->    <record id="view_payment_plan_reconciliation_detailed_tree" model="ir.ui.view">
+    </record><!-- Detailed reconciliation tree view for popup -->    <record id="view_payment_plan_reconciliation_detailed_tree" model="ir.ui.view">
         <field name="name">payment.plan.reconciliation.detailed.tree</field>
         <field name="model">payment.plan.reconciliation</field>
         <field name="arch" type="xml">            <list>
