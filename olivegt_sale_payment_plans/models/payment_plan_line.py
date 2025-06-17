@@ -654,13 +654,9 @@ class PaymentPlanLine(models.Model):
             for rec in confirmed_reconciliations:
                 amount_str = "{:,.2f}".format(rec.amount)
                 date_str = rec.date.strftime('%d/%m/%Y') if rec.date else ''
-                journal_name = rec.journal_id.name or ''
                 move_ref = rec.move_id.name or ''
                 reference = rec.move_payment_reference or ''
                 
-                # Truncate long text
-                if len(journal_name) > 15:
-                    journal_name = journal_name[:12] + '...'
                 if len(reference) > 15:
                     reference = reference[:12] + '...'
                 
@@ -674,15 +670,12 @@ class PaymentPlanLine(models.Model):
                 html += f'<tr style="background-color: {bg_color}; border-radius: 4px;">'
                 
                 # Amount column with currency
-                html += f'<td style="padding: 3px; font-weight: bold; white-space: nowrap;">'
+                html += f'<td style="padding: 3px; font-weight: bold; white-space: nowrap; color: #389B38FF;">'
                 html += f'{currency_symbol} {amount_str}'
                 html += '</td>'
                 
                 # Date column
                 html += f'<td style="padding: 3px; white-space: nowrap;">{date_str}</td>'
-                
-                # Journal column
-                html += f'<td style="padding: 3px;" title="{rec.journal_id.name}">{journal_name}</td>'
                 
                 # Reference column (if available)
                 if reference:
