@@ -8,15 +8,34 @@
                 <field name="payment_plan_id"/>
                 <field name="name"/>
                 <field name="date"/>
-                <field name="amount" sum="Total Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="total_with_interest" sum="Total + Interest" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="allocated_amount" sum="Total Allocated" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="allocation_state"/>
-                <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px'}"/>
-                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment"
-                        class="btn btn-primary btn-sm"/>
-                <button name="action_view_reconciliations" type="object" string="View Details" title="View Allocation Details"
-                        class="btn btn-secondary btn-sm"/>
+                <field name="amount" 
+                        sum="Total Amount" 
+                        widget="monetary" 
+                        options="{'currency_field': 'currency_id'}"/>
+                <field name="total_with_interest" 
+                        sum="Total + Interest" 
+                        widget="monetary" 
+                        options="{'currency_field': 'currency_id'}"/>
+                <field name="allocated_amount" 
+                        sum="Total Allocated" 
+                        widget="monetary" 
+                        options="{'currency_field': 'currency_id'}"/>
+                <field name="move_lines_summary" 
+                        widget="html" 
+                        string="Payment Details" 
+                        options="{'width': '350px'}"/>
+                <button name="action_reconcile" 
+                        type="object" 
+                        string="Reconcile" 
+                        title="Reconcile Payment"
+                        class="btn btn-primary btn-sm"
+                        invisible="[('total_with_interest', '=', 'allocated_amount')]"/>
+                <button name="action_view_reconciliations" 
+                        type="object" 
+                        string="View Details" 
+                        title="View Allocation Details"
+                        class="btn btn-secondary btn-sm"
+                        invisible="[('allocated_amount', '=', 0.0)]"/>
                 <field name="state" widget="badge"/>
             </list>
         </field>
