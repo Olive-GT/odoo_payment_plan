@@ -33,7 +33,7 @@
               /* Cuotas */
               .table-condensed {
                 width:100%; border-collapse: separate; border-spacing:0;
-                border:1px solid #ccc; border-radius:8px; overflow:hidden;
+                border-radius:8px; overflow:hidden;
               }
               .table-condensed thead { background:#2c3e50; color:#fff; }
               .table-condensed thead th {
