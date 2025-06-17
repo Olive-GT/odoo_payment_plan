@@ -19,7 +19,7 @@
           <t t-call="web.external_layout">
             <style>
               /* Base */
-              .page { font-family:'Lato','Helvetica',sans-serif; font-size:8px; line-height:1.2; }
+              .page { font-family:'Lato','Helvetica',sans-serif; font-size:8px;}
               .report-title    { text-align:center; font-size:12px; font-weight:600; margin-bottom:4px; }
               .report-subtitle { text-align:center; font-size:8px; color:#555; margin-bottom:8px; }
               .section-title   { font-size:9px; font-weight:600; margin:12px 0 4px; }
