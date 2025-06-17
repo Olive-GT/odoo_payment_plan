@@ -4,7 +4,8 @@
     <record id="view_payment_plan_dashboard_list" model="ir.ui.view">
         <field name="name">payment.plan.line.dashboard.list</field>
         <field name="model">payment.plan.line</field>
-        <field name="arch" type="xml">            <list create="0" delete="0">
+        <field name="arch" type="xml">
+            <list create="0" delete="0">
                 <field name="payment_plan_id"/>
                 <field name="name"/>
                 <field name="date"/>
@@ -25,11 +26,13 @@
                         string="Payment Details" 
                         options="{'width': '350px'}"/>
                 <button name="action_reconcile" 
-                        type="object" 
-                        string="Reconcile" 
-                        title="Reconcile Payment"
-                        class="btn btn-primary btn-sm"
-                        invisible="[('total_with_interest', '=', 'allocated_amount')]"/>
+                    type="object" 
+                    string="Reconcile" 
+                    title="Reconcile Payment"
+                    class="btn btn-primary btn-sm"
+                    invisible="[('show_reconcile_button', '=', False)]"/>
+                <field name="show_reconcile_button"/>
+
                 <button name="action_view_reconciliations" 
                         type="object" 
                         string="View Details" 

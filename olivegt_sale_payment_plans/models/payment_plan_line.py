@@ -45,6 +45,20 @@ class PaymentPlanLine(models.Model):
     # New field to show move lines details in the dashboard
     move_lines_summary = fields.Html(compute='_compute_move_lines_summary', string='Payment Details')
     
+    show_reconcile_button = fields.Boolean(
+        string="Show Reconcile Button",
+        compute='_compute_show_reconcile_button',
+        store=True
+    )
+
+    @api.depends('total_with_interest', 'allocated_amount')
+    def _compute_show_reconcile_button(self):
+        for record in self:
+            record.show_reconcile_button = not float_is_zero(
+                record.total_with_interest - record.allocated_amount,
+                precision_digits=record.currency_id.decimal_places or 2
+            )
+
     @api.depends('reconciliation_ids.state')
     def _compute_allocation_count(self):
         for line in self:
