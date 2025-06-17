@@ -42,18 +42,11 @@
                                     <field name="total_with_interest" widget="monetary"/>                                    <field name="paid"/>
                                     <field name="payment_date"/>
                                     <field name="currency_id" invisible="1"/>
-                                    <field name="allocation_count" invisible="1"/>
-                                    <field name="allocation_state" invisible="1"/>
                                     <field name="payment_reference"/>                                    
-                                    <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment" 
-                                        class="btn btn-primary btn-sm" 
-                                        invisible="paid or allocation_state == 'full'"/>
-                                    <button name="action_view_reconciliations" type="object" string="View" title="View Allocations" 
-                                        class="btn btn-secondary btn-sm" 
-                                        invisible="allocation_count == 0"/>
-                                    <button name="mark_as_paid" type="object" string="" title="Mark as Paid" icon="fa-check" invisible="paid" class="btn-sm"/>
-                                    <button name="mark_as_unpaid" type="object" string="" title="Mark as Unpaid" icon="fa-times" invisible="not paid" class="btn-sm"/>
-                                    <button name="update_overdue_status" type="object" string="" title="Update Status" icon="fa-refresh" invisible="paid" class="btn-sm"/>
+                                    <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px'}"/>                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment"
+                                            class="btn btn-primary btn-sm"/>
+                                    <button name="action_view_reconciliations" type="object" string="View Details" title="View Allocation Details"
+                                            class="btn btn-secondary btn-sm"/>                <field name="state" widget="badge"/>
                                 </list>                                <form>
                                     <header>
                                         <button name="action_reconcile" type="object" string="Reconcile" 
