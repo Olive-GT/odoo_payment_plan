@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <!-- Include CSS assets for payment plan dashboard -->
+    <template id="assets_backend_payment_plan_dashboard" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <link rel="stylesheet" href="/olivegt_sale_payment_plans/static/src/css/payment_plan_dashboard.css"/>
+        </xpath>
+    </template>
+    
     <!-- Payment Plan Dashboard List View -->
     <record id="view_payment_plan_dashboard_list" model="ir.ui.view">
         <field name="name">payment.plan.line.dashboard.list</field>
@@ -14,14 +21,13 @@
                 <field name="allocation_state" decoration-success="allocation_state == 'full'" decoration-warning="allocation_state == 'partial'" decoration-danger="allocation_state == 'none'"/>
                 
                 <!-- Payment Details - HTML widget with more space -->
-                <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px', 'resizable': true}"/>                <!-- Improved Button Styling with inline styles -->
+                <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px', 'resizable': true}"/>
+                  <!-- Improved Button Styling using custom CSS classes -->
                 <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment"
-                        class="oe_highlight btn btn-primary"
-                        style="background-color: #756AB6; color: white; font-weight: 500; padding: 4px 10px; border-radius: 4px;"/>
+                        class="oe_highlight btn btn-primary reconcile_button"/>
                         
                 <button name="action_view_reconciliations" type="object" string="View Details" title="View Allocation Details"
-                        class="btn btn-secondary"
-                        style="background-color: #E5E5E5; color: #333; font-weight: 500; padding: 4px 10px; border-radius: 4px;"/>
+                        class="btn btn-secondary view_details_button"/>
                 
                 <!-- Status with better badge formatting -->
                 <field name="state" widget="badge" 
