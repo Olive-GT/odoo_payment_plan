@@ -23,6 +23,8 @@
         'data/payment_plan_sequence.xml',
         'data/payment_plan_cron.xml',
         'reports/payment_plan_report.xml',
+        'views/qweb.xml',
+        'views/assets.xml',
         'views/payment_plan_line_views.xml',
         'views/payment_plan_line_actions.xml',
         'views/payment_plan_reconciliation_views.xml',
@@ -36,6 +38,10 @@
     ],
     'demo': [],
     'installable': True,
-    'auto_install': False,
-    'application': True,
+    'auto_install': False,    'application': True,
+    'assets': {
+        'web.assets_backend': [
+            '/olivegt_sale_payment_plans/static/src/css/payment_plan_dashboard.css',
+        ],
+    },
 }
