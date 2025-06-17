@@ -6,15 +6,18 @@
         <field name="model">payment.plan.line</field>
         <field name="arch" type="xml">            <list create="0" delete="0">
                 <field name="payment_plan_id"/>
-                <field name="name"/>                <field name="date"/>                <field name="amount" sum="Total Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>                <field name="overdue_days" optional="hide"/>
-                <field name="interest_amount" sum="Total Interest" widget="monetary" options="{'currency_field': 'currency_id'}" optional="hide"/>
-                <field name="total_with_interest" sum="Total + Interest" widget="monetary" options="{'currency_field': 'currency_id'}" optional="hide"/>
+                <field name="name"/>
+                <field name="date"/>
+                <field name="amount" sum="Total Amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="total_with_interest" sum="Total + Interest" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                 <field name="allocated_amount" sum="Total Allocated" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                 <field name="allocation_state"/>
-                <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px'}"/>                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment"
+                <field name="move_lines_summary" widget="html" string="Payment Details" options="{'width': '350px'}"/>
+                <button name="action_reconcile" type="object" string="Reconcile" title="Reconcile Payment"
                         class="btn btn-primary btn-sm"/>
                 <button name="action_view_reconciliations" type="object" string="View Details" title="View Allocation Details"
-                        class="btn btn-secondary btn-sm"/>                <field name="state" widget="badge"/>
+                        class="btn btn-secondary btn-sm"/>
+                <field name="state" widget="badge"/>
             </list>
         </field>
     </record>
