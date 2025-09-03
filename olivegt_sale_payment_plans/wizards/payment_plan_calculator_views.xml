@@ -13,9 +13,18 @@
                         <field name="total_amount" widget="monetary"/>
                     </group>
                     <notebook>
-                        <page string="Initial Payment">                            <group>                                
-                                <field name="initial_payment"/>                                
-                                <field name="initial_amount" widget="monetary" invisible="initial_payment == False" required="1"/>
+                        <page string="Initial Payment">
+                            <group>
+                                <field name="initial_payment"/>
+                                <field name="initial_mode" invisible="initial_payment == False"/>
+                                <field name="initial_percent" 
+                                       attrs="{'invisible': ['|', ('initial_payment', '=', False), ('initial_mode', '!=', 'percent')]}" 
+                                       required="1"/>
+                    <field name="initial_amount" widget="monetary" 
+                                       attrs="{'invisible': ['|', ('initial_payment', '=', False), ('initial_mode', '!=', 'custom')]}" 
+                                       required="1"/>
+                    <field name="initial_percent_equiv" readonly="1" 
+                        attrs="{'invisible': ['|', ('initial_payment', '=', False), ('initial_mode', '!=', 'custom')]}"/>
                                 <field name="initial_date" invisible="initial_payment == False" required="1"/>
                             </group>
                         </page>
@@ -27,9 +36,18 @@
                                 <field name="equal_installments"/>
                             </group>
                         </page>
-                        <page string="Final Payment">                            <group>                                
-                                <field name="final_payment"/>                                
-                                <field name="final_amount" widget="monetary" invisible="final_payment == False" required="1"/>
+                        <page string="Final Payment">
+                            <group>
+                                <field name="final_payment"/>
+                                <field name="final_mode" invisible="final_payment == False"/>
+                                <field name="final_percent" 
+                                       attrs="{'invisible': ['|', ('final_payment', '=', False), ('final_mode', '!=', 'percent')]}" 
+                                       required="1"/>
+                    <field name="final_amount" widget="monetary" 
+                                       attrs="{'invisible': ['|', ('final_payment', '=', False), ('final_mode', '!=', 'custom')]}" 
+                                       required="1"/>
+                    <field name="final_percent_equiv" readonly="1" 
+                        attrs="{'invisible': ['|', ('final_payment', '=', False), ('final_mode', '!=', 'custom')]}"/>
                                 <field name="final_date" invisible="final_payment == False" required="1"/>
                             </group>
                         </page>
