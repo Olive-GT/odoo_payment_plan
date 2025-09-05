@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-<data>    <!-- Action to open payment plans -->
+<data>
+    <!-- Root menu for Payment Plans (top-level) -->
+    <menuitem id="menu_payment_plans_root" name="Payment Plans" sequence="5"/>
+
+    <!-- Action to open payment plans -->
     <record id="action_payment_plans" model="ir.actions.act_window">
         <field name="name">Payment Plans</field>
         <field name="type">ir.actions.act_window</field>
@@ -18,7 +22,7 @@
         </field>
     </record>
 
-    <!-- Sub Menus - Root menu is defined in base_menus.xml -->
+    <!-- Sub Menus -->
     <menuitem 
         id="menu_payment_plans" 
         name="Payment Plans" 
