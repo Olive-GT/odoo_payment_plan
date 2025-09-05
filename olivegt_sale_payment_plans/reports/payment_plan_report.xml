@@ -127,7 +127,7 @@
                       </td>
                       <td class="text-right">
                         <t t-set="saldo_line" t-value="(line.total_with_interest or line.amount) - (line.allocated_amount or 0.0)"/>
-                        <t t-esc="format_amount(env, saldo_line, o.currency_id)"/>
+                        <t t-esc="formatLang(saldo_line, monetary=True, currency_obj=o.currency_id)"/>
                       </td>
                       <td>
                         <t t-if="line.reconciliation_ids.filtered(lambda r: r.state=='confirmed')">
@@ -199,11 +199,11 @@
                   </tr>
                   <tr>
                     <td colspan="3" class="text-right"><strong>Total Pagado</strong></td>
-                    <td class="text-right"><t t-esc="format_amount(env, total_pagado, o.currency_id)"/></td>
+                    <td class="text-right"><t t-esc="formatLang(total_pagado, monetary=True, currency_obj=o.currency_id)"/></td>
                   </tr>
                   <tr>
                     <td colspan="3" class="text-right"><strong>Total Pendiente</strong></td>
-                    <td class="text-right"><t t-esc="format_amount(env, o.amount_residual, o.currency_id)"/></td>
+                    <td class="text-right"><t t-esc="formatLang(o.amount_residual, monetary=True, currency_obj=o.currency_id)"/></td>
                   </tr>
                 </tfoot>
               </table>
