@@ -14,8 +14,16 @@
                     </group>
                     <notebook>
                         <page string="Initial Payment">
-                            <group>                                <field name="initial_payment"/>                                <field name="initial_amount" widget="monetary" invisible="not initial_payment" required="initial_payment == True"/>
-                                <field name="initial_date" invisible="not initial_payment" required="initial_payment == True"/>
+                            <group>
+                                <field name="initial_payment"/>
+                                <field name="initial_mode" invisible="initial_payment == False"/>
+                    <field name="initial_percent" 
+                        invisible="initial_payment == False or initial_mode != 'percent'"/>
+                    <field name="initial_amount" widget="monetary" 
+                        invisible="initial_payment == False or initial_mode != 'custom'"/>
+                    <field name="initial_percent_equiv" readonly="1" 
+                        invisible="initial_payment == False or initial_mode != 'custom'"/>
+                                <field name="initial_date" invisible="initial_payment == False"/>
                             </group>
                         </page>
                         <page string="Installments">
@@ -27,8 +35,16 @@
                             </group>
                         </page>
                         <page string="Final Payment">
-                            <group>                                <field name="final_payment"/>                                <field name="final_amount" widget="monetary" invisible="not final_payment" required="final_payment == True"/>
-                                <field name="final_date" invisible="not final_payment" required="final_payment == True"/>
+                            <group>
+                                <field name="final_payment"/>
+                                <field name="final_mode" invisible="final_payment == False"/>
+                    <field name="final_percent" 
+                        invisible="final_payment == False or final_mode != 'percent'"/>
+                    <field name="final_amount" widget="monetary" 
+                        invisible="final_payment == False or final_mode != 'custom'"/>
+                    <field name="final_percent_equiv" readonly="1" 
+                        invisible="final_payment == False or final_mode != 'custom'"/>
+                                <field name="final_date" invisible="final_payment == False"/>
                             </group>
                         </page>
                     </notebook>

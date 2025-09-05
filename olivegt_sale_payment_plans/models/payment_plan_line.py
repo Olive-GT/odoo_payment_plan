@@ -1,5 +1,6 @@
 ﻿from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
+from odoo.tools import float_compare, float_is_zero
 from datetime import datetime, date
 import logging
 import math
@@ -23,23 +24,76 @@ class PaymentPlanLine(models.Model):
     interest_amount = fields.Monetary('Interest', compute='_compute_interest_amount', store=True, readonly=False)
     total_with_interest = fields.Monetary('Total with Interest', compute='_compute_total_with_interest', store=True)
     
-    # Allocation fields
-    allocation_ids = fields.One2many('payment.plan.line.allocation', 'payment_plan_line_id', 
-                                   string='Account Move Allocations')
-    allocated_amount = fields.Monetary('Allocated Amount', compute='_compute_allocated_amount', store=True,
-                                    help="Total amount allocated to this line from accounting entries")
-    unallocated_amount = fields.Monetary('Unallocated Amount', compute='_compute_allocated_amount', store=True,
-                                     help="Remaining amount that needs allocation")
-    allocation_count = fields.Integer('Allocation Count', compute='_compute_allocated_amount', store=True)
-    account_move_ids = fields.Many2many('account.move', string='Related Account Moves',
-                                    compute='_compute_account_moves', store=False)
-    is_fully_allocated = fields.Boolean('Fully Allocated', compute='_compute_allocated_amount', store=True)
-    allocation_percentage = fields.Float('Allocation %', compute='_compute_allocated_amount', store=True,
-                                     help="Percentage of this line that has been allocated")
-    is_partially_allocated = fields.Boolean('Partially Allocated', compute='_compute_allocation_states', store=True)
-    is_overdue_and_unallocated = fields.Boolean('Overdue and Unallocated', compute='_compute_allocation_states', store=True)
+    # New fields for reconciliation
+    reconciliation_ids = fields.One2many('payment.plan.reconciliation', 'payment_plan_line_id', string='Reconciliations')
+    allocation_count = fields.Integer(compute='_compute_allocation_count', string='Allocations')
+    allocated_amount = fields.Monetary(compute='_compute_allocated_amount', string='Allocated Amount', store=True)
+    allocation_state = fields.Selection([
+        ('none', 'No Asignado'),
+        ('partial', 'Parcialmente Asignado'),
+        ('full', 'Totalmente Asignado')
+    ], compute='_compute_allocation_state', string='Allocation Status', store=True)
+    state = fields.Selection([
+        ('pending', 'Pending'),
+        ('partial', 'Partially Allocated'),
+        ('allocated', 'Allocated'),
+        ('paid', 'Paid'),
+        ('overdue', 'Overdue')
+    ], compute='_compute_state', string='Status', store=True)    # Vamos a usar un campo Char para mayor compatibilidad
+    allocation_summary = fields.Char(compute='_compute_allocation_summary', string='Allocations')
+    
+    # New field to show move lines details in the dashboard
+    move_lines_summary = fields.Html(compute='_compute_move_lines_summary', string='Payment Details')
+    
+    show_reconcile_button = fields.Boolean(
+        string="Show Reconcile Button",
+        compute='_compute_show_reconcile_button',
+        store=True
+    )
 
-    @api.depends('payment_plan_id.line_ids.amount', 'payment_plan_id.line_ids.paid', 'payment_plan_id.line_ids.allocated_amount')
+    @api.depends('total_with_interest', 'allocated_amount')
+    def _compute_show_reconcile_button(self):
+        for record in self:
+            record.show_reconcile_button = not float_is_zero(
+                record.total_with_interest - record.allocated_amount,
+                precision_digits=record.currency_id.decimal_places or 2
+            )
+
+    @api.depends('reconciliation_ids.state')
+    def _compute_allocation_count(self):
+        for line in self:
+            # Solo contar reconciliaciones confirmadas
+            confirmed_reconciliations = line.reconciliation_ids.filtered(lambda r: r.state == 'confirmed')
+            line.allocation_count = len(confirmed_reconciliations)
+    
+    @api.depends('reconciliation_ids.amount', 'reconciliation_ids.state', 'amount')
+    def _compute_allocated_amount(self):
+        for line in self:
+            line.allocated_amount = sum(line.reconciliation_ids.filtered(
+                lambda r: r.state == 'confirmed').mapped('amount')            )
+    
+    @api.depends('allocated_amount', 'amount', 'interest_amount', 'overdue_days')
+    def _compute_allocation_state(self):
+        for line in self:
+            if float_is_zero(line.allocated_amount, precision_rounding=line.currency_id.rounding):
+                line.allocation_state = 'none'
+            else:
+                # Si hay intereses por mora, comparar con el total incluyendo intereses
+                if line.overdue_days > 0 and line.interest_amount > 0:
+                    total_required = line.amount + line.interest_amount
+                    if float_compare(line.allocated_amount, total_required, 
+                                    precision_rounding=line.currency_id.rounding) >= 0:
+                        line.allocation_state = 'full'
+                    else:
+                        line.allocation_state = 'partial'
+                # Si no hay intereses, comparar solo con el monto principal
+                elif float_compare(line.allocated_amount, line.amount, 
+                                precision_rounding=line.currency_id.rounding) >= 0:
+                    line.allocation_state = 'full'
+                else:
+                    line.allocation_state = 'partial'
+    
+    @api.depends('payment_plan_id.line_ids.amount', 'payment_plan_id.line_ids.paid')
     def _compute_running_balance(self):
         for line in self:
             # Skip computation for new records with no date
@@ -53,30 +107,23 @@ class PaymentPlanLine(models.Model):
             # Calculate running balance up to current line's position
             total_amount = 0
             paid_amount = 0
-            allocated_amount = 0
             
             for payment_line in sorted_lines:
                 if payment_line == line:
                     break
                 if payment_line.date:  # Only include lines with dates
                     total_amount += payment_line.amount
-                    if payment_line.paid:
-                        paid_amount += payment_line.amount
-                    else:
-                        # Consider partial allocations for unpaid lines
-                        allocated_amount += payment_line.allocated_amount
+                    if payment_line.allocated_amount > 0 or payment_line.paid:
+                        paid_amount += payment_line.allocated_amount
             
             # Add current line's amount to the total
             total_amount += line.amount
             
-            # Set the running balance - consider both paid lines and partial allocations
-            line.running_balance = total_amount - paid_amount - allocated_amount
+            # Set the running balance
+            line.running_balance = total_amount - paid_amount
 
     @api.depends('date', 'payment_date', 'paid')
     def _compute_overdue_days(self):
-        # Get current date as fallback for unpaid lines
-        today = fields.Date.context_today(self)
-        
         for line in self:
             # Skip computation for records with no date
             if not line.date:
@@ -91,30 +138,28 @@ class PaymentPlanLine(models.Model):
                 # Paid lines with no payment date recorded have no overdue days
                 line.overdue_days = 0
             elif line.payment_date:
-                # For unpaid lines with payment_date set (unusual case, but handle it)
+                # For unpaid lines with payment_date set
                 delta = line.payment_date - line.date
                 line.overdue_days = delta.days if delta.days > 0 else 0
-            elif line.date < today:
-                # Only if no payment_date is available, use today as reference
-                delta = today - line.date
-                line.overdue_days = delta.days
             else:
-                # Future dates have no overdue days
+                # No payment date, no overdue days calculation
                 line.overdue_days = 0
 
     @api.depends('overdue_days', 'amount', 'payment_plan_id.interest_rate', 'date', 'paid', 'payment_date')
     def _compute_interest_amount(self):
-        today = fields.Date.context_today(self)  # Fallback date
-        
         for line in self:
-                
-            reference_date = line.payment_date if line.payment_date else today
+            if not line.payment_date:
+                # No payment date set, cannot calculate interest
+                line.interest_amount = 0
+                continue
+            
+            reference_date = line.payment_date
             
             # Handle different cases for paid and unpaid lines
             if not line.date or line.date >= reference_date or line.overdue_days <= 0:
                 # No interest for future due dates or no overdue days
                 line.interest_amount = 0
-            elif line.paid and line.payment_date and line.date < line.payment_date:
+            elif line.payment_date and line.date < line.payment_date:
                 # For paid lines with payment date, use the payment date for interest calculation
                 # Only if the stored interest_amount is zero, calculate it
                 if not line.interest_amount:
@@ -132,13 +177,14 @@ class PaymentPlanLine(models.Model):
         """Compute total with interest separately to allow manually editing interest"""
         for line in self:
             line.total_with_interest = line.amount + line.interest_amount
-
+            
     @api.constrains('amount')
     def _check_amount(self):
         for line in self:
             if line.amount <= 0:
                 raise ValidationError(_('Amount must be positive!'))
-
+    
+    
     def mark_as_paid(self, respect_manual_edits=True):
         """
         Mark a payment line as paid
@@ -146,16 +192,13 @@ class PaymentPlanLine(models.Model):
         Args:
             respect_manual_edits: If True, will preserve manually edited overdue days and interest
         """
-        today = fields.Date.context_today(self)
         for line in self:
+            if not line.payment_date:
+                continue
             # Store original interest data
             original_interest = line.interest_amount
             original_total = line.total_with_interest
             original_overdue_days = line.overdue_days
-            
-            # Set payment date first if not already set
-            if not line.payment_date:
-                line.payment_date = today
             
             # Calculate interest using payment date before marking as paid
             if not line.paid:
@@ -171,13 +214,6 @@ class PaymentPlanLine(models.Model):
             
             # Now mark as paid, preserving the interest calculation
             line.paid = True
-            
-            # If this was called directly (not from allocation update), update payment reference
-            if not line.payment_reference and line.is_fully_allocated:
-                # Get the references from the allocations
-                move_refs = line.allocation_ids.mapped('account_move_id.name')
-                if move_refs:
-                    line.payment_reference = ', '.join(move_refs)
             
             # Force direct database update to ensure interest values are preserved
             self.env.cr.execute("""
@@ -234,41 +270,38 @@ class PaymentPlanLine(models.Model):
                 # Flush to ensure changes are committed
                 self.env.cr.commit()
             else:
-                # If no payment date was recorded, use original values if they exist and we're respecting manual edits
-                if respect_manual_edits and original_overdue_days > 0 and original_interest > 0:
-                    # Force database update
-                    self.env.cr.execute("""
-                        UPDATE payment_plan_line 
-                        SET paid = FALSE,
-                            payment_date = NULL,
-                            payment_reference = NULL,
-                            interest_amount = %s,
-                            total_with_interest = %s,
-                            overdue_days = %s
-                        WHERE id = %s
-                    """, (original_interest, original_total, original_overdue_days, line.id))
-                    
-                    # Flush to ensure changes are committed
-                    self.env.cr.commit()
-                else:
-                    # Recalculate based on today's date
-                    today = fields.Date.context_today(self)
-                    line.calculate_and_store_interest(today, respect_manual_edits)
-                    
-                    # Force update of payment fields
-                    line.payment_date = False
-                    line.payment_reference = False
-                    self.env.cr.commit()
+                # If no payment date was recorded, reset values
+                # Force database update
+                self.env.cr.execute("""
+                    UPDATE payment_plan_line 
+                    SET paid = FALSE,
+                        payment_date = NULL,
+                        payment_reference = NULL,
+                        interest_amount = 0,
+                        total_with_interest = %s,
+                        overdue_days = 0
+                    WHERE id = %s
+                """, (line.amount, line.id))
+                
+                # Flush to ensure changes are committed
+                self.env.cr.commit()
             
     def calculate_and_store_interest(self, reference_date=None, respect_manual_edits=True):
         """Calculate and store interest for a payment line
         
         Args:
-            reference_date: Date to use for calculations, defaults to payment_date or today
+            reference_date: Date to use for calculations, defaults to payment_date
             respect_manual_edits: If True, will not overwrite manually edited values
         """
         if not reference_date:
-            reference_date = self.payment_date if self.payment_date else fields.Date.context_today(self)
+            if not self.payment_date:
+                # No payment date and no reference date, cannot calculate interest
+                return {
+                    'overdue_days': 0,
+                    'interest_amount': 0,
+                    'total_with_interest': self.amount
+                }
+            reference_date = self.payment_date
             
         # Calculate overdue days based on dates (regardless of manual edits)
         if self.date and self.date < reference_date:
@@ -316,42 +349,41 @@ class PaymentPlanLine(models.Model):
         Args:
             respect_manual_edits: If True, will not overwrite manually edited values
         """
-        today = fields.Date.context_today(self)
         logger = logging.getLogger(__name__)
         logger.info(f"Manually updating {len(self)} payment plan lines, respect_manual_edits={respect_manual_edits}")
         
         for line in self:
-            # For paid lines, use payment_date as reference date
-            if line.paid and line.payment_date:
-                # Preserve interest for paid lines that were overdue
-                if line.overdue_days <= 0:
-                    # Calculate using payment date
-                    line.calculate_and_store_interest(line.payment_date, respect_manual_edits)
+            # Only update lines with payment_date
+            if line.payment_date:
+                # Calculate using payment date
+                line.calculate_and_store_interest(line.payment_date, respect_manual_edits)
             else:
-                # For unpaid lines, calculate normally using payment date or today
-                reference_date = line.payment_date if line.payment_date else today
-                line.calculate_and_store_interest(reference_date, respect_manual_edits)
+                # Skip lines without payment_date
+                continue
                 
         # Ensure UI gets refreshed
         self.flush_recordset(['overdue_days', 'interest_amount', 'total_with_interest'])
         
         return {"type": "ir.actions.client", "tag": "reload"}
-        
+
     def reset_and_recalculate(self):
         """
         Reset any manually edited values and force recalculation
-        This deliberately ignores manual edits and recalculates based on payment date or today
+        This deliberately ignores manual edits and recalculates based on payment date
         """
-        today = fields.Date.context_today(self)
         logger = logging.getLogger(__name__)
         logger.info(f"Resetting and recalculating {len(self)} payment plan lines")
         
         for line in self:
-            # Determine reference date - payment_date for paid lines, today for unpaid
-            reference_date = line.payment_date if (line.paid and line.payment_date) else today
-            
-            # Force recalculation ignoring manual edits
-            line.calculate_and_store_interest(reference_date, respect_manual_edits=False)
+            # Only recalculate if there is a payment_date
+            if line.payment_date:
+                # Force recalculation ignoring manual edits
+                line.calculate_and_store_interest(line.payment_date, respect_manual_edits=False)
+            else:
+                # Reset values for lines without payment_date
+                line.overdue_days = 0
+                line.interest_amount = 0
+                line.total_with_interest = line.amount
             
         # Ensure UI gets refreshed
         self.flush_recordset(['overdue_days', 'interest_amount', 'total_with_interest'])
@@ -367,14 +399,8 @@ class PaymentPlanLine(models.Model):
         Args:
             respect_manual_edits: If True, will not overwrite manually edited values
         """
-        today = fields.Date.context_today(self)
-        
-        # Get all lines to process - both unpaid lines and paid lines that might need recalculation
+        # Get all lines with payment_date set
         lines_to_update = self.search([
-            '|',
-            ('paid', '=', False),
-            '&',
-            ('paid', '=', True),
             ('payment_date', '!=', False),
         ])
         
@@ -387,38 +413,18 @@ class PaymentPlanLine(models.Model):
             
             # Update each line with appropriate reference date
             for line in lines_to_update:
-                # For paid lines, use payment_date
-                if line.paid and line.payment_date:
-                    # Skip if interest is already calculated correctly
-                    if line.overdue_days > 0 and line.interest_amount > 0 and respect_manual_edits:
-                        continue
-                        
-                    # Calculate using payment date
-                    result = line.calculate_and_store_interest(line.payment_date, respect_manual_edits)
-                    
-                    # Only update the database if we're not respecting manual edits or if values changed
-                    if not respect_manual_edits:
-                        # Store calculated values directly in database for better performance
-                        self.env.cr.execute("""
-                            UPDATE payment_plan_line 
-                            SET overdue_days = %s, interest_amount = %s, total_with_interest = %s 
-                            WHERE id = %s
-                        """, (result['overdue_days'], result['interest_amount'], 
-                            result['total_with_interest'], line.id))
-                    
-                else:
-                    # For unpaid lines, calculate based on today's date
-                    result = line.calculate_and_store_interest(today, respect_manual_edits)
-                    
-                    # Only update the database if we're not respecting manual edits or if values changed
-                    if not respect_manual_edits:
-                        # Store calculated values directly in database for better performance
-                        self.env.cr.execute("""
-                            UPDATE payment_plan_line 
-                            SET overdue_days = %s, interest_amount = %s, total_with_interest = %s 
-                            WHERE id = %s
-                        """, (result['overdue_days'], result['interest_amount'], 
-                            result['total_with_interest'], line.id))
+                # Calculate using payment date
+                result = line.calculate_and_store_interest(line.payment_date, respect_manual_edits)
+                
+                # Only update the database if we're not respecting manual edits or if values changed
+                if not respect_manual_edits:
+                    # Store calculated values directly in database for better performance
+                    self.env.cr.execute("""
+                        UPDATE payment_plan_line 
+                        SET overdue_days = %s, interest_amount = %s, total_with_interest = %s 
+                        WHERE id = %s
+                    """, (result['overdue_days'], result['interest_amount'], 
+                        result['total_with_interest'], line.id))
             
             # Flush all pending operations to database
             self.env.cr.commit()
@@ -455,100 +461,218 @@ class PaymentPlanLine(models.Model):
                 daily_rate = (1.0 / 100.0) / 30.0
                 interest_amount = self.amount * days * daily_rate
         
-        elif self.payment_plan_id.interest_calculation_method == 'fixed':
-            # Fixed monthly amount method
+        elif self.payment_plan_id.interest_calculation_method == 'fixed':            # Fixed monthly amount method
             if self.payment_plan_id.fixed_interest_amount:
                 # Calculate how many months have passed (including partial months)
                 months_passed = days / 30.0  # Approximate months
                 if months_passed < 1:
                     # Less than a month - prorate the fixed amount
-                    interest_amount = self.payment_plan_id.fixed_interest_amount * months_passed
+                    interest_amount = self.payment_plan_id.fixed_interest_amount
                 else:
                     # Round up for complete months
                     complete_months = math.ceil(months_passed)
                     interest_amount = self.payment_plan_id.fixed_interest_amount * complete_months
-        
         return interest_amount
 
-    @api.depends('allocation_ids', 'allocation_ids.amount', 'amount')
-    def _compute_allocated_amount(self):
-        """Compute the total allocated amount and related statistics"""
-        for line in self:
-            line.allocated_amount = sum(line.allocation_ids.mapped('amount'))
-            line.unallocated_amount = line.amount - line.allocated_amount
-            line.allocation_count = len(line.allocation_ids)
-            line.is_fully_allocated = line.unallocated_amount <= 0
-            
-            # Calculate allocation percentage
-            if line.amount > 0:
-                line.allocation_percentage = line.allocated_amount / line.amount
-            else:
-                line.allocation_percentage = 0.0
-            # The following line is redundant and can be removed or kept if it serves a specific purpose not immediately obvious.
-            # For now, I'll keep it as it was in the original code.
-            line.allocation_percentage = (line.allocated_amount / line.amount) * 100 if line.amount > 0 else 0
-    
-    @api.depends('amount', 'allocated_amount', 'unallocated_amount', 'date')
-    def _compute_allocation_states(self):
-        """Compute boolean fields for view decoration based on allocation and date"""
-        today = fields.Date.context_today(self)
-        for line in self:
-            line.is_partially_allocated = line.allocated_amount > 0 and line.allocated_amount < line.amount
-            line.is_overdue_and_unallocated = line.date < today and line.unallocated_amount > 0
-
-    @api.depends('allocation_ids', 'allocation_ids.account_move_id')
-    def _compute_account_moves(self):
-        """Compute the related account moves"""
-        for line in self:
-            line.account_move_ids = line.allocation_ids.mapped('account_move_id')
-            
-    def _update_payment_status_from_allocations(self):
-        """Update the payment status based on allocated amount"""
-        for line in self:
-            if line.is_fully_allocated and not line.paid:
-                # Line is now fully allocated, mark as paid
-                line.mark_as_paid(respect_manual_edits=True)
-            elif not line.is_fully_allocated and line.paid and line.allocated_amount <= 0:
-                # Line is no longer fully allocated and has no allocations, mark as unpaid
-                line.mark_as_unpaid(respect_manual_edits=True)
-                
-    def action_view_allocations(self):
-        """Open the allocations related to this payment plan line"""
+    def action_view_reconciliations(self):
+        """View reconciliations for this line"""
         self.ensure_one()
-        action = {
-            'name': _('Payment Allocations for %s') % self.name or _('Line'),
+        return {
+            'name': _('Reconciliations'),
             'type': 'ir.actions.act_window',
-            'res_model': 'payment.plan.line.allocation',
+            'res_model': 'payment.plan.reconciliation',
             'view_mode': 'list,form',
             'domain': [('payment_plan_line_id', '=', self.id)],
             'context': {
-                'default_payment_plan_line_id': self.id,
                 'default_payment_plan_id': self.payment_plan_id.id,
-                'search_default_groupby_account_move': 1,
+                'default_payment_plan_line_id': self.id,
             },
-            'help': """
-                <p class="o_view_nocontent_smiling_face">
-                    No allocations for this payment plan line
-                </p>
-                <p>
-                    <strong>Line Information:</strong><br/>
-                    Total Amount: %s %s<br/>
-                    Allocated Amount: %s %s (%s%%)<br/>
-                    Unallocated Amount: %s %s
-                </p>
-            """ % (
-                self.amount,
-                self.currency_id.symbol,
-                self.allocated_amount,
-                self.currency_id.symbol,
-                round(self.allocation_percentage * 100, 2),
-                self.unallocated_amount,
-                self.currency_id.symbol
-            )
         }
-        if len(self.allocation_ids) == 1:
-            action.update({
+    
+    def action_view_line(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Payment Plan Line',
+            'res_model': 'payment.plan.line',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'current',  # puedes usar 'new' si quieres que sea en modal
+        }
+    
+    def action_reconcile(self):
+        """Open reconciliation wizard"""
+        self.ensure_one()
+        
+        # Check if we have a wizard model first
+        model = 'payment.plan.reconciliation.wizard'
+        if model in self.env:
+            return {
+                'name': _('Reconcile Payment'),
+                'type': 'ir.actions.act_window',
+                'res_model': model,
                 'view_mode': 'form',
-                'res_id': self.allocation_ids.id,
-            })
-        return action
+                'target': 'new',
+                'context': {
+                    'default_payment_plan_id': self.payment_plan_id.id,
+                    'default_payment_plan_line_id': self.id,
+                    'default_partner_id': self.payment_plan_id.partner_id.id,
+                    'default_amount': self.amount - self.allocated_amount,
+                }
+            }
+        else:
+            # If wizard doesn't exist yet, create a simple form
+            return {
+                'name': _('Create Reconciliation'),
+                'type': 'ir.actions.act_window',
+                'res_model': 'payment.plan.reconciliation',
+                'view_mode': 'form',
+                'target': 'current',
+                'context': {
+                    'default_payment_plan_id': self.payment_plan_id.id,
+                    'default_payment_plan_line_id': self.id,
+                    'default_amount': self.amount - self.allocated_amount,
+                }
+            }
+    
+    @api.depends('paid', 'allocation_state', 'overdue_days')
+    def _compute_state(self):
+        for line in self:
+            if line.paid:
+                line.state = 'paid'
+            elif line.allocation_state == 'full':
+                line.state = 'allocated'
+            elif line.allocation_state == 'partial':
+                line.state = 'partial'
+            elif line.overdue_days > 0:
+                line.state = 'overdue'
+            else:
+                line.state = 'pending'
+                
+    def action_toggle_allocations(self):
+        """Toggle display of allocations in list view.
+        This is a client-side action, no server side effect."""
+        # This is primarily a client-side action to toggle visibility
+        # It doesn't need to do anything on the server side
+        # The JS will handle showing/hiding the allocations section
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
+
+    def action_show_allocations(self):
+        """
+        Open a popup window to show allocation details
+        """
+        self.ensure_one()
+        
+        # Get confirmed reconciliations for this line
+        reconciliations = self.reconciliation_ids.filtered(lambda r: r.state == 'confirmed')
+        
+        if not reconciliations:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Sin Asignaciones'),
+                    'message': _('No hay asignaciones confirmadas para esta línea del plan de pago.'),
+                    'sticky': False,
+                    'type': 'warning',
+                }
+            }
+          # Return action to show reconciliations in a popup
+        return {
+            'name': _('Detalles de Asignaciones'),
+            'view_mode': 'list,form',  # Usamos list para compatibilidad con Odoo 17
+            'res_model': 'payment.plan.reconciliation',
+            'domain': [('id', 'in', reconciliations.ids)],
+            'view_id': self.env.ref('olivegt_sale_payment_plans.view_payment_plan_reconciliation_detailed_tree').id,
+            'type': 'ir.actions.act_window',
+            'target': 'new',  # This opens in a dialog/popup
+            'context': {
+                'create': False, 
+                'edit': False,
+                'delete': False            }
+        }
+        
+    @api.depends('reconciliation_ids.state', 'reconciliation_ids.move_id', 'reconciliation_ids.amount', 
+               'reconciliation_ids.date', 'reconciliation_ids.journal_id')
+    def _compute_allocation_summary(self):
+        for line in self:
+            confirmed_reconciliations = line.reconciliation_ids.filtered(lambda r: r.state == 'confirmed')
+            if not confirmed_reconciliations:
+                line.allocation_summary = ""
+                continue
+            
+            # Mostrar de forma clara la cantidad de asignaciones y el total
+            total_amount = sum(confirmed_reconciliations.mapped('amount'))
+            formatted_amount = "{:,.2f}".format(total_amount)
+            count = len(confirmed_reconciliations)
+            
+            # Obtener una lista de los journals involucrados
+            journals = confirmed_reconciliations.mapped('journal_id.name')
+            unique_journals = list(set([j for j in journals if j]))
+            
+            # Formatear mejor para mayor visibilidad en la vista de lista
+            if unique_journals:
+                journal_text = ", ".join(unique_journals[:2])
+                if len(unique_journals) > 2:
+                    journal_text += f" y {len(unique_journals) - 2} más"
+                line.allocation_summary = f"{count} asign: Q{formatted_amount} ({journal_text})"
+            else:
+                line.allocation_summary = f"{count} asignaciones: Q{formatted_amount}"    @api.depends('reconciliation_ids.state', 'reconciliation_ids.move_id', 'reconciliation_ids.amount', 
+                'reconciliation_ids.date', 'reconciliation_ids.journal_id', 'reconciliation_ids.move_payment_reference')
+    def _compute_move_lines_summary(self):
+        """Generate a formatted HTML table with the move lines details for this payment plan line"""
+        for line in self:
+            # Only include confirmed reconciliations
+            confirmed_reconciliations = line.reconciliation_ids.filtered(lambda r: r.state == 'confirmed')
+            if not confirmed_reconciliations:
+                line.move_lines_summary = ""
+                continue
+            
+            currency_symbol = line.currency_id.symbol or 'Q'
+                
+            # Create a mini HTML table for the move lines
+            html = '<div class="o_payment_details" style="font-size: 0.85em;">'
+            
+            # Use table format for better alignment
+            html += '<table style="width: 100%; border-collapse: separate; border-spacing: 0 2px;">'
+            
+            for rec in confirmed_reconciliations:
+                amount_str = "{:,.2f}".format(rec.amount)
+                date_str = rec.date.strftime('%d/%m/%Y') if rec.date else ''
+                move_ref = rec.move_id.name or ''
+                reference = rec.move_payment_reference or ''
+                
+                if len(reference) > 15:
+                    reference = reference[:12] + '...'
+                
+                # Set background color based on journal type
+                bg_color = '#f0f8ff'  # Default light blue
+                if rec.journal_id.type == 'bank':
+                    bg_color = '#e6f7e6'  # Light green for bank
+                elif rec.journal_id.type == 'cash':
+                    bg_color = '#fff7e6'  # Light yellow for cash
+                
+                html += f'<tr style="background-color: {bg_color}; border-radius: 4px;">'
+                
+                # Amount column with currency
+                html += f'<td style="padding: 3px; font-weight: bold; white-space: nowrap; color: #389B38FF;">'
+                html += f'{currency_symbol} {amount_str}'
+                html += '</td>'
+                
+                # Date column
+                html += f'<td style="padding: 3px; white-space: nowrap;">{date_str}</td>'
+                
+                # Reference column (if available)
+                if reference:
+                    html += f'<td style="padding: 3px;" title="{rec.move_payment_reference}">'
+                    html += f'{reference}</td>'
+                else:
+                    html += f'<td style="padding: 3px;" title="{move_ref}">{move_ref}</td>'
+                
+                html += '</tr>'
+            
+            html += '</table></div>'
+            line.move_lines_summary = html

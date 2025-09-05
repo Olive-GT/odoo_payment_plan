@@ -49,3 +49,44 @@ def calculate_equal_installments(total_amount, count, initial_amount=0, final_am
         return 0
         
     return remaining / count
+
+
+def split_equal_installments(total_amount, count, currency, initial_amount=0.0, final_amount=0.0):
+    """
+    Split remaining amount into "count" installments with proper currency rounding,
+    adjusting the last installment to ensure the exact total is reached.
+
+    Args:
+        total_amount (float): Total to distribute (e.g., sale total)
+        count (int): Number of installments
+        currency (res.currency): Currency record to use for rounding
+        initial_amount (float): Initial down payment (already rounded if needed)
+        final_amount (float): Final payment (already rounded if needed)
+
+    Returns:
+        list[float]: List of installment amounts that sum exactly to total_amount - initial - final
+    """
+    if count <= 0:
+        return []
+
+    remaining = (total_amount or 0.0) - (initial_amount or 0.0) - (final_amount or 0.0)
+    # If negative, return zeros to let caller validate/raise
+    if remaining < 0:
+        return [0.0] * count
+
+    # Base per-installment amount (pre-rounding)
+    base = remaining / count if count else 0.0
+    # Round each installment using currency rules
+    amounts = []
+    for i in range(count - 1):
+        amounts.append(currency.round(base))
+    # Last installment takes the residual to ensure exact match
+    residual = remaining - sum(amounts)
+    amounts.append(currency.round(residual))
+
+    # As a safety, if rounding produced a tiny mismatch, adjust the last value
+    diff = currency.round(remaining - sum(amounts))
+    if diff:
+        amounts[-1] = currency.round(amounts[-1] + diff)
+
+    return amounts

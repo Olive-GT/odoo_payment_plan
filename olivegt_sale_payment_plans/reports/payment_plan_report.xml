@@ -1,86 +1,224 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <data>
-        <record id="action_report_payment_plan" model="ir.actions.report">
-            <field name="name">Payment Plan</field>
-            <field name="model">payment.plan</field>
-            <field name="report_type">qweb-pdf</field>
-            <field name="report_name">olivegt_sale_payment_plans.report_payment_plan</field>
-            <field name="report_file">olivegt_sale_payment_plans.report_payment_plan</field>
-            <field name="binding_model_id" ref="model_payment_plan"/>
-            <field name="binding_type">report</field>
-        </record>
+  <data>
+    <!-- Acción de reporte -->
+    <record id="action_report_payment_plan" model="ir.actions.report">
+      <field name="name">Payment Plan</field>
+      <field name="model">payment.plan</field>
+      <field name="report_type">qweb-pdf</field>
+      <field name="report_name">olivegt_sale_payment_plans.report_payment_plan</field>
+      <field name="report_file">olivegt_sale_payment_plans.report_payment_plan</field>
+      <field name="binding_model_id" ref="model_payment_plan"/>
+      <field name="binding_type">report</field>
+    </record>
 
-        <template id="report_payment_plan">
-            <t t-call="web.html_container">
-                <t t-foreach="docs" t-as="o">
-                    <t t-call="web.external_layout">
-                        <div class="page">
-                            <div class="oe_structure"/>
-                            <h2>Payment Plan: <span t-field="o.name"/></h2>
-                            <div class="row mt32 mb32">
-                                <div class="col-6">
-                                    <strong>Customer:</strong> <span t-field="o.partner_id"/>
-                                    <br/>
-                                    <strong>Sale Order:</strong> <span t-field="o.sale_id"/>
-                                    <br/>
-                                    <strong>Date:</strong> <span t-field="o.date"/>
-                                </div>
-                                <div class="col-6">
-                                    <strong>Status:</strong> <span t-field="o.state"/>
-                                    <br/>
-                                    <strong>Total Amount:</strong> <span t-field="o.total_amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                    <br/>
-                                    <strong>Amount Paid:</strong> <span t-field="o.amount_paid" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                    <br/>
-                                    <strong>Amount Due:</strong> <span t-field="o.amount_residual" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                </div>
-                            </div>
-                            
-                            <h3>Payment Schedule</h3>
-                            <table class="table table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>Due Date</th>
-                                        <th>Description</th>
-                                        <th class="text-end">Amount</th>
-                                        <th class="text-center">Status</th>
-                                        <th>Payment Date</th>
-                                        <th>Reference</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <t t-foreach="o.line_ids.sorted(key=lambda l: l.date)" t-as="line">
-                                        <tr>
-                                            <td><span t-field="line.date"/></td>
-                                            <td><span t-field="line.name"/></td>
-                                            <td class="text-end">
-                                                <span t-field="line.amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-                                            </td>                                            <td class="text-center">
-                                                <span class="badge bg-success" t-if="line.paid">Paid</span>
-                                                <span t-else="" class="badge bg-info">Pending</span>
-                                            </td>
-                                            <td><span t-field="line.payment_date"/></td>
-                                            <td><span t-field="line.payment_reference"/></td>
-                                        </tr>
-                                    </t>
-                                </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td colspan="2" class="text-end"><strong>Total</strong></td>
-                                        <td class="text-end"><strong t-field="o.total_amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
-                                        <td colspan="3"></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                              <div class="mt32" t-if="o.notes">
-                                <h3>Notes</h3>
-                                <p t-field="o.notes"/>
-                            </div>
-                        </div>
+    <!-- Template QWeb -->
+    <template id="report_payment_plan">
+      <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="o">
+          <t t-call="web.external_layout">
+            <style>
+              /* Base (blanco y negro) */
+              .page { font-family:'Lato','Helvetica',sans-serif; font-size:8px; color:#000; }
+              .report-title    { text-align:center; font-size:12px; font-weight:600; margin-bottom:4px; }
+              .report-subtitle { text-align:center; font-size:8px; margin-bottom:8px; }
+              .section-title   { font-size:9px; font-weight:600; margin:12px 0 4px; }
+              .footer-note     { text-align:center; font-size:7px; margin-top:10px; }
+
+              /* Cabecera */
+              .summary-table { width:100%; border-collapse:collapse; margin-bottom:8px; }
+              .summary-table td, .summary-table th { padding:2px 4px; vertical-align:top; border:0.25pt solid #000; background:#fff !important; }
+              .summary-table strong { font-weight:600; }
+
+              /* Tablas (líneas delgadas) */
+              .table-condensed { width:100%; border-collapse:collapse; }
+              .table-condensed th,
+              .table-condensed td { border:0.25pt solid #000; padding:4px 6px; vertical-align:middle; background:#fff !important; }
+              .table-condensed thead th { font-weight:600; text-align:center; border:0.25pt solid #000; background:#fff !important; }
+              .table-condensed tfoot td { border:0.25pt solid #000; background:#fff !important; }
+              .table-condensed tbody tr:nth-child(odd),
+              .table-condensed tbody tr:nth-child(even) { background:#fff !important; }
+              .table-condensed .text-right { text-align:right; }
+              .table-condensed .text-center { text-align:center; }
+
+              /* Pagos (única zona con color permitida) */
+              .payments-container { display:flex; flex-direction:column; gap:1px; }
+              .payment-group { display:flex; align-items:center; gap:6px; padding:0; background:transparent; color:#000; border:0; border-radius:0; }
+              .payment-group span { padding:0 2px; font-size:7px; white-space:nowrap; }
+              .payment-amount { flex:none; text-align:left; font-weight:600; }
+              .payment-date   { flex:none; text-align:center; }
+              .payment-ref    { flex:1; text-align:left; overflow:hidden; text-overflow:ellipsis; }
+
+              /* Utilidades */
+              .text-center { text-align:center; }
+              .text-right  { text-align:right; }
+            </style>
+
+            <div class="page">
+              <!-- Título -->
+              <div class="report-title">ESTADO DE CUENTA</div>
+              <div class="report-subtitle">Plan de Pagos: <span t-field="o.name"/></div>
+
+              <!-- Resumen -->
+              <table class="summary-table">
+                <tr>
+                  <td><strong>Cliente:</strong><br/><span t-field="o.partner_id"/></td>
+                  <td><strong>Orden:</strong><br/><span t-field="o.sale_id.name"/></td>
+                  <td><strong>Fecha:</strong><br/>
+                    <span t-field="o.date" t-options='{"format":"dd/MM/yyyy"}'/>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Precio:</strong><br/>
+                    <span t-field="o.sale_id.amount_untaxed"
+                          t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                  </td>
+                  <td><strong>Total Orden:</strong><br/>
+                    <span t-field="o.sale_id.amount_total"
+                          t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                  </td>
+                  <td><strong>Saldo:</strong><br/>
+                    <span t-field="o.amount_residual"
+                          t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Cuotas -->
+              <div class="section-title">DETALLE DE CUOTAS</div>
+              <table class="table-condensed">
+                <thead>
+                  <tr>
+                    <th>Cuota</th>
+                    <th>Vence</th>
+                    <th>Monto</th>
+                    <th>Interes</th>
+                    <th>Total</th>
+                    <th>Pagado</th>
+                    <th>Saldo</th>
+                    <th>Pagos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <t t-set="idx" t-value="0"/>
+                  <t t-foreach="o.line_ids.sorted(key=lambda l: l.date)" t-as="line">
+                    <t t-set="idx" t-value="idx + 1"/>
+                    <tr>
+                      <td class="text-center">
+                        <t t-esc="line.name or 'Cuota ' + str(idx)"/>
+                      </td>
+                      <td class="text-center">
+                        <span t-field="line.date" t-options='{"format":"dd/MM/yyyy"}'/>
+                      </td>
+                      <td class="text-right">
+                        <span t-field="line.amount"
+                              t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                      </td>
+                      <td class="text-right">
+                        <t t-if="line.interest_amount &gt; 0">
+                          <span t-field="line.interest_amount"
+                                t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                        </t>
+                      </td>
+                      <td class="text-right">
+                        <span t-field="line.total_with_interest"
+                              t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                      </td>
+                      <td class="text-right">
+                        <span t-field="line.allocated_amount"
+                              t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                      </td>
+                      <td class="text-right">
+                        <t t-set="saldo_line" t-value="(line.total_with_interest or line.amount) - (line.allocated_amount or 0.0)"/>
+                        <span t-esc="saldo_line" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                      </td>
+                      <td>
+                        <t t-if="line.reconciliation_ids.filtered(lambda r: r.state=='confirmed')">
+                          <div class="payments-container">
+                            <t t-foreach="line.reconciliation_ids.filtered(lambda r: r.state=='confirmed')" t-as="rec">
+                              <div class="payment-group">
+                                <span class="payment-amount">
+                                  <span t-field="rec.amount"
+                                        t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                                </span>
+                                <span class="payment-date">
+                                  <span t-field="rec.date" t-options='{"format":"dd/MM/yyyy"}'/>
+                                </span>
+                                <span class="payment-ref" title="&lt;span t-esc=&quot;rec.move_payment_reference or rec.move_id.name&quot;/&gt;">
+                                  <t t-esc="rec.move_payment_reference or rec.move_id.name"/>
+                                </span>
+                              </div>
+                            </t>
+                          </div>
+                        </t>
+                      </td>
+                    </tr>
+                  </t>
+                </tbody>
+              </table>
+
+              <!-- Resumen de la Orden de Venta -->
+              <div class="section-title">RESUMEN DE LA ORDEN DE VENTA</div>
+              <t t-set="total_pagado" t-value="(o.total_amount or 0.0) - (o.amount_residual or 0.0)"/>
+              <table class="summary-table">
+                <tr>
+                  <td><strong>Orden:</strong><br/><span t-field="o.sale_id.name"/></td>
+                  <td><strong>Cliente:</strong><br/><span t-field="o.partner_id"/></td>
+                  <td><strong>Moneda:</strong><br/><span t-field="o.currency_id"/></td>
+                </tr>
+              </table>
+
+              <table class="table-condensed">
+                <thead>
+                  <tr>
+                    <th>Producto</th>
+                    <th class="text-center">Cantidad</th>
+                    <th class="text-right">Precio</th>
+                    <th class="text-right">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <t t-foreach="o.sale_id.order_line" t-as="sol">
+                    <t t-if="not sol.display_type">
+                      <tr>
+                        <td><span t-esc="sol.product_id.display_name or sol.name"/></td>
+                        <td class="text-center"><span t-esc="sol.product_uom_qty"/></td>
+                        <td class="text-right">
+                          <span t-field="sol.price_unit" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                        </td>
+                        <td class="text-right">
+                          <span t-field="sol.price_subtotal" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                        </td>
+                      </tr>
                     </t>
-                </t>
-            </t>
-        </template>
-    </data>
+                  </t>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="3" class="text-right"><strong>Total Orden</strong></td>
+                    <td class="text-right">
+                      <span t-field="o.sale_id.amount_total" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="3" class="text-right"><strong>Total Pagado</strong></td>
+                    <td class="text-right"><span t-esc="total_pagado" t-options='{"widget":"monetary","display_currency":o.currency_id}'/></td>
+                  </tr>
+                  <tr>
+                    <td colspan="3" class="text-right"><strong>Total Pendiente</strong></td>
+                    <td class="text-right"><span t-esc="o.amount_residual" t-options='{"widget":"monetary","display_currency":o.currency_id}'/></td>
+                  </tr>
+                </tfoot>
+              </table>
+
+              <!-- Pie -->
+              <div class="footer-note">
+                <p>Documento informativo, no representa comprobante fiscal.</p>
+              </div>
+            </div>
+          </t>
+        </t>
+      </t>
+    </template>
+  </data>
 </odoo>

@@ -7,6 +7,7 @@ class PaymentPlan(models.Model):
     _name = 'payment.plan'
     _description = 'Payment Plan'
     _order = 'id desc'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     
     name = fields.Char('Reference', required=True, copy=False, readonly=True, default=lambda self: _('New'))
     sale_id = fields.Many2one('sale.order', string='Sale Order', required=True)

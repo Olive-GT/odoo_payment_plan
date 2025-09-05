@@ -17,20 +17,23 @@
     'depends': [
         'account',
         'base',
+        'mail',
         'sale_management',
-    ],    'data': [
+    ],'data': [
+        'security/groups.xml',
         'security/ir.model.access.csv',
         'data/payment_plan_sequence.xml',
         'data/payment_plan_cron.xml',
         'reports/payment_plan_report.xml',
-        'views/base_menus.xml',  # Base menus must be loaded first
-        'views/simplified_view.xml',
-        'views/view_payment_plan.xml',
         'views/payment_plan_line_views.xml',
-        'views/payment_plan_line_allocation_views.xml',
-        'views/payment_plan_line_dashboard_tree_view.xml',  # Add this line
-        'views/payment_allocation_dashboard_clean_new.xml',  # Using a cleaner minimal version
+        'views/payment_plan_line_actions.xml',
+        'views/payment_plan_reconciliation_views.xml',
+        'views/payment_plan_reconciliation_dashboard.xml',
+        'views/payment_plan_view.xml',
+        'views/menu_payment_plan.xml',
         'views/sale_order_views.xml',
+        'wizards/payment_plan_calculator_views.xml',
+        'wizards/payment_plan_reconciliation_views.xml',
     ],
     'demo': [],
     'installable': True,

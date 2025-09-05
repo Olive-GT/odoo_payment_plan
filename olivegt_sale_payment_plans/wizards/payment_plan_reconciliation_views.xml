@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Payment Plan Reconciliation Wizard Form View -->
+    <record id="view_payment_plan_reconciliation_wizard_form" model="ir.ui.view">
+        <field name="name">payment.plan.reconciliation.wizard.form</field>
+        <field name="model">payment.plan.reconciliation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reconcile Payment Plan Line">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="payment_plan_id" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="payment_plan_line_id" readonly="1"/>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="date"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="company_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="line_amount" widget="monetary"/>
+                            <field name="allocated_amount" widget="monetary"/>
+                            <field name="remaining_amount" widget="monetary"/>
+                            <field name="total_allocation" widget="monetary"/>
+                            <field name="remaining_to_allocate" widget="monetary" class="oe_subtotal_footer_separator"/>
+                        </group>
+                    </group>                    <group string="Allocations">
+                        <field name="allocated_amount" invisible="1"/>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_add_line" type="object" string="Add Line" class="oe_highlight" icon="fa-plus"/>
+                        </div>                        <field name="wizard_line_ids" nolabel="1">                            <list editable="bottom">                                <field name="move_line_id" domain="[
+                                    ('account_id.reconcile', '=', True), 
+                                    ('partner_id', '=', parent.partner_id),
+                                    ('is_fully_consumed', '=', False),
+                                    ('debit', '>', 0.0)
+                                ]" readonly="is_readonly" placeholder="Select a journal item"/>
+                                <field name="date" readonly="is_readonly"/>
+                                <field name="payment_reference" readonly="is_readonly"/>
+                                <field name="original_amount" widget="monetary" readonly="is_readonly"/>
+                                <field name="available_amount" widget="monetary" readonly="is_readonly"/>
+                                <field name="amount" widget="monetary" sum="Total" readonly="is_readonly"/>
+                                <field name="is_readonly" invisible="1"/>
+                                <field name="existing_reconciliation_id" invisible="1"/>
+                                <field name="wizard_id" invisible="1"/>
+                                <field name="currency_id" invisible="1"/>
+                            </list>
+                        </field>
+                    </group>                </sheet>
+                <footer>
+                    <button name="action_add_line" string="New Line" type="object" class="btn-secondary"/>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Action for the wizard -->
+    <record id="action_payment_plan_reconciliation_wizard" model="ir.actions.act_window">
+        <field name="name">Reconcile Payment Plan Line</field>
+        <field name="res_model">payment.plan.reconciliation.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_payment_plan_line"/>
+    </record>
+</odoo>
