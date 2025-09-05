@@ -43,7 +43,8 @@ class PaymentPlan(models.Model):
     partially_allocated_lines_count = fields.Integer(string='Partially Allocated Lines', compute='_compute_allocation_statistics')
     unallocated_lines_count = fields.Integer(string='Unallocated Lines', compute='_compute_allocation_statistics')
     allocation_progress = fields.Float(string='Allocation Progress', compute='_compute_allocation_statistics')
-    allocation_ids = fields.One2many('payment.plan.line.allocation', compute='_compute_all_allocations', string='All Allocations')
+    # All reconciliations linked to this payment plan via its lines
+    allocation_ids = fields.One2many('payment.plan.reconciliation', compute='_compute_all_allocations', string='All Allocations')
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -61,18 +62,15 @@ class PaymentPlan(models.Model):
             plan.total_interest = sum(plan.line_ids.mapped('interest_amount'))
             plan.total_with_interest = plan.total_amount + plan.total_interest
 
-    @api.depends('line_ids.allocated_amount', 'line_ids.is_fully_allocated')
+    @api.depends('line_ids.allocated_amount', 'line_ids.allocation_state')
     def _compute_allocation_statistics(self):
         """Compute statistics for allocation dashboard"""
         for plan in self:
             plan.line_count = len(plan.line_ids)
-            
-            plan.fully_allocated_lines_count = len(plan.line_ids.filtered(lambda l: l.is_fully_allocated))
-            
+            # count by allocation_state provided by payment.plan.line
+            plan.fully_allocated_lines_count = len(plan.line_ids.filtered(lambda l: l.allocation_state == 'full'))
             # Lines with some allocation but not fully allocated
-            partially_allocated_lines = plan.line_ids.filtered(
-                lambda l: not l.is_fully_allocated and l.allocated_amount > 0
-            )
+            partially_allocated_lines = plan.line_ids.filtered(lambda l: l.allocation_state == 'partial')
             plan.partially_allocated_lines_count = len(partially_allocated_lines)
             
             # Lines with no allocations
@@ -117,12 +115,12 @@ class PaymentPlan(models.Model):
         # Collect all allocation IDs
         allocation_ids = []
         for line in self.line_ids:
-            allocation_ids.extend(line.allocation_ids.ids)
+            allocation_ids.extend(line.reconciliation_ids.ids)
             
         return {
             'name': _('Payment Allocations'),
             'type': 'ir.actions.act_window',
-            'res_model': 'payment.plan.line.allocation',
+            'res_model': 'payment.plan.reconciliation',
             'view_mode': 'tree,form',
             'domain': [('id', 'in', allocation_ids)],
             'context': {'default_payment_plan_id': self.id},
@@ -160,8 +158,8 @@ class PaymentPlan(models.Model):
             self.line_ids.update_overdue_status(respect_manual_edits=True)
         return True
         
-    @api.depends('line_ids.allocation_ids')
+    @api.depends('line_ids.reconciliation_ids')
     def _compute_all_allocations(self):
         """Compute all allocations for this payment plan"""
         for plan in self:
-            plan.allocation_ids = plan.line_ids.mapped('allocation_ids')
+            plan.allocation_ids = plan.line_ids.mapped('reconciliation_ids')
