@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Optional whitelist group: members may edit/delete chatter messages -->
+        <record id="group_chatter_editors" model="res.groups">
+            <field name="name">Chatter Editors (Whitelist)</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
+        </record>
+    </data>
+</odoo>

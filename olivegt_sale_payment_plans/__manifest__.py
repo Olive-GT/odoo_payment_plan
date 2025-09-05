@@ -20,6 +20,7 @@
         'mail',
         'sale_management',
     ],'data': [
+        'security/groups.xml',
         'security/ir.model.access.csv',
         'data/payment_plan_sequence.xml',
         'data/payment_plan_cron.xml',
