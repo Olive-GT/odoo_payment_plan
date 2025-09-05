@@ -14,6 +14,7 @@
     'author': 'Olive GT',
     'website': '',
     'license': 'LGPL-3',
+    'images': ['static/description/icon.png'],
     'depends': [
         'account',
         'base',
