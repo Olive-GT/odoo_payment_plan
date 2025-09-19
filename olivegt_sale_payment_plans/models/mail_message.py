@@ -48,13 +48,13 @@ class MailMessage(models.Model):
         return False
 
     def write(self, vals):
-        # Permitir modificaciones necesarias para envío/actualización de mensajes.
-        # Si más adelante se requiere limitar ediciones de comentarios, se puede
-        # reintroducir una validación específica aquí.
+        # Bloquear edición de mensajes/notas visibles, salvo que se autorice explícitamente por contexto.
+        if self._contains_user_comments() and not self.env.context.get("allow_chatter_write"):
+            raise AccessError("No tienes permiso para editar mensajes/notas del chatter.")
         return super().write(vals)
 
     def unlink(self):
-        # Only block deletion of user comments; allow system/notification messages to be removed.
-        if self._contains_user_comments() and not self.with_user(self._original_uid())._can_modify_chatter():
-            raise AccessError("No tienes permiso para eliminar mensajes del chatter.")
+        # Bloquear eliminación de mensajes/notas visibles, salvo autorización explícita por contexto.
+        if self._contains_user_comments() and not self.env.context.get("allow_chatter_unlink"):
+            raise AccessError("No tienes permiso para eliminar mensajes/notas del chatter.")
         return super().unlink()
