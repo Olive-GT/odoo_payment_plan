@@ -26,16 +26,26 @@ class MailMessage(models.Model):
         return user.has_group("olivegt_sale_payment_plans.group_chatter_editors")
 
     def _contains_user_comments(self):
-        """Return True if any message in the recordset is a user comment.
+        """Return True if any message is user-visible content (messages or notes).
 
-        We consider a 'user comment' those with message_type == 'comment'.
-        System log/tracking/notification messages usually have other types
-        (e.g., 'notification', 'email', etc.) and should be allowed to be
-        deleted by business flows (like resetting a document to draft).
+        Protected content includes:
+        - message_type 'comment' (user messages and internal notes)
+        - message_type 'email' (emails should not be deletable by regular users)
+        - message_type 'notification' with internal subtype (internal notes)
+        System log/tracking notifications remain deletable to allow business flows.
         """
-        # Ensure we don't prefetch too much; read only the needed field.
         types = set(self.mapped("message_type"))
-        return "comment" in types
+        if "comment" in types or "email" in types:
+            return True
+        # Check internal notification notes via subtype
+        for msg in self:
+            if (
+                msg.message_type == "notification"
+                and msg.subtype_id
+                and getattr(msg.subtype_id, "internal", False)
+            ):
+                return True
+        return False
 
     def write(self, vals):
         # Permitir modificaciones necesarias para envío/actualización de mensajes.
