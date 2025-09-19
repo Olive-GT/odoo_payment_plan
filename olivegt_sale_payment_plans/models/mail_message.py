@@ -48,9 +48,11 @@ class MailMessage(models.Model):
         return False
 
     def write(self, vals):
-        # Bloquear edición de mensajes/notas visibles, salvo que se autorice explícitamente por contexto.
-        if self._contains_user_comments() and not self.env.context.get("allow_chatter_write"):
-            raise AccessError("No tienes permiso para editar mensajes/notas del chatter.")
+        # Permitir creación y escrituras técnicas. Bloquear solo cambios al contenido visible.
+        if self._contains_user_comments():
+            blocked_fields = {"body", "subject", "message_type"}
+            if blocked_fields & set(vals.keys()) and not self.env.context.get("allow_chatter_write"):
+                raise AccessError("No tienes permiso para editar mensajes/notas del chatter.")
         return super().write(vals)
 
     def unlink(self):
