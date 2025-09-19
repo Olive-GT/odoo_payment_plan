@@ -74,17 +74,17 @@ class MailMessage(models.Model):
         return True
 
     def write(self, vals):
-        # Permitir creación y escrituras técnicas. Bloquear solo cambios al contenido visible
-        # fuera de la fase de creación/publicación inmediata.
+        # Permitir creación y escrituras técnicas; bloquear ediciones de contenido visible
+        # (body/subject) incluso inmediatamente después de crear, salvo superusuario o contexto explícito.
         if self._contains_user_comments():
             blocked_fields = {"body", "subject"}
             if blocked_fields & set(vals.keys()):
-                if not (self.env.context.get("allow_chatter_write") or self._is_recent_creation_phase()):
+                if not (self.env.context.get("allow_chatter_write") or self._original_uid() == SUPERUSER_ID):
                     raise AccessError("No tienes permiso para editar mensajes/notas del chatter.")
         return super().write(vals)
 
     def unlink(self):
-        # Bloquear eliminación de mensajes/notas visibles, salvo autorización explícita por contexto.
-        if self._contains_user_comments() and not self.env.context.get("allow_chatter_unlink"):
+        # Bloquear eliminación de mensajes/notas visibles para todos excepto superusuario.
+        if self._contains_user_comments() and self._original_uid() != SUPERUSER_ID:
             raise AccessError("No tienes permiso para eliminar mensajes/notas del chatter.")
         return super().unlink()
