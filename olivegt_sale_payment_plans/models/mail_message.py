@@ -1,4 +1,4 @@
-from odoo import models, SUPERUSER_ID
+from odoo import models, SUPERUSER_ID, fields
 from odoo.exceptions import AccessError
 
 
@@ -47,12 +47,40 @@ class MailMessage(models.Model):
                 return True
         return False
 
+    def _is_recent_creation_phase(self, threshold_seconds=30):
+        """Heuristic: allow technical writes shortly after creation.
+
+        Some posting flows perform a write on the freshly created message
+        (e.g., to adjust metadata). We allow writes to body/subject during a
+        short grace period and/or when known mail posting context flags exist.
+        """
+        # Known mail post context flags that indicate a posting flow
+        post_flags = (
+            "mail_post_autofollow",
+            "mail_create_nosubscribe",
+            "mail_post_autofollow_partner_ids",
+        )
+        if any(self.env.context.get(flag) for flag in post_flags):
+            return True
+        now = fields.Datetime.now()
+        for msg in self:
+            # If any message is older than the threshold, consider it not recent
+            if not msg.create_date:
+                return False
+            # create_date is a datetime; compare in server timezone (UTC)
+            delta = now - msg.create_date
+            if delta.total_seconds() > threshold_seconds:
+                return False
+        return True
+
     def write(self, vals):
-        # Permitir creación y escrituras técnicas. Bloquear solo cambios al contenido visible.
+        # Permitir creación y escrituras técnicas. Bloquear solo cambios al contenido visible
+        # fuera de la fase de creación/publicación inmediata.
         if self._contains_user_comments():
-            blocked_fields = {"body", "subject", "message_type"}
-            if blocked_fields & set(vals.keys()) and not self.env.context.get("allow_chatter_write"):
-                raise AccessError("No tienes permiso para editar mensajes/notas del chatter.")
+            blocked_fields = {"body", "subject"}
+            if blocked_fields & set(vals.keys()):
+                if not (self.env.context.get("allow_chatter_write") or self._is_recent_creation_phase()):
+                    raise AccessError("No tienes permiso para editar mensajes/notas del chatter.")
         return super().write(vals)
 
     def unlink(self):
