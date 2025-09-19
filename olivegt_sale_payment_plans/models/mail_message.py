@@ -25,18 +25,26 @@ class MailMessage(models.Model):
         user = self.env["res.users"].browse(uid)
         return user.has_group("olivegt_sale_payment_plans.group_chatter_editors")
 
+    def _contains_user_comments(self):
+        """Return True if any message in the recordset is a user comment.
+
+        We consider a 'user comment' those with message_type == 'comment'.
+        System log/tracking/notification messages usually have other types
+        (e.g., 'notification', 'email', etc.) and should be allowed to be
+        deleted by business flows (like resetting a document to draft).
+        """
+        # Ensure we don't prefetch too much; read only the needed field.
+        types = set(self.mapped("message_type"))
+        return "comment" in types
+
     def write(self, vals):
-        # Block any attempt to modify chatter messages unless explicitly allowed.
-        if not self.with_user(self._original_uid())._can_modify_chatter():
-            raise AccessError(
-                "No tienes permiso para modificar mensajes del chatter."
-            )
+        # Only block edits to user comments; allow system messages to be updated by flows.
+        if self._contains_user_comments() and not self.with_user(self._original_uid())._can_modify_chatter():
+            raise AccessError("No tienes permiso para modificar mensajes del chatter.")
         return super().write(vals)
 
     def unlink(self):
-        # Block any attempt to delete chatter messages unless explicitly allowed.
-        if not self.with_user(self._original_uid())._can_modify_chatter():
-            raise AccessError(
-                "No tienes permiso para eliminar mensajes del chatter."
-            )
+        # Only block deletion of user comments; allow system/notification messages to be removed.
+        if self._contains_user_comments() and not self.with_user(self._original_uid())._can_modify_chatter():
+            raise AccessError("No tienes permiso para eliminar mensajes del chatter.")
         return super().unlink()
