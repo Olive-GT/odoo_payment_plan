@@ -33,21 +33,11 @@ class MailMessage(models.Model):
                 return True
         return False
 
-    def _is_recent_creation_phase(self, threshold_seconds=30):
+    def _all_messages_recent(self, threshold_seconds=60):
         """
-        Permite solo escrituras técnicas inmediatamente tras la creación,
-        típicas del flujo de message_post. Mucho más estricta:
-        - Requiere que TODOS los mensajes sean muy recientes, y
-        - Requiere flags de posteo conocidos (no 'default_*').
+        True si TODOS los mensajes fueron creados hace muy poco.
+        No depende de flags de contexto (los flujos de menciones no siempre los ponen).
         """
-        post_flags = (
-            "mail_post_autofollow",
-            "mail_create_nosubscribe",
-            "mail_post_autofollow_partner_ids",
-        )
-        if not any(self.env.context.get(flag) for flag in post_flags):
-            return False
-
         now = fields.Datetime.now()
         for msg in self:
             if not msg.create_date:
@@ -62,17 +52,17 @@ class MailMessage(models.Model):
         """
         Política:
         - Se permite crear libremente (create no se toca).
-        - Tras creado, NO se puede editar contenido visible (body/subject) NUNCA,
-          salvo superusuario, o si estamos en la ventana estricta de creación.
-        - Otras escrituras técnicas (no body/subject) siguen permitidas para no
-          romper contadores, notificaciones, etc.
+        - Tras creado, NO se puede editar contenido visible (body/subject), salvo:
+          * superusuario, o
+          * si TODOS los mensajes son muy recientes (ventana corta post-creación),
+            para permitir post-procesados técnicos (menciones, linkificación, etc.).
+        - Otras escrituras técnicas (no body/subject) se permiten.
         """
         if self._contains_user_comments():
             blocked_fields = {"body", "subject"}
             if blocked_fields & set(vals.keys()):
-                # Solo permitimos si es superusuario o si aún estamos en la fase
-                # de creación MUY reciente del flujo de posteo.
-                if not (self._is_superuser() or self._is_recent_creation_phase()):
+                # Permitimos si es superusuario o está en ventana de creación reciente
+                if not (self._is_superuser() or self._all_messages_recent(threshold_seconds=90)):
                     raise AccessError("No tienes permiso para editar mensajes/notas del chatter.")
         return super().write(vals)
 
