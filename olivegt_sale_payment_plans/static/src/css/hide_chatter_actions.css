@@ -1,0 +1,11 @@
+/* Visual hide for chatter Edit/Delete actions. UI-only, not security. */
+.o-mail-Message-moreMenu [role="menuitem"][title="Editar"],
+.o-mail-Message-moreMenu [role="menuitem"][title="Eliminar"],
+.o-mail-Message-moreMenu [role="menuitem"][title="Edit"],
+.o-mail-Message-moreMenu [role="menuitem"][title="Delete"],
+.o_thread_message .dropdown-menu [title="Editar"],
+.o_thread_message .dropdown-menu [title="Eliminar"],
+.o_thread_message .dropdown-menu [title="Edit"],
+.o_thread_message .dropdown-menu [title="Delete"] {
+  display: none !important;
+}

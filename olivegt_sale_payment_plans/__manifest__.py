@@ -1,6 +1,6 @@
 {
     'name': 'Sale Payment Plans',
-    'version': '18.0.1.0.0',
+    'version': '18.0.1.0.1',
     'summary': 'Payment Plans for Sale Orders',
     'description': """
         This module allows you to create payment plans from sale orders.
@@ -38,4 +38,10 @@
     'installable': True,
     'auto_install': False,
     'application': True,
+    'assets': {
+        'web.assets_backend': [
+            'olivegt_sale_payment_plans/static/src/js/hide_chatter_actions.js',
+            'olivegt_sale_payment_plans/static/src/css/hide_chatter_actions.css',
+        ],
+    },
 }
