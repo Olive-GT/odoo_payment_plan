@@ -9,3 +9,12 @@
 .o_thread_message .dropdown-menu [title="Delete"] {
   display: none !important;
 }
+
+/* Specific structure you shared: popover with menuitems and delete in text-danger */
+.o_popover.o-mail-Message-moreMenu [role="menuitem"][title="Editar"],
+.o_popover.o-mail-Message-moreMenu [role="menuitem"][title="Eliminar"],
+.o_popover.o-mail-Message-moreMenu [role="menuitem"][title="Edit"],
+.o_popover.o-mail-Message-moreMenu [role="menuitem"][title="Delete"],
+.o_popover.popover.o-mail-Message-moreMenu .dropdown-item.text-danger[role="menuitem"] {
+  display: none !important;
+}
