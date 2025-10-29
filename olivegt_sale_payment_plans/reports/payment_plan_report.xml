@@ -69,9 +69,10 @@
                   </td>
                 </tr>
                 <tr>
-                  <td><strong>Precio:</strong><br/>
-                    <span t-field="o.sale_id.amount_untaxed"
-                          t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
+                  <td><strong>Inmuebles:</strong><br/>
+                    <t t-foreach="o.sale_id.order_line.filtered(lambda l: not l.display_type and l.product_id)" t-as="line">
+                      <span t-esc="line.product_id.name"/><t t-if="not line_last"><br/></t>
+                    </t>
                   </td>
                   <td><strong>Total Orden:</strong><br/>
                     <span t-field="o.sale_id.amount_total"
