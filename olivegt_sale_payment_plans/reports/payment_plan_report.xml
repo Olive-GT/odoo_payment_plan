@@ -71,7 +71,7 @@
                 <tr>
                   <td><strong>Inmuebles:</strong><br/>
                     <t t-foreach="o.sale_id.order_line.filtered(lambda l: not l.display_type and l.product_id)" t-as="line">
-                      <span t-esc="line.product_id.name"/><t t-if="not line_last"><br/></t>
+                      <span t-esc="line.product_id.name"/><t t-if="not line_last">, </t>
                     </t>
                   </td>
                   <td><strong>Total Orden:</strong><br/>
@@ -172,21 +172,17 @@
               <table class="table-condensed">
                 <thead>
                   <tr>
-                    <th>Producto</th>
-                    <th class="text-center">Cantidad</th>
+                    <th>Inmueble</th>
+                    <th>Descripción</th>
                     <th class="text-right">Precio</th>
-                    <th class="text-right">Subtotal</th>
                   </tr>
                 </thead>
                 <tbody>
                   <t t-foreach="o.sale_id.order_line" t-as="sol">
                     <t t-if="not sol.display_type">
                       <tr>
-                        <td><span t-esc="sol.product_id.display_name or sol.name"/></td>
-                        <td class="text-center"><span t-esc="sol.product_uom_qty"/></td>
-                        <td class="text-right">
-                          <span t-field="sol.price_unit" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
-                        </td>
+                        <td><span t-esc="sol.product_id.name or sol.name"/></td>
+                        <td><span t-esc="sol.name"/></td>
                         <td class="text-right">
                           <span t-field="sol.price_subtotal" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
                         </td>
@@ -196,17 +192,17 @@
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colspan="3" class="text-right"><strong>Total Orden</strong></td>
+                    <td colspan="2" class="text-right"><strong>Total Orden</strong></td>
                     <td class="text-right">
                       <span t-field="o.sale_id.amount_total" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
                     </td>
                   </tr>
                   <tr>
-                    <td colspan="3" class="text-right"><strong>Total Pagado</strong></td>
+                    <td colspan="2" class="text-right"><strong>Total Pagado</strong></td>
                     <td class="text-right"><span t-esc="total_pagado" t-options='{"widget":"monetary","display_currency":o.currency_id}'/></td>
                   </tr>
                   <tr>
-                    <td colspan="3" class="text-right"><strong>Total Pendiente</strong></td>
+                    <td colspan="2" class="text-right"><strong>Total Pendiente</strong></td>
                     <td class="text-right"><span t-esc="o.amount_residual" t-options='{"widget":"monetary","display_currency":o.currency_id}'/></td>
                   </tr>
                 </tfoot>
