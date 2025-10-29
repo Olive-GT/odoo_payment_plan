@@ -13,7 +13,7 @@
                         <field name="total_amount" widget="monetary"/>
                     </group>
                     <notebook>
-                        <page string="Initial Payment">
+                        <page string="Reserva">
                             <group>
                                 <field name="initial_payment"/>
                                 <field name="initial_mode" invisible="initial_payment == False"/>
@@ -26,7 +26,7 @@
                                 <field name="initial_date" invisible="initial_payment == False"/>
                             </group>
                         </page>
-                        <page string="Installments">
+                        <page string="Cuotas">
                             <group>
                                 <field name="installment_count"/>
                                 <field name="installment_frequency"/>
@@ -34,7 +34,20 @@
                                 <field name="equal_installments"/>
                             </group>
                         </page>
-                        <page string="Final Payment">
+                        <page string="Pago Intermedio">
+                            <group>
+                                <field name="intermediate_payment"/>
+                                <field name="intermediate_mode" invisible="intermediate_payment == False"/>
+                    <field name="intermediate_percent" 
+                        invisible="intermediate_payment == False or intermediate_mode != 'percent'"/>
+                    <field name="intermediate_amount" widget="monetary" 
+                        invisible="intermediate_payment == False or intermediate_mode != 'custom'"/>
+                    <field name="intermediate_percent_equiv" readonly="1" 
+                        invisible="intermediate_payment == False or intermediate_mode != 'custom'"/>
+                                <field name="intermediate_date" invisible="intermediate_payment == False"/>
+                            </group>
+                        </page>
+                        <page string="Pago Final">
                             <group>
                                 <field name="final_payment"/>
                                 <field name="final_mode" invisible="final_payment == False"/>

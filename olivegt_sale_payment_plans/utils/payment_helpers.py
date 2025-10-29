@@ -28,7 +28,7 @@ def calculate_installment_dates(start_date, count, frequency):
     return result
 
 
-def calculate_equal_installments(total_amount, count, initial_amount=0, final_amount=0):
+def calculate_equal_installments(total_amount, count, initial_amount=0, intermediate_amount=0, final_amount=0):
     """
     Calculate equal installment amounts.
     
@@ -36,12 +36,13 @@ def calculate_equal_installments(total_amount, count, initial_amount=0, final_am
         total_amount (float): Total amount to distribute
         count (int): Number of installments
         initial_amount (float): Initial payment amount
+        intermediate_amount (float): Intermediate payment amount
         final_amount (float): Final payment amount
         
     Returns:
         float: Amount per installment
     """
-    remaining = total_amount - initial_amount - final_amount
+    remaining = total_amount - initial_amount - intermediate_amount - final_amount
     if remaining < 0:
         return 0
     
@@ -51,7 +52,7 @@ def calculate_equal_installments(total_amount, count, initial_amount=0, final_am
     return remaining / count
 
 
-def split_equal_installments(total_amount, count, currency, initial_amount=0.0, final_amount=0.0):
+def split_equal_installments(total_amount, count, currency, initial_amount=0.0, intermediate_amount=0.0, final_amount=0.0):
     """
     Split remaining amount into "count" installments with proper currency rounding,
     adjusting the last installment to ensure the exact total is reached.
@@ -61,15 +62,16 @@ def split_equal_installments(total_amount, count, currency, initial_amount=0.0, 
         count (int): Number of installments
         currency (res.currency): Currency record to use for rounding
         initial_amount (float): Initial down payment (already rounded if needed)
+        intermediate_amount (float): Intermediate payment (already rounded if needed)
         final_amount (float): Final payment (already rounded if needed)
 
     Returns:
-        list[float]: List of installment amounts that sum exactly to total_amount - initial - final
+        list[float]: List of installment amounts that sum exactly to total_amount - initial - intermediate - final
     """
     if count <= 0:
         return []
 
-    remaining = (total_amount or 0.0) - (initial_amount or 0.0) - (final_amount or 0.0)
+    remaining = (total_amount or 0.0) - (initial_amount or 0.0) - (intermediate_amount or 0.0) - (final_amount or 0.0)
     # If negative, return zeros to let caller validate/raise
     if remaining < 0:
         return [0.0] * count
