@@ -184,7 +184,7 @@
                         <td><span t-esc="sol.product_id.name or sol.name"/></td>
                         <td><span t-esc="sol.product_id.x_studio_descripcion"/></td>
                         <td class="text-right">
-                          <t t-set="price_with_tax" t-value="sol.price_subtotal + sol.price_tax"/>
+                          <t t-set="price_with_tax" t-value="sol.price_unit"/>
                           <span t-esc="price_with_tax" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
                         </td>
                       </tr>
