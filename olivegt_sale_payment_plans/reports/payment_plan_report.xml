@@ -233,19 +233,17 @@
     <template id="report_payment_plan_reconciliation_receipt">
       <t t-call="web.html_container">
         <t t-foreach="docs" t-as="rec">
-          <t t-call="web.external_layout">
+          <t t-call="web.basic_layout">
             <style>
-              @page { size: A4; margin: 0; }
               body { margin: 0; }
-              .receipt-page-wrapper { position: relative; width: 210mm; height: 297mm; }
               .receipt-template {
                 position: absolute;
-                top: 15mm;
+                top: 0mm;
                 left: 0;
-                width: 210mm;
+                width: 220mm;
                 height: 100mm;
                 background: url('/olivegt_sale_payment_plans/static/src/img/payment_plan_receipt_bg.png') no-repeat left top;
-                background-size: 210mm 100mm;
+                background-size: 220mm 100mm;
                 font-family: 'Lato','Helvetica',sans-serif;
                 color: #000;
               }
