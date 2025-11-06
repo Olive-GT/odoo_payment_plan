@@ -37,10 +37,10 @@
                                     ('is_fully_consumed', '=', False),
                                     ('reconciled', '=', False),
                                     '|',
-                                    '&',
+                                    '&amp;',
                                     ('account_id.account_type', 'in', ['asset_cash', 'asset_liquidity']),
                                     ('debit', '>', 0.0),
-                                    '&',
+                                    '&amp;',
                                     ('account_id.account_type', 'in', ['liability_current', 'liability_payable', 'liability_non_current']),
                                     ('credit', '>', 0.0)
                                 ]" readonly="is_readonly" placeholder="Select a journal item"/>
