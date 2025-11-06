@@ -28,73 +28,8 @@
         <t t-foreach="docs" t-as="o">
           <t t-call="web.external_layout">
             <style>
-              /* Base (blanco y negro) */
-              .page { font-family:'Lato','Helvetica',sans-serif; font-size:8px; color:#000; }
-              .report-title    { text-align:center; font-size:12px; font-weight:600; margin-bottom:4px; }
-              .report-subtitle { text-align:center; font-size:8px; margin-bottom:8px; }
-              .section-title   { font-size:9px; font-weight:600; margin:12px 0 4px; }
-              .footer-note     { text-align:center; font-size:7px; margin-top:10px; }
-
-              /* Cabecera */
-              .summary-table { width:100%; border-collapse:collapse; margin-bottom:8px; }
-              .summary-table td, .summary-table th { padding:2px 4px; vertical-align:top; border:0.1pt solid #000 !important; background:#fff !important; }
-              .summary-table strong { font-weight:600; }
-
-              /* Tablas (líneas delgadas) */
-              .table-condensed { width:100%; border-collapse:collapse; }
-              .table-condensed th,
-              .table-condensed td { border:0.1pt solid #000 !important; padding:4px 6px; vertical-align:middle; background:#fff !important; }
-              .table-condensed thead th { font-weight:600; text-align:center; border:0.1pt solid #000 !important; background:#fff !important; }
-              .table-condensed tfoot td { border:0.1pt solid #000 !important; background:#fff !important; }
-              .table-condensed tbody tr:nth-child(odd),
-              .table-condensed tbody tr:nth-child(even) { background:#fff !important; }
-              .table-condensed .text-right { text-align:right; }
-              .table-condensed .text-center { text-align:center; }
-
-              /* Pagos (única zona con color permitida) */
-              .payments-container { display:flex; flex-direction:column; gap:1px; }
-              .payment-group { display:flex; align-items:center; gap:6px; padding:0; background:transparent; color:#000; border:0; border-radius:0; }
-              .payment-group span { padding:0 2px; font-size:7px; white-space:nowrap; }
-              .payment-amount { flex:none; text-align:left; font-weight:600; }
-              .payment-date   { flex:none; text-align:center; }
-              .payment-ref    { flex:1; text-align:left; overflow:hidden; text-overflow:ellipsis; }
-
-              /* Utilidades */
-              .text-center { text-align:center; }
-              .text-right  { text-align:right; }
-            </style>
-
-            <div class="page">
-              <!-- Título -->
-              <div class="report-title">ESTADO DE CUENTA</div>
-              <div class="report-subtitle">Plan de Pagos: <span t-field="o.name"/></div>
-
-              <!-- Resumen -->
-              <table class="summary-table">
-                <tr>
-                  <td><strong>Cliente:</strong><br/><span t-field="o.partner_id"/></td>
-                  <td><strong>Orden:</strong><br/><span t-field="o.sale_id.name"/></td>
-                  <td><strong>Fecha:</strong><br/>
-                    <span t-field="o.date" t-options='{"format":"dd/MM/yyyy"}'/>
-                  </td>
-                </tr>
-                <tr>
-                  <td><strong>Inmuebles:</strong><br/>
-                    <t t-foreach="o.sale_id.order_line.filtered(lambda l: not l.display_type and l.product_id)" t-as="line">
-                      <span t-esc="line.product_id.name"/><t t-if="not line_last">, </t>
-                    </t>
-                  </td>
-                  <td><strong>Total Orden:</strong><br/>
-                    <span t-field="o.sale_id.amount_total"
-                          t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
-                  </td>
-                  <td><strong>Saldo:</strong><br/>
-                    <span t-field="o.amount_residual"
-                          t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
-                  </td>
-                </tr>
-              </table>
-
+                          <t t-set="price_with_tax" t-value="sol.price_unit"/>
+                          <span t-esc="price_with_tax" t-options='{"widget":"monetary","display_currency":o.currency_id}'/>
               <!-- Cuotas -->
               <div class="section-title">DETALLE DE CUOTAS</div>
               <table class="table-condensed">
@@ -294,6 +229,80 @@
 
             <div style="margin-top:12px; font-size:10px;">
               <em>Este documento es un comprobante interno generado automáticamente por el módulo de planes de pago.</em>
+            </div>
+          </div>
+        </t>
+      </t>
+    </t>
+  </template>
+
+  <template id="report_payment_plan_reconciliation_receipt">
+    <t t-call="web.html_container">
+      <t t-foreach="docs" t-as="rec">
+        <t t-call="web.external_layout">
+          <style>
+            @page { size: A4; margin: 0; }
+            body { margin: 0; }
+            .receipt-page-wrapper { position: relative; width: 210mm; height: 297mm; }
+            .receipt-template {
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 210mm;
+              height: 297mm;
+              background: url('/olivegt_sale_payment_plans/static/src/img/payment_plan_receipt_bg.png') no-repeat center top;
+              background-size: 210mm 297mm;
+              font-family: 'Lato','Helvetica',sans-serif;
+              color: #000;
+            }
+            .receipt-field {
+              position: absolute;
+              font-size: 12px;
+              line-height: 1.2;
+            }
+            .receipt-field.small { font-size: 10px; }
+          </style>
+
+          <div class="receipt-page-wrapper">
+            <div class="receipt-template">
+              <div class="receipt-field" style="top: 48mm; left: 35mm; min-width: 120mm;">
+                <span t-esc="rec.partner_id.display_name"/>
+              </div>
+              <div class="receipt-field" style="top: 48mm; left: 165mm;">
+                <span t-field="rec.date" t-options='{"format":"dd/MM/yyyy"}'/>
+              </div>
+
+              <div class="receipt-field" style="top: 62mm; left: 35mm; min-width: 60mm;">
+                <span t-esc="rec.payment_plan_id.name"/>
+              </div>
+              <div class="receipt-field" style="top: 62mm; left: 105mm; min-width: 60mm;">
+                <span t-esc="rec.payment_plan_line_id.name or rec.payment_plan_line_id.display_name"/>
+              </div>
+              <div class="receipt-field" style="top: 62mm; left: 170mm;">
+                <span t-esc="rec.move_payment_reference or rec.move_id.name"/>
+              </div>
+
+              <div class="receipt-field" style="top: 76mm; left: 35mm;">
+                <span t-field="rec.move_line_id.account_id.display_name"/>
+              </div>
+              <div class="receipt-field" style="top: 76mm; left: 170mm;">
+                <span t-field="rec.move_date" t-options='{"format":"dd/MM/yyyy"}'/>
+              </div>
+
+              <div class="receipt-field" style="top: 105mm; left: 40mm; font-size: 14px; font-weight: 600;">
+                <span t-field="rec.amount" t-options='{"widget":"monetary","display_currency":rec.currency_id}'/>
+              </div>
+
+              <div class="receipt-field small" style="top: 130mm; left: 40mm; min-width: 140mm;">
+                <span t-esc="rec.payment_plan_line_id.payment_plan_id.sale_id.name"/>
+              </div>
+
+              <div class="receipt-field small" style="top: 248mm; left: 40mm; min-width: 60mm; text-align: center;">
+                ___________________________<br/>Entrega
+              </div>
+              <div class="receipt-field small" style="top: 248mm; left: 125mm; min-width: 60mm; text-align: center;">
+                ___________________________<br/>Recibe
+              </div>
             </div>
           </div>
         </t>
