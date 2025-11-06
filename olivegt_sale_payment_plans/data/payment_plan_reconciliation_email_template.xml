@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <record id="mail_template_payment_plan_reconciliation_receipt" model="mail.template" noupdate="1">
-        <field name="name">Payment Plan Reconciliation Receipt</field>
-        <field name="model_id" ref="model_payment_plan_reconciliation"/>
-        <field name="subject">Recibo de pago ${object.payment_plan_id.name or object.display_name or ''}</field>
-        <field name="email_from">${(object.company_id.email_formatted or user.email_formatted) or ''}</field>
-        <field name="partner_to">${object.partner_id.id or ''}</field>
-        <field name="email_to">${object.partner_id.email_formatted or object.partner_id.email or ''}</field>
-        <field name="body_html" type="html"><![CDATA[
+    <data noupdate="1">
+        <record id="mail_template_payment_plan_reconciliation_receipt" model="mail.template">
+            <field name="name">Payment Plan Reconciliation Receipt</field>
+            <field name="model_id" ref="model_payment_plan_reconciliation"/>
+            <field name="subject">Recibo de pago ${object.payment_plan_id.name or object.display_name or ''}</field>
+            <field name="email_from">${(object.company_id.email_formatted or user.email_formatted) or ''}</field>
+            <field name="partner_to">${object.partner_id.id or ''}</field>
+            <field name="email_to">${object.partner_id.email_formatted or object.partner_id.email or ''}</field>
+            <field name="body_html" type="html"><![CDATA[
 <p>Hola ${object.partner_id.name or ''},</p>
 <p>Adjuntamos el recibo de pago correspondiente a la conciliación registrada el ${format_date(object.date)}.</p>
 <ul>
@@ -18,7 +19,8 @@
 </ul>
 <p>Quedamos atentos ante cualquier consulta.</p>
 <p>Saludos,<br/>${object.company_id.name or user.company_id.name or ''}</p>
-        ]]></field>
-        <field name="auto_delete" eval="True"/>
-    </record>
+            ]]></field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+    </data>
 </odoo>
