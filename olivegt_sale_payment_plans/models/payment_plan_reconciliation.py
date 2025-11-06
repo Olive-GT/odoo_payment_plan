@@ -277,10 +277,13 @@ class PaymentPlanReconciliation(models.Model):
         compose_form = self.env.ref('mail.email_compose_message_wizard_form', raise_if_not_found=False)
         ctx = {
             'default_model': 'payment.plan.reconciliation',
-            'default_res_id': self.id,
+            'default_res_ids': [self.id],
+            'default_res_id': False,
             'default_use_template': bool(template),
             'default_template_id': template.id if template else False,
             'default_composition_mode': 'comment',
+            'active_model': 'payment.plan.reconciliation',
+            'active_ids': [self.id],
         }
         return {
             'name': _('Enviar recibo por correo'),
