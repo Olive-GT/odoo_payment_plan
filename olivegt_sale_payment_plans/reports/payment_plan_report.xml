@@ -12,6 +12,16 @@
       <field name="binding_type">report</field>
     </record>
 
+    <record id="action_report_payment_plan_reconciliation_receipt" model="ir.actions.report">
+      <field name="name">Payment Plan Receipt</field>
+      <field name="model">payment.plan.reconciliation</field>
+      <field name="report_type">qweb-pdf</field>
+      <field name="report_name">olivegt_sale_payment_plans.report_payment_plan_reconciliation_receipt</field>
+      <field name="report_file">olivegt_sale_payment_plans.report_payment_plan_reconciliation_receipt</field>
+      <field name="binding_model_id" ref="model_payment_plan_reconciliation"/>
+      <field name="binding_type">report</field>
+    </record>
+
     <!-- Template QWeb -->
     <template id="report_payment_plan">
       <t t-call="web.html_container">
@@ -218,5 +228,116 @@
         </t>
       </t>
     </template>
+  <template id="report_payment_plan_reconciliation_receipt">
+    <t t-call="web.html_container">
+      <t t-foreach="docs" t-as="rec">
+        <t t-call="web.external_layout">
+          <style>
+            .receipt-title { text-align:center; font-size:18px; font-weight:600; margin-bottom:12px; }
+            .receipt-meta { width:100%; border-collapse:collapse; margin-bottom:16px; }
+            .receipt-meta td { padding:6px 10px; border:1px solid #444; font-size:11px; }
+            .receipt-section-title { font-size:13px; font-weight:600; margin:12px 0 6px; text-transform:uppercase; }
+            .receipt-table { width:100%; border-collapse:collapse; margin-bottom:12px; }
+            .receipt-table th, .receipt-table td { border:1px solid #444; padding:6px 8px; font-size:11px; }
+            .text-right { text-align:right; }
+            .text-center { text-align:center; }
+            .signature-block { margin-top:40px; display:flex; justify-content:space-between; font-size:11px; }
+            .signature-line { border-top:1px solid #444; padding-top:4px; text-align:center; width:45%; }
+          </style>
+
+          <div class="page">
+            <div class="receipt-title">Recibo de Pago</div>
+
+            <table class="receipt-meta">
+              <tr>
+                <td><strong>Código:</strong><br/><span t-esc="'PPR-%05d' % rec.id"/></td>
+                <td><strong>Fecha de emisión:</strong><br/><span t-field="rec.date" t-options='{"format":"dd/MM/yyyy"}'/></td>
+                <td><strong>Estado:</strong><br/><span t-field="rec.state"/></td>
+              </tr>
+              <tr>
+                <td><strong>Cliente:</strong><br/><span t-field="rec.partner_id"/></td>
+                <td><strong>NIT:</strong><br/>
+                  <t t-if="rec.partner_id.vat">
+                    <span t-esc="rec.partner_id.vat"/>
+                  </t>
+                </td>
+                <td><strong>Moneda:</strong><br/><span t-field="rec.currency_id"/></td>
+              </tr>
+            </table>
+
+            <div class="receipt-section-title">Detalle de la operación</div>
+            <table class="receipt-table">
+              <tbody>
+                <tr>
+                  <th width="30%">Plan de pagos</th>
+                  <td><span t-field="rec.payment_plan_id.name"/></td>
+                </tr>
+                <tr>
+                  <th>Cuota</th>
+                  <td>
+                    <t t-if="rec.payment_plan_line_id.name">
+                      <span t-field="rec.payment_plan_line_id.name"/>
+                    </t>
+                    <t t-else="">
+                      <span t-field="rec.payment_plan_line_id.date" t-options='{"format":"dd/MM/yyyy"}'/>
+                    </t>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Referencia de pago</th>
+                  <td><span t-esc="rec.move_payment_reference or rec.move_id.name"/></td>
+                </tr>
+                <tr>
+                  <th>Asiento contable</th>
+                  <td><span t-field="rec.move_id.name"/></td>
+                </tr>
+                <tr>
+                  <th>Cuenta contable</th>
+                  <td><span t-field="rec.move_line_id.account_id.display_name"/></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="receipt-section-title">Importe recibido</div>
+            <table class="receipt-table">
+              <thead>
+                <tr>
+                  <th class="text-center">Fecha</th>
+                  <th class="text-center">Descripción</th>
+                  <th class="text-right">Importe</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="text-center"><span t-field="rec.move_date" t-options='{"format":"dd/MM/yyyy"}'/></td>
+                  <td><span t-esc="rec.payment_plan_line_id.payment_plan_id.sale_id.name or rec.payment_plan_line_id.payment_plan_id.name"/></td>
+                  <td class="text-right">
+                    <span t-field="rec.amount" t-options='{"widget":"monetary","display_currency":rec.currency_id}'/>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th colspan="2" class="text-right">Total</th>
+                  <th class="text-right">
+                    <span t-field="rec.amount" t-options='{"widget":"monetary","display_currency":rec.currency_id}'/>
+                  </th>
+                </tr>
+              </tfoot>
+            </table>
+
+            <div class="signature-block">
+              <div class="signature-line">Entrega</div>
+              <div class="signature-line">Recibe</div>
+            </div>
+
+            <div style="margin-top:12px; font-size:10px;">
+              <em>Este documento es un comprobante interno generado automáticamente por el módulo de planes de pago.</em>
+            </div>
+          </div>
+        </t>
+      </t>
+    </t>
+  </template>
   </data>
 </odoo>

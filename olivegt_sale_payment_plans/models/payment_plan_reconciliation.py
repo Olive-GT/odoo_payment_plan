@@ -261,6 +261,11 @@ class PaymentPlanReconciliation(models.Model):
         """Reset to draft state"""
         for rec in self:
             rec.state = 'draft'
+
+    def action_print_receipt(self):
+        """Generate the PDF receipt for this reconciliation"""
+        self.ensure_one()
+        return self.env.ref('olivegt_sale_payment_plans.action_report_payment_plan_reconciliation_receipt').report_action(self)
     
     @api.model
     def create(self, vals):
