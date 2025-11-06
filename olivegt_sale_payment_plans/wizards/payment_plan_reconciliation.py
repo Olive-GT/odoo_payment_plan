@@ -412,10 +412,16 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
         return {
             'domain': {
                 'move_line_id': [
+                    # Same logic as compute: accept bank debits or advance credits
                     ('account_id.reconcile', '=', True),
                     ('reconciled', '=', False),
+                    '|',
+                    '&',
                     ('account_id.account_type', 'in', ['asset_cash', 'asset_liquidity']),
                     ('debit', '>', 0.0),
+                    '&',
+                    ('account_id.account_type', 'in', ['liability_current', 'liability_payable', 'liability_non_current']),
+                    ('credit', '>', 0.0),
                     ('partner_id', '=', self.partner_id.id if self.partner_id else False),
                 ]
             }

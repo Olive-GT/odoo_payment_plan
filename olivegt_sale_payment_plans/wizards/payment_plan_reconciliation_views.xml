@@ -35,7 +35,14 @@
                                     ('account_id.reconcile', '=', True), 
                                     ('partner_id', '=', parent.partner_id),
                                     ('is_fully_consumed', '=', False),
-                                    ('debit', '>', 0.0)
+                                    ('reconciled', '=', False),
+                                    '|',
+                                    '&',
+                                    ('account_id.account_type', 'in', ['asset_cash', 'asset_liquidity']),
+                                    ('debit', '>', 0.0),
+                                    '&',
+                                    ('account_id.account_type', 'in', ['liability_current', 'liability_payable', 'liability_non_current']),
+                                    ('credit', '>', 0.0)
                                 ]" readonly="is_readonly" placeholder="Select a journal item"/>
                                 <field name="date" readonly="is_readonly"/>
                                 <field name="payment_reference" readonly="is_readonly"/>

@@ -278,11 +278,17 @@ class PaymentPlanReconciliation(models.Model):
     def _compute_available_move_lines(self):
         """Compute available move lines for reconciliation based on filters"""
         for rec in self:
+            # Allow either incoming bank debits or customer advance credits
             domain = [
                 ('account_id.reconcile', '=', True),
                 ('reconciled', '=', False),
+                '|',
+                '&',
                 ('account_id.account_type', 'in', ['asset_cash', 'asset_liquidity']),
-                ('debit', '>', 0.0)
+                ('debit', '>', 0.0),
+                '&',
+                ('account_id.account_type', 'in', ['liability_current', 'liability_payable', 'liability_non_current']),
+                ('credit', '>', 0.0)
             ]
             
             # Add partner filter if we have one
