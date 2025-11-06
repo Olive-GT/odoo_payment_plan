@@ -10,7 +10,8 @@
                     <button name="action_confirm" type="object" string="Confirm" class="oe_highlight" invisible="state != 'draft'"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state != 'confirmed'"/>
                     <button name="action_draft" type="object" string="Reset to Draft" invisible="state != 'cancelled'"/>
-            <button name="action_print_receipt" type="object" string="Print" invisible="state == 'draft'"/>
+                    <button name="action_print_receipt" type="object" string="Print" invisible="state == 'draft'"/>
+                    <button name="action_send_receipt_email" type="object" string="Enviar por correo electrónico" invisible="state == 'draft'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,cancelled"/>
                 </header>
                 <sheet>

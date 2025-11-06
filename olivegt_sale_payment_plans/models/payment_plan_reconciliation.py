@@ -267,6 +267,31 @@ class PaymentPlanReconciliation(models.Model):
         self.ensure_one()
         return self.env.ref('olivegt_sale_payment_plans.action_report_payment_plan_reconciliation_receipt').report_action(self)
     
+    def action_send_receipt_email(self):
+        """Launch the email composer with the receipt template"""
+        self.ensure_one()
+        template = self.env.ref(
+            'olivegt_sale_payment_plans.mail_template_payment_plan_reconciliation_receipt',
+            raise_if_not_found=False,
+        )
+        compose_form = self.env.ref('mail.email_compose_message_wizard_form', raise_if_not_found=False)
+        ctx = {
+            'default_model': 'payment.plan.reconciliation',
+            'default_res_id': self.id,
+            'default_use_template': bool(template),
+            'default_template_id': template.id if template else False,
+            'default_composition_mode': 'comment',
+        }
+        return {
+            'name': _('Enviar recibo por correo'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'mail.compose.message',
+            'view_mode': 'form',
+            'view_id': compose_form.id if compose_form else False,
+            'target': 'new',
+            'context': ctx,
+        }
+
     @api.model
     def create(self, vals):
         """Override create to set the date to match move date"""
