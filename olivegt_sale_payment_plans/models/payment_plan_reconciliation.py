@@ -1,3 +1,5 @@
+import base64
+
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 from odoo.tools import float_is_zero, float_compare
@@ -275,6 +277,22 @@ class PaymentPlanReconciliation(models.Model):
             raise_if_not_found=False,
         )
         compose_form = self.env.ref('mail.email_compose_message_wizard_form', raise_if_not_found=False)
+
+        attachment_ids = []
+        report_action = self.env.ref('olivegt_sale_payment_plans.action_report_payment_plan_reconciliation_receipt', raise_if_not_found=False)
+        if report_action:
+            # Render the receipt PDF and store it as an attachment for the composer
+            pdf_content, _ = report_action._render_qweb_pdf([self.id])
+            safe_name = (self.payment_plan_id.name or self.display_name or 'recibo').replace('/', '_')
+            attachment = self.env['ir.attachment'].create({
+                'name': f'Recibo_{safe_name}.pdf',
+                'type': 'binary',
+                'mimetype': 'application/pdf',
+                'datas': base64.b64encode(pdf_content),
+                'res_model': 'payment.plan.reconciliation',
+                'res_id': self.id,
+            })
+            attachment_ids = [attachment.id]
         ctx = {
             'default_model': 'payment.plan.reconciliation',
             'default_res_ids': [self.id],
@@ -283,6 +301,11 @@ class PaymentPlanReconciliation(models.Model):
             'default_composition_mode': 'comment',
             'active_model': 'payment.plan.reconciliation',
             'active_ids': [self.id],
+            'active_id': self.id,
+            'default_attachment_ids': [(6, 0, attachment_ids)] if attachment_ids else False,
+            'default_partner_ids': [self.partner_id.id] if self.partner_id else False,
+            'default_email_from': self.company_id.email_formatted or self.env.user.email_formatted,
+            'default_email_to': self.partner_id.email or False,
         }
         return {
             'name': _('Enviar recibo por correo'),
