@@ -278,7 +278,6 @@ class PaymentPlanReconciliation(models.Model):
         ctx = {
             'default_model': 'payment.plan.reconciliation',
             'default_res_ids': [self.id],
-            'default_res_id': False,
             'default_use_template': bool(template),
             'default_template_id': template.id if template else False,
             'default_composition_mode': 'comment',
