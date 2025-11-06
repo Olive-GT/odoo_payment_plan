@@ -240,12 +240,12 @@
               .receipt-page-wrapper { position: relative; width: 210mm; height: 297mm; }
               .receipt-template {
                 position: absolute;
-                top: 0;
+                top: 15mm;
                 left: 0;
                 width: 210mm;
-                height: 297mm;
-                background: url('/olivegt_sale_payment_plans/static/src/img/payment_plan_receipt_bg.png') no-repeat center top;
-                background-size: 210mm 297mm;
+                height: 100mm;
+                background: url('/olivegt_sale_payment_plans/static/src/img/payment_plan_receipt_bg.png') no-repeat left top;
+                background-size: 210mm 100mm;
                 font-family: 'Lato','Helvetica',sans-serif;
                 color: #000;
               }
@@ -255,47 +255,36 @@
                 line-height: 1.2;
               }
               .receipt-field.small { font-size: 10px; }
+              .receipt-field.amount-words { text-transform: uppercase; }
             </style>
 
             <div class="receipt-page-wrapper">
               <div class="receipt-template">
-                <div class="receipt-field" style="top: 48mm; left: 35mm; min-width: 120mm;">
-                  <span t-esc="rec.partner_id.display_name"/>
-                </div>
-                <div class="receipt-field" style="top: 48mm; left: 165mm;">
+                <div class="receipt-field" style="top: 34mm; left: 22mm; width: 70mm;">
                   <span t-field="rec.date" t-options='{"format":"dd/MM/yyyy"}'/>
                 </div>
-
-                <div class="receipt-field" style="top: 62mm; left: 35mm; min-width: 60mm;">
-                  <span t-esc="rec.payment_plan_id.name"/>
-                </div>
-                <div class="receipt-field" style="top: 62mm; left: 105mm; min-width: 60mm;">
-                  <span t-esc="rec.payment_plan_line_id.name or rec.payment_plan_line_id.display_name"/>
-                </div>
-                <div class="receipt-field" style="top: 62mm; left: 170mm;">
-                  <span t-esc="rec.move_payment_reference or rec.move_id.name"/>
+                <div class="receipt-field" style="top: 34mm; left: 120mm; width: 55mm;">
+                  <span t-esc="rec.payment_plan_id.sale_id.client_order_ref or rec.payment_plan_id.sale_id.name or ''"/>
                 </div>
 
-                <div class="receipt-field" style="top: 76mm; left: 35mm;">
-                  <span t-field="rec.move_line_id.account_id.display_name"/>
-                </div>
-                <div class="receipt-field" style="top: 76mm; left: 170mm;">
-                  <span t-field="rec.move_date" t-options='{"format":"dd/MM/yyyy"}'/>
+                <div class="receipt-field" style="top: 44mm; left: 22mm; width: 120mm;">
+                  <span t-esc="rec.partner_id.display_name"/>
                 </div>
 
-                <div class="receipt-field" style="top: 105mm; left: 40mm; font-size: 14px; font-weight: 600;">
+                <div class="receipt-field amount-words" style="top: 53mm; left: 22mm; width: 120mm;">
+                  <span t-esc="rec.currency_id.amount_to_text(rec.amount).upper()"/>
+                </div>
+
+                <div class="receipt-field" style="top: 50mm; left: 152mm; width: 35mm; text-align: right; font-weight: 600;">
                   <span t-field="rec.amount" t-options='{"widget":"monetary","display_currency":rec.currency_id}'/>
                 </div>
 
-                <div class="receipt-field small" style="top: 130mm; left: 40mm; min-width: 140mm;">
-                  <span t-esc="rec.payment_plan_line_id.payment_plan_id.sale_id.name"/>
+                <div class="receipt-field" style="top: 63mm; left: 22mm; width: 120mm;">
+                  <span t-esc="rec.payment_plan_line_id.name or rec.payment_plan_id.name"/>
                 </div>
 
-                <div class="receipt-field small" style="top: 248mm; left: 40mm; min-width: 60mm; text-align: center;">
-                  ___________________________<br/>Entrega
-                </div>
-                <div class="receipt-field small" style="top: 248mm; left: 125mm; min-width: 60mm; text-align: center;">
-                  ___________________________<br/>Recibe
+                <div class="receipt-field small" style="top: 63mm; left: 152mm; width: 40mm; height: 22mm; text-align: left;">
+                  <span t-esc="rec.move_payment_reference or rec.move_id.name or ''"/>
                 </div>
               </div>
             </div>
