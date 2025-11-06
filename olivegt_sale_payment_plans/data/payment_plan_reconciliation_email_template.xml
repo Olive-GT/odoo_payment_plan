@@ -7,8 +7,7 @@
             <field name="subject">Recibo de pago ${object.payment_plan_id.name or ''}</field>
             <field name="email_from">${(object.company_id.email or user.email) or ''}</field>
             <field name="email_to">${object.partner_id.email or ''}</field>
-            <field name="body_html" type="html">
-                <![CDATA[
+            <field name="body_html" type="html"><![CDATA[
 <p>Hola ${object.partner_id.name or ''},</p>
 <p>Adjuntamos el recibo de pago correspondiente a la conciliación realizada el ${format_date(object.date)}.</p>
 <ul>
@@ -18,8 +17,7 @@
     <li><strong>Referencia:</strong> ${object.move_payment_reference or object.move_id.name or ''}</li>
 </ul>
 <p>Gracias.</p>
-                ]]>
-            </field>
+            ]]></field>
             <field name="report_template" ref="olivegt_sale_payment_plans.action_report_payment_plan_reconciliation_receipt"/>
             <field name="report_name">Recibo_${(object.payment_plan_id.name or 'recibo').replace('/', '_')}</field>
             <field name="auto_delete" eval="True"/>
