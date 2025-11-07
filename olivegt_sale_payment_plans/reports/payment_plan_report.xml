@@ -261,7 +261,7 @@
                 <div class="receipt-field" style="top: 30mm; left: 30mm; width: 70mm;">
                   <span t-field="rec.date" t-options="{&quot;format&quot;:&quot;dd/MM/yyyy&quot;}"/>
                 </div>
-                <div class="receipt-field" style="top: 30mm; left: 120mm; width: 55mm;">
+                <div class="receipt-field" style="top: 30mm; left: 110mm; width: 55mm;">
                   <t t-if="rec.payment_plan_id.sale_id">
                     <t t-foreach="rec.payment_plan_id.sale_id.order_line.filtered(lambda l: not l.display_type and l.product_id)" t-as="line">
                       <span t-esc="line.product_id.display_name or line.product_id.name"/>
