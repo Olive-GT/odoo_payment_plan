@@ -37,15 +37,15 @@
 
               /* Cabecera */
               .summary-table { width:100%; border-collapse:collapse; margin-bottom:8px; }
-              .summary-table td, .summary-table th { padding:2px 4px; vertical-align:top; border:0.5pt solid #000 !important; background:#fff !important; }
+              .summary-table td, .summary-table th { padding:2px 4px; vertical-align:top; border:1pt solid #000 !important; background:#fff !important; }
               .summary-table strong { font-weight:600; }
 
               /* Tablas (líneas delgadas) */
               .table-condensed { width:100%; border-collapse:collapse; }
               .table-condensed th,
-              .table-condensed td { border:0.5pt solid #000 !important; padding:4px 6px; vertical-align:middle; background:#fff !important; }
-              .table-condensed thead th { font-weight:600; text-align:center; border:0.5pt solid #000 !important; background:#fff !important; }
-              .table-condensed tfoot td { border:0.5pt solid #000 !important; background:#fff !important; }
+              .table-condensed td { border:1pt solid #000 !important; padding:4px 6px; vertical-align:middle; background:#fff !important; }
+              .table-condensed thead th { font-weight:600; text-align:center; border:1pt solid #000 !important; background:#fff !important; }
+              .table-condensed tfoot td { border:1pt solid #000 !important; background:#fff !important; }
               .table-condensed tbody tr:nth-child(odd),
               .table-condensed tbody tr:nth-child(even) { background:#fff !important; }
               .table-condensed .text-right { text-align:right; }
