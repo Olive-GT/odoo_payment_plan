@@ -265,6 +265,28 @@ class PaymentPlanReconciliation(models.Model):
         for rec in self:
             rec.state = 'draft'
 
+    def _pluralize_currency_label(self, label):
+        label = (label or '').strip().upper()
+        if not label:
+            return label
+        if label.endswith('L'):
+            return f"{label[:-1]}LES"
+        if label.endswith('Z'):
+            return f"{label[:-1]}CES"
+        if label[-1] in 'AEIOUÁÉÍÓÚ':
+            return f"{label}S"
+        return f"{label}ES"
+
+    def get_amount_in_words_plural(self):
+        """Return amount in words forcing currency to plural"""
+        self.ensure_one()
+        amount_text = (self.currency_id.amount_to_text(self.amount) or '').upper()
+        unit_label = (self.currency_id.currency_unit_label or self.currency_id.name or '').upper()
+        plural_label = self._pluralize_currency_label(unit_label)
+        if amount_text and unit_label and plural_label and unit_label != plural_label:
+            amount_text = amount_text.replace(unit_label, plural_label)
+        return amount_text
+
     def action_print_receipt(self):
         """Generate the PDF receipt for this reconciliation"""
         self.ensure_one()

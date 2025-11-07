@@ -273,7 +273,7 @@
                 </div>
 
                 <div class="receipt-field amount-words" style="top: 50mm; left: 40mm; width: 120mm;">
-                  <span t-esc="amount_to_text_plural(rec.currency_id, rec.amount)"/>
+                  <span t-esc="rec.get_amount_in_words_plural()"/>
                 </div>
 
                 <div class="receipt-field" style="top: 35mm; left: 155mm; width: 35mm; text-align: right; font-weight: 600;">
