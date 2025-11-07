@@ -278,41 +278,21 @@ class PaymentPlanReconciliation(models.Model):
         )
         compose_form = self.env.ref('mail.email_compose_message_wizard_form', raise_if_not_found=False)
 
-        attachments = self.env['ir.attachment']
-
-        def _create_pdf_attachment(report_xml_id, res_ids, prefix, safe_source):
-            report = self.env.ref(report_xml_id, raise_if_not_found=False)
-            if not report or not res_ids:
-                return self.env['ir.attachment']
-            pdf_content, pdf_format = report._render_qweb_pdf(report.report_name, res_ids=res_ids)
-            safe_name = (safe_source or prefix).replace('/', '_')
-            return self.env['ir.attachment'].create({
-                'name': f"{prefix}_{safe_name}.pdf",
+        attachment_ids = []
+        report_action = self.env.ref('olivegt_sale_payment_plans.action_report_payment_plan_reconciliation_receipt', raise_if_not_found=False)
+        if report_action:
+            # Render the receipt PDF and store it as an attachment for the composer
+            pdf_content, pdf_format = report_action._render_qweb_pdf(report_action.report_name, res_ids=[self.id])
+            safe_name = (self.payment_plan_id.name or self.display_name or 'recibo').replace('/', '_')
+            attachment = self.env['ir.attachment'].create({
+                'name': f'Recibo_{safe_name}.pdf',
                 'type': 'binary',
                 'mimetype': 'application/pdf',
                 'datas': base64.b64encode(pdf_content),
                 'res_model': 'payment.plan.reconciliation',
                 'res_id': self.id,
             })
-
-        # Receipt attachment based on reconciliation
-        receipt_attachment = _create_pdf_attachment(
-            'olivegt_sale_payment_plans.action_report_payment_plan_reconciliation_receipt',
-            [self.id],
-            'Recibo',
-            self.payment_plan_id.name or self.display_name or 'recibo',
-        )
-        attachments |= receipt_attachment
-
-        # Account statement attachment (Payment Plan report)
-        if self.payment_plan_id:
-            statement_attachment = _create_pdf_attachment(
-                'olivegt_sale_payment_plans.action_report_payment_plan',
-                [self.payment_plan_id.id],
-                'Estado_de_cuenta',
-                self.payment_plan_id.name or 'estado',
-            )
-            attachments |= statement_attachment
+            attachment_ids = [attachment.id]
         ctx = {
             'default_model': 'payment.plan.reconciliation',
             'default_res_ids': [self.id],
@@ -322,7 +302,7 @@ class PaymentPlanReconciliation(models.Model):
             'active_model': 'payment.plan.reconciliation',
             'active_ids': [self.id],
             'active_id': self.id,
-            'default_attachment_ids': [(6, 0, attachments.ids)] if attachments else False,
+            'default_attachment_ids': [(6, 0, attachment_ids)] if attachment_ids else False,
             'default_partner_ids': [self.partner_id.id] if self.partner_id else False,
             'default_email_from': self.company_id.email_formatted or self.env.user.email_formatted,
             'default_email_to': self.partner_id.email or False,
