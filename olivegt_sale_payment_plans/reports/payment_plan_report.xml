@@ -284,8 +284,8 @@
                 </div>
 
                 <div class="receipt-field" style="top: 35mm; left: 155mm; width: 35mm; text-align: right; font-weight: 600;">
-                  <t t-set="amount_text" t-value="formatLang(rec.amount, currency_obj=rec.currency_id)"/>
-                  <span t-esc="amount_text"/>
+                  <t t-set="amount_text" t-value="formatLang(rec.amount, digits=rec.currency_id.decimal_places)"/>
+                  <span t-esc="('%s %s' % (rec.currency_id.symbol or '', amount_text)).strip()"/>
                 </div>
 
                 <div class="receipt-field" style="top: 60mm; left: 40mm; width: 120mm;">
