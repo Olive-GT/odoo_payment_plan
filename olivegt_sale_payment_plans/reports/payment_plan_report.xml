@@ -262,7 +262,12 @@
                   <span t-field="rec.date" t-options="{&quot;format&quot;:&quot;dd/MM/yyyy&quot;}"/>
                 </div>
                 <div class="receipt-field" style="top: 30mm; left: 120mm; width: 55mm;">
-                  <span t-esc="rec.payment_plan_id.sale_id.client_order_ref or rec.payment_plan_id.sale_id.name or ''"/>
+                  <t t-if="rec.payment_plan_id.sale_id">
+                    <t t-foreach="rec.payment_plan_id.sale_id.order_line.filtered(lambda l: not l.display_type and l.product_id)" t-as="line">
+                      <span t-esc="line.product_id.display_name or line.product_id.name"/>
+                      <t t-if="not line_last">, </t>
+                    </t>
+                  </t>
                 </div>
 
                 <div class="receipt-field" style="top: 40mm; left: 40mm; width: 120mm;">
