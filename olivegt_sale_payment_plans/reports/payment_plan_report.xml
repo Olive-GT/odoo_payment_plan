@@ -254,6 +254,11 @@
               }
               .receipt-field.small { font-size: 10px; }
               .receipt-field.amount-words { text-transform: uppercase; }
+              .receipt-field.reference {
+                font-size: 16px;
+                font-weight: 700;
+                color: #b30000;
+              }
             </style>
 
             <div class="receipt-page-wrapper">
@@ -286,7 +291,7 @@
                   <span t-esc="rec.payment_plan_line_id.name or rec.payment_plan_id.name"/>
                 </div>
 
-                <div class="receipt-field small" style="top: 70mm; left: 140mm; width: 70mm; height: 30mm; text-align: center;">
+                <div class="receipt-field reference" style="top: 73mm; left: 140mm; width: 70mm; height: 30mm; text-align: center;">
                   <span t-esc="rec.move_payment_reference or rec.move_id.name or ''"/>
                 </div>
               </div>
