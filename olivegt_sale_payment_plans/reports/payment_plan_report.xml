@@ -284,10 +284,7 @@
                 </div>
 
                 <div class="receipt-field" style="top: 35mm; left: 155mm; width: 35mm; text-align: right; font-weight: 600;">
-                  <span>
-                    <t t-esc="rec.currency_id.symbol"/>&nbsp;
-                    <t t-esc="'{:,.2f}'.format(rec.amount)"/>
-                  </span>
+                  <span t-esc="('%s %s' % (rec.currency_id.symbol or '', '{:,.2f}'.format(rec.amount)))"/>
                 </div>
 
                 <div class="receipt-field" style="top: 60mm; left: 40mm; width: 120mm;">
