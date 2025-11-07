@@ -1,4 +1,5 @@
 import base64
+import re
 
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
@@ -314,6 +315,13 @@ class PaymentPlanReconciliation(models.Model):
                     'res_id': self.id,
                 })
                 attachment_ids.append(statement_attachment.id)
+        email_to = False
+        if self.partner_id and self.partner_id.email:
+            # Split multiple addresses entered in a single field
+            email_list = [addr.strip() for addr in re.split(r'[,;/\s]+', self.partner_id.email) if addr.strip()]
+            if email_list:
+                email_to = ', '.join(email_list)
+
         ctx = {
             'default_model': 'payment.plan.reconciliation',
             'default_res_ids': [self.id],
@@ -326,7 +334,7 @@ class PaymentPlanReconciliation(models.Model):
             'default_attachment_ids': [(6, 0, attachment_ids)] if attachment_ids else False,
             'default_partner_ids': [self.partner_id.id] if self.partner_id else False,
             'default_email_from': self.company_id.email_formatted or self.env.user.email_formatted,
-            'default_email_to': self.partner_id.email or False,
+            'default_email_to': email_to,
         }
         return {
             'name': _('Enviar recibo por correo'),
