@@ -282,7 +282,10 @@ class PaymentPlanReconciliation(models.Model):
         receipt_report = self.env.ref('olivegt_sale_payment_plans.action_report_payment_plan_reconciliation_receipt', raise_if_not_found=False)
         if receipt_report:
             # Render the receipt PDF and store it as an attachment for the composer
-            pdf_content, _ = receipt_report._render_qweb_pdf(receipt_report.report_name, res_ids=[self.id])
+            pdf_content, _pdf_format = receipt_report._render_qweb_pdf(
+                receipt_report.report_name,
+                res_ids=[self.id],
+            )
             safe_name = (self.payment_plan_id.name or self.display_name or 'recibo').replace('/', '_')
             attachment = self.env['ir.attachment'].create({
                 'name': f'Recibo_{safe_name}.pdf',
@@ -297,7 +300,10 @@ class PaymentPlanReconciliation(models.Model):
         if self.payment_plan_id:
             statement_report = self.env.ref('olivegt_sale_payment_plans.action_report_payment_plan', raise_if_not_found=False)
             if statement_report:
-                statement_content, _ = statement_report._render_qweb_pdf(statement_report.report_name, res_ids=[self.payment_plan_id.id])
+                statement_content, _pdf_format = statement_report._render_qweb_pdf(
+                    statement_report.report_name,
+                    res_ids=[self.payment_plan_id.id],
+                )
                 statement_name = (self.payment_plan_id.name or 'estado_cuenta').replace('/', '_')
                 statement_attachment = self.env['ir.attachment'].create({
                     'name': f'EstadoCuenta_{statement_name}.pdf',
