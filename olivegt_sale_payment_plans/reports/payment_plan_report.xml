@@ -264,7 +264,7 @@
                 <div class="receipt-field" style="top: 30mm; left: 110mm; width: 55mm;">
                   <t t-if="rec.payment_plan_id.sale_id">
                     <t t-foreach="rec.payment_plan_id.sale_id.order_line.filtered(lambda l: not l.display_type and l.product_id)" t-as="line">
-                      <span t-esc="line.product_id.name or line.product_id.name"/>
+                      <span t-esc="line.product_id.default_code or line.product_id.name"/>
                       <t t-if="not line_last">, </t>
                     </t>
                   </t>
