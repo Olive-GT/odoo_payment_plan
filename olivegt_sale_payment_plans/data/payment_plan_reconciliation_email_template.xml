@@ -5,7 +5,7 @@
             <field name="name">Payment Plan Reconciliation Receipt</field>
             <field name="model_id" ref="model_payment_plan_reconciliation"/>
             <field name="subject">Recibo de pago</field>
-            <field name="body_html" type="html"><p>Recibo adjunto.</p></field>
+            <field name="body_html" type="html"><p>Recibo y estado de cuenta adjuntos.</p></field>
         </record>
     </data>
 </odoo>

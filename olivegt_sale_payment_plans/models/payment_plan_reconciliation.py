@@ -279,10 +279,10 @@ class PaymentPlanReconciliation(models.Model):
         compose_form = self.env.ref('mail.email_compose_message_wizard_form', raise_if_not_found=False)
 
         attachment_ids = []
-        report_action = self.env.ref('olivegt_sale_payment_plans.action_report_payment_plan_reconciliation_receipt', raise_if_not_found=False)
-        if report_action:
+        receipt_report = self.env.ref('olivegt_sale_payment_plans.action_report_payment_plan_reconciliation_receipt', raise_if_not_found=False)
+        if receipt_report:
             # Render the receipt PDF and store it as an attachment for the composer
-            pdf_content, pdf_format = report_action._render_qweb_pdf(report_action.report_name, res_ids=[self.id])
+            pdf_content, _ = receipt_report._render_qweb_pdf(receipt_report.report_name, res_ids=[self.id])
             safe_name = (self.payment_plan_id.name or self.display_name or 'recibo').replace('/', '_')
             attachment = self.env['ir.attachment'].create({
                 'name': f'Recibo_{safe_name}.pdf',
@@ -292,7 +292,22 @@ class PaymentPlanReconciliation(models.Model):
                 'res_model': 'payment.plan.reconciliation',
                 'res_id': self.id,
             })
-            attachment_ids = [attachment.id]
+            attachment_ids.append(attachment.id)
+
+        if self.payment_plan_id:
+            statement_report = self.env.ref('olivegt_sale_payment_plans.action_report_payment_plan', raise_if_not_found=False)
+            if statement_report:
+                statement_content, _ = statement_report._render_qweb_pdf(statement_report.report_name, res_ids=[self.payment_plan_id.id])
+                statement_name = (self.payment_plan_id.name or 'estado_cuenta').replace('/', '_')
+                statement_attachment = self.env['ir.attachment'].create({
+                    'name': f'EstadoCuenta_{statement_name}.pdf',
+                    'type': 'binary',
+                    'mimetype': 'application/pdf',
+                    'datas': base64.b64encode(statement_content),
+                    'res_model': 'payment.plan.reconciliation',
+                    'res_id': self.id,
+                })
+                attachment_ids.append(statement_attachment.id)
         ctx = {
             'default_model': 'payment.plan.reconciliation',
             'default_res_ids': [self.id],
