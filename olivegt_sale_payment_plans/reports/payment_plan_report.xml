@@ -75,7 +75,7 @@
                   <td><strong>Cliente:</strong><br/><span t-field="o.partner_id"/></td>
                   <td><strong>Orden:</strong><br/><span t-field="o.sale_id.name"/></td>
                   <td><strong>Fecha:</strong><br/>
-                    <span t-esc="format_date(o.env, today)"/>
+                    <span t-esc="format_date(o.env, today, lang_code=o.partner_id.lang or o.env.user.lang)"/>
                   </td>
                 </tr>
                 <tr>

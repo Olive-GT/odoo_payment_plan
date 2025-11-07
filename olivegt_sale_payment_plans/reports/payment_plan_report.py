@@ -1,4 +1,5 @@
 from odoo import models, api, fields
+from odoo.tools import format_date
 
 
 class PaymentPlanReport(models.AbstractModel):
@@ -13,4 +14,5 @@ class PaymentPlanReport(models.AbstractModel):
             'doc_model': 'payment.plan',
             'docs': docs,
             'today': fields.Date.context_today(self),
+            'format_date': format_date,
         }
