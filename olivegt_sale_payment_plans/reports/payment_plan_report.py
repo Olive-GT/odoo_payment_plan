@@ -1,4 +1,4 @@
-from odoo import models, api
+from odoo import models, api, fields
 
 
 class PaymentPlanReport(models.AbstractModel):
@@ -12,4 +12,5 @@ class PaymentPlanReport(models.AbstractModel):
             'doc_ids': docids,
             'doc_model': 'payment.plan',
             'docs': docs,
+            'today': fields.Date.context_today(self),
         }
