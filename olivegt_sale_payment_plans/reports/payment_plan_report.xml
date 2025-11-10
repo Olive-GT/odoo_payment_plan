@@ -166,7 +166,7 @@
               </table>
 
               <!-- Resumen de la Orden -->
-              <div class="section-title">RESUMEN DE LA ORDEN</div>
+              <div class="section-title" style="text-align:center;">RESUMEN DE LA ORDEN</div>
               <t t-set="total_pagado" t-value="(o.total_amount or 0.0) - (o.amount_residual or 0.0)"/>
               <table class="summary-block">
                 <tbody>
