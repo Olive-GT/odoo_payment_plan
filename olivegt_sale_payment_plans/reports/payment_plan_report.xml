@@ -39,6 +39,10 @@
               .summary-table { width:100%; border-collapse:collapse; margin-bottom:8px; }
               .summary-table td, .summary-table th { padding:2px 4px; vertical-align:top; border:0.7pt solid #000 !important; background:#fff !important; }
               .summary-table strong { font-weight:600; }
+              .summary-box { display:flex; justify-content:center; gap:12px; margin:8px auto 0; width:100%; }
+              .summary-item { display:flex; flex-direction:column; align-items:center; padding:6px 14px; border:0.7pt solid #000; min-width:110px; }
+              .summary-item strong { font-size:8px; margin-bottom:4px; }
+              .summary-item span { font-size:9px; font-weight:600; }
 
               /* Tablas (líneas delgadas) */
               .table-condensed { width:100%; border-collapse:collapse; }
@@ -80,7 +84,7 @@
                 </tr>
                 <tr>
                   <td><strong>Inmuebles:</strong><br/>
-                    <t t-foreach="o.sale_id.order_line.filtered(lambda l: not l.display_type and l.product_id)" t-as="line">
+                    <t t-foreach="o.sale_id.order_line.filtered(lambda l: not l.display_type and l.product_id and (l.product_id.x_studio_tipo_de_inmueble == 'Apartamento'))" t-as="line">
                       <span t-esc="line.product_id.name"/><t t-if="not line_last">, </t>
                     </t>
                   </td>
@@ -161,56 +165,23 @@
                 </tbody>
               </table>
 
-              <!-- Resumen de la Orden de Venta -->
-              <div class="section-title">RESUMEN DE LA ORDEN DE VENTA</div>
+              <!-- Resumen de la Orden -->
+              <div class="section-title">RESUMEN DE LA ORDEN</div>
               <t t-set="total_pagado" t-value="(o.total_amount or 0.0) - (o.amount_residual or 0.0)"/>
-              <table class="summary-table">
-                <tr>
-                  <td><strong>Orden:</strong><br/><span t-field="o.sale_id.name"/></td>
-                  <td><strong>Cliente:</strong><br/><span t-field="o.partner_id"/></td>
-                  <td><strong>Moneda:</strong><br/><span t-field="o.currency_id"/></td>
-                </tr>
-              </table>
-
-              <table class="table-condensed">
-                <thead>
-                  <tr>
-                    <th>Inmueble</th>
-                    <th>Descripción</th>
-                    <th class="text-right">Precio</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <t t-foreach="o.sale_id.order_line" t-as="sol">
-                    <t t-if="not sol.display_type">
-                      <tr>
-                        <td><span t-esc="sol.product_id.name or sol.name"/></td>
-                        <td><span t-esc="sol.product_id.x_studio_descripcion"/></td>
-                        <td class="text-right">
-                          <t t-set="price_with_tax" t-value="sol.price_unit"/>
-                          <span t-esc="('%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format((price_with_tax or 0.0))))"/>
-                        </td>
-                      </tr>
-                    </t>
-                  </t>
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colspan="2" class="text-right"><strong>Total Orden</strong></td>
-                    <td class="text-right">
-                      <span t-esc="('%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format((o.sale_id.amount_total or 0.0))))"/>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colspan="2" class="text-right"><strong>Total Pagado</strong></td>
-                    <td class="text-right"><span t-esc="('%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format((total_pagado or 0.0))))"/></td>
-                  </tr>
-                  <tr>
-                    <td colspan="2" class="text-right"><strong>Total Pendiente</strong></td>
-                    <td class="text-right"><span t-esc="('%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format((o.amount_residual or 0.0))))"/></td>
-                  </tr>
-                </tfoot>
-              </table>
+              <div class="summary-box">
+                <div class="summary-item">
+                  <strong>Total Orden</strong>
+                  <span t-esc="('%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format((o.sale_id.amount_total or 0.0))))"/>
+                </div>
+                <div class="summary-item">
+                  <strong>Total Pagado</strong>
+                  <span t-esc="('%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format((total_pagado or 0.0))))"/>
+                </div>
+                <div class="summary-item">
+                  <strong>Total Pendiente</strong>
+                  <span t-esc="('%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format((o.amount_residual or 0.0))))"/>
+                </div>
+              </div>
 
               <!-- Pie -->
               <div class="footer-note">
@@ -261,7 +232,7 @@
                 </div>
                 <div class="receipt-field" style="top: 30mm; left: 110mm; width: 55mm;">
                   <t t-if="rec.payment_plan_id.sale_id">
-                    <t t-foreach="rec.payment_plan_id.sale_id.order_line.filtered(lambda l: not l.display_type and l.product_id)" t-as="line">
+                    <t t-foreach="rec.payment_plan_id.sale_id.order_line.filtered(lambda l: not l.display_type and l.product_id and (l.product_id.x_studio_tipo_de_inmueble == 'Apartamento'))" t-as="line">
                       <span t-esc="line.product_id.default_code or line.product_id.name"/>
                       <t t-if="not line_last">, </t>
                     </t>
