@@ -24,6 +24,7 @@
     'data': [
         'security/groups.xml',
         'security/ir.model.access.csv',
+        'security/payment_plan_security.xml',
         'data/payment_plan_sequence.xml',
         'data/payment_plan_cron.xml',
         'reports/payment_plan_report.xml',

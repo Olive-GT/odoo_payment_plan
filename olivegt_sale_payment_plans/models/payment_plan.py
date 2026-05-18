@@ -46,11 +46,39 @@ class PaymentPlan(models.Model):
     # All reconciliations linked to this payment plan via its lines
     allocation_ids = fields.One2many('payment.plan.reconciliation', compute='_compute_all_allocations', string='All Allocations')
 
+    @api.model
+    def _get_create_company(self, vals):
+        company_id = vals.get('company_id')
+        if company_id:
+            return self.env['res.company'].browse(company_id)
+
+        sale_id = vals.get('sale_id')
+        if sale_id:
+            return self.env['sale.order'].browse(sale_id).company_id
+
+        return self.env.company
+
+    @api.model
+    def _next_payment_plan_sequence(self, company):
+        sequence_model = self.env['ir.sequence'].sudo()
+        sequence = sequence_model.search([
+            ('code', '=', 'payment.plan'),
+            ('company_id', '=', company.id),
+        ], limit=1)
+
+        if sequence:
+            return sequence.with_company(company).next_by_id()
+
+        return self.env['ir.sequence'].with_company(company).next_by_code('payment.plan')
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            company = self._get_create_company(vals)
+            if company:
+                vals['company_id'] = company.id
             if vals.get('name', _('New')) == _('New'):
-                vals['name'] = self.env['ir.sequence'].next_by_code('payment.plan') or _('New')
+                vals['name'] = self._next_payment_plan_sequence(company) or _('New')
         return super().create(vals_list)
     
     @api.depends('line_ids.amount', 'line_ids.paid', 'line_ids.interest_amount')

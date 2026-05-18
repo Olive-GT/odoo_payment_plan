@@ -10,6 +10,7 @@ class PaymentPlanReconciliation(models.Model):
     _name = 'payment.plan.reconciliation'
     _description = 'Payment Plan Reconciliation'
     _order = 'id desc'
+
     payment_plan_line_id = fields.Many2one(
         'payment.plan.line', 
         string='Payment Plan Line',
