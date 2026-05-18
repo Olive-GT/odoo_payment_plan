@@ -27,8 +27,7 @@
         <field name="state">code</field>
         <field name="code">
 action = env.ref('olivegt_sale_payment_plans.action_payment_plans').read()[0]
-action['domain'] = [('company_id', '=', env.company.id)]
-action['context'] = dict(env.context, search_default_posted=1, default_company_id=env.company.id)
+action['context'] = dict(env.context, search_default_posted=1, search_default_company_id=env.company.id, default_company_id=env.company.id)
         </field>
     </record>
 
