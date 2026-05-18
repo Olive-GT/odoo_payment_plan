@@ -205,6 +205,7 @@
     <template id="report_payment_plan_reconciliation_receipt">
       <t t-call="web.html_container">
         <t t-foreach="docs" t-as="rec">
+          <t t-set="receipt_bg_url" t-value="rec.company_id.payment_plan_receipt_bg_url or 'https://storage.googleapis.com/pale-public-images/payment_plan_receipt_bg.png'"/>
           <t t-call="web.basic_layout">
             <style>
               body { margin: 0; }
@@ -214,8 +215,6 @@
                 left: 0;
                 width: 220mm;
                 height: 100mm;
-                background: url('https://storage.googleapis.com/pale-public-images/payment_plan_receipt_bg.png') no-repeat left top;
-                background-size: 220mm 100mm;
                 font-family: 'Lato','Helvetica',sans-serif;
                 color: #000;
               }
@@ -234,7 +233,7 @@
             </style>
 
             <div class="receipt-page-wrapper">
-              <div class="receipt-template">
+              <div class="receipt-template" t-attf-style="background: url('{{ receipt_bg_url }}') no-repeat left top; background-size: 220mm 100mm;">
                 <div class="receipt-field" style="top: 30mm; left: 30mm; width: 70mm;">
                   <span t-field="rec.date" t-options="{&quot;format&quot;:&quot;dd/MM/yyyy&quot;}"/>
                 </div>
