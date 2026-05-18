@@ -21,12 +21,23 @@
         </field>
     </record>
 
+    <record id="action_payment_plans_current_company" model="ir.actions.server">
+        <field name="name">Payment Plans Current Company</field>
+        <field name="model_id" ref="model_payment_plan"/>
+        <field name="state">code</field>
+        <field name="code">
+action = env.ref('olivegt_sale_payment_plans.action_payment_plans').read()[0]
+action['domain'] = [('company_id', '=', env.company.id)]
+action['context'] = dict(env.context, search_default_posted=1, default_company_id=env.company.id)
+        </field>
+    </record>
+
     <!-- Sub Menus -->
     <menuitem 
         id="menu_payment_plans" 
         name="Payment Plans" 
         parent="menu_payment_plans_root" 
-        action="action_payment_plans" 
+        action="action_payment_plans_current_company" 
         sequence="10"/>
 </data>
 </odoo>
