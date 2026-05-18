@@ -7,5 +7,12 @@
             <field name="domain_force">[('company_id', 'in', company_ids)]</field>
             <field name="global" eval="True"/>
         </record>
+
+        <record id="payment_plan_current_company_rule" model="ir.rule">
+            <field name="name">Payment Plan Current Company</field>
+            <field name="model_id" ref="model_payment_plan"/>
+            <field name="domain_force">[('company_id', '=', company_id)]</field>
+            <field name="global" eval="True"/>
+        </record>
     </data>
 </odoo>
