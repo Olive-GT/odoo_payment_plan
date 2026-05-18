@@ -149,12 +149,10 @@
                 <field name="name"/>
                 <field name="sale_id"/>
                 <field name="partner_id"/>
-                <field name="company_id" groups="base.group_multi_company"/>
                 <filter string="Posted" name="posted" domain="[('state','=','posted')]"/>
                 <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
                 <filter string="Canceled" name="canceled" domain="[('state','=','canceled')]"/>
                 <group expand="0" string="Group By">
-                    <filter string="Company" name="groupby_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
                     <filter string="Status" name="groupby_state" context="{'group_by': 'state'}"/>
                     <filter string="Customer" name="groupby_partner" context="{'group_by': 'partner_id'}"/>
                     <filter string="Sale Order" name="groupby_sale" context="{'group_by': 'sale_id'}"/>
