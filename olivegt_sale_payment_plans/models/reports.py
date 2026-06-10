@@ -30,7 +30,7 @@ class ReporteInstallments(models.Model):
         
         # 2. Buscar las cuotas directamente usando el modelo real de Odoo
         # NOTA: Reemplaza 'payment.plan.line' por el nombre técnico real de tu modelo de cuotas
-        lines = self.env['payment.plan.line'].search([
+        lines = self.env['payment.plan.line'].sudo().search([
             ('state', 'in', ['pending', 'partial', 'overdue'])
         ])
         
@@ -41,7 +41,7 @@ class ReporteInstallments(models.Model):
         partner_lines = {}
         for line in lines:
             # Navegamos: de la línea vamos al Plan, y del Plan extraemos el Cliente
-            partner = line.payment_plan_id.partner_id
+            partner = line.sudo().payment_plan_id.partner_id
             
             if not partner:
                 continue # Si por alguna razón el plan no tiene cliente, lo saltamos
