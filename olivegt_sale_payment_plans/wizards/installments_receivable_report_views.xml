@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <data>
+
+    <record id="view_installments_receivable_report_wizard_form" model="ir.ui.view">
+      <field name="name">installments.receivable.report.wizard.form</field>
+      <field name="model">installments.receivable.report.wizard</field>
+      <field name="arch" type="xml">
+        <!-- Eliminamos el <header> para que se comporte como un formulario estático estándar -->
+        <form create="0" edit="0" delete="0">
+          <sheet>
+            <!-- Cuadro de mandos superior con totales automáticos -->
+            <group>
+              <field name="currency_id" invisible="1"/>
+              <field name="total_partners" readonly="1"/>
+              <field name="total_pending" widget="monetary" readonly="1"/>
+            </group>
+            
+            <field name="xlsx_file" invisible="1"/>
+            <field name="xlsx_filename" invisible="1"/>
+            
+            <field name="line_ids" nolabel="1">
+              <tree create="0" edit="0" delete="0" default_order="partner_id,due_date">
+                <field name="sequence" optional="show"/>
+                <field name="partner_id"/>
+                <field name="payment_plan_id"/>
+                <field name="description"/>
+                <field name="due_date"/>
+                <field name="original_amount" sum="Total" optional="show"/>
+                <field name="allocated_amount" sum="Total" optional="show"/>
+                <field name="pending_amount" sum="Total"/>
+                <field name="overdue_days"/>
+                <field name="state"/>
+              </tree>
+            </field>
+          </sheet>
+        </form>
+      </field>
+    </record>
+
+    <record id="action_installments_receivable_report_wizard" model="ir.actions.act_window">
+      <field name="name">Cuotas por Cobrar</field>
+      <field name="type">ir.actions.act_window</field>
+      <field name="res_model">installments.receivable.report.wizard</field>
+      <field name="view_mode">form</field>
+      <!-- CORRECCIÓN: Eliminamos target="new" para que se abra en pantalla completa -->
+    </record>
+
+  </data>
+</odoo>

@@ -36,6 +36,7 @@
         'views/sale_order_views.xml',
         'wizards/payment_plan_calculator_views.xml',
         'wizards/payment_plan_reconciliation_views.xml',
+        'wizards/installments_receivable_report_views.xml',
     ],
     'demo': [],
     'installable': True,
