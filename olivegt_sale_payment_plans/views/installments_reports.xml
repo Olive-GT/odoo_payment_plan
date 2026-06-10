@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <menuitem id="reports_root" 
-                  name="Reports" 
-                  groups="base.group_user"
-                  sequence="6"/>
         
         <record id="action_report" model="ir.actions.act_window">
             <field name="name">Lista de Reportes</field>
@@ -36,9 +32,8 @@
 
         <menuitem id="reports_submenu" 
                   name="Descarga de Reportes" 
-                  parent="reports_root" 
+                  parent="menu_payment_plans_root" 
                   action="action_report" 
-                  groups="base.group_user"
                   sequence="30"/>
     </data>
 </odoo>
