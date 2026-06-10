@@ -29,8 +29,8 @@ class ReporteInstallments(models.Model):
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
         
         # 2. Buscar las cuotas directamente usando el modelo real de Odoo
-        # NOTA: Reemplaza 'sale.payment.plan.line' por el nombre técnico real de tu modelo de cuotas
-        lines = self.env['sale.payment.plan.line'].search([
+        # NOTA: Reemplaza 'payment.plan.line' por el nombre técnico real de tu modelo de cuotas
+        lines = self.env['payment.plan.line'].search([
             ('state', 'in', ['pending', 'partial', 'overdue'])
         ])
         
