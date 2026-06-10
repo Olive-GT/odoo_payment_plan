@@ -57,7 +57,7 @@ class ReporteInstallments(models.Model):
         for partner in sorted_partners:
             p_lines = partner_lines[partner]
             # Ordenar las cuotas de este cliente por fecha de vencimiento
-            p_lines_sorted = sorted(p_lines, key=lambda l: l.due_date or fields.Date.today())
+            p_lines_sorted = sorted(p_lines, key=lambda l: l.payment_plan_id.date or fields.Date.today())
 
             # Sanitizar el nombre de la pestaña (Máximo 31 caracteres, sin caracteres prohibidos por Excel)
             raw_name = partner.name or f"Cliente_{partner.id}"
@@ -103,15 +103,15 @@ class ReporteInstallments(models.Model):
                 worksheet.write(row_idx, 1, line.payment_plan_id.name or '', data_format)
                 worksheet.write(row_idx, 2, line.description or '', data_format)
                 
-                date_str = line.due_date.strftime('%d/%m/%Y') if line.due_date else '—'
+                date_str = line.date.strftime('%d/%m/%Y') if line.date else '—'
                 worksheet.write(row_idx, 3, date_str, center_format)
                 
-                worksheet.write(row_idx, 4, line.original_amount or 0.0, amount_format)
+                worksheet.write(row_idx, 4, line.total_amount or 0.0, amount_format)
                 worksheet.write(row_idx, 5, line.allocated_amount or 0.0, amount_format)
-                worksheet.write(row_idx, 6, line.pending_amount or 0.0, amount_format)
-                worksheet.write(row_idx, 7, line.overdue_days or 0, center_format)
+                # worksheet.write(row_idx, 6, line.pending_amount or 0.0, amount_format)
+                worksheet.write(row_idx, 6, line.overdue_days or 0, center_format)
                 
-                readable_state = state_mapping.get(line.state, line.state or '—')
+                readable_state = state_mapping.get(line.payment_plan_id.state, line.state or '—')
                 worksheet.write(row_idx, 8, readable_state, center_format)
                 row_idx += 1
 
