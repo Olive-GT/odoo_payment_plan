@@ -37,12 +37,15 @@ class ReporteInstallments(models.Model):
         if not lines:
             raise UserError("No se encontraron cuotas pendientes o vencidas en el sistema para generar el reporte.")
 
-        # Agrupar las cuotas por cliente (partner_id)
+        # Agrupar las cuotas por cliente (navegando a través del plan de pago)
         partner_lines = {}
         for line in lines:
-            partner = line.partner_id
+            # Navegamos: de la línea vamos al Plan, y del Plan extraemos el Cliente
+            partner = line.payment_plan_id.partner_id
+            
             if not partner:
-                continue
+                continue # Si por alguna razón el plan no tiene cliente, lo saltamos
+                
             if partner not in partner_lines:
                 partner_lines[partner] = []
             partner_lines[partner].append(line)
