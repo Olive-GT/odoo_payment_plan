@@ -1,19 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <menuitem id="reports_root" name="Reports" sequence="5"/>
-        <menuitem id="reports_submenu" 
-                  name="Descarga de Reportes" 
-                  parent="reports_root" 
-                  action="action_report" 
-                  sequence="10"/>
-
-        <!-- WINDOW ACTION -->
+        <menuitem id="reports_root" name="Reports" sequence="6"/>
+        
+        <!-- WINDOW ACTION (Corregido res_model) -->
         <record id="action_report" model="ir.actions.act_window">
             <field name="name">Lista de Reportes</field>
             <field name="type">ir.actions.act_window</field>
-
-            <field name="res_model">olivegt_sale_payment_plans.reporte</field> 
+            <!-- CORRECCIÓN AQUÍ -->
+            <field name="res_model">olivegt_sale_payment_plans.reporte_installments</field> 
             <field name="view_mode">list,form</field>
             <field name="help" type="html">
                 <p class="o_view_nocontent_smiling_face">
@@ -22,19 +17,16 @@
             </field>
         </record>
 
-        <!-- VISTA DE LISTA  -->
+        <!-- VISTA DE LISTA (Corregido model) -->
         <record id="view_mi_modulo_reporte_list" model="ir.ui.view">
             <field name="name">olivegt_sale_payment_plans.reporte.list</field>
-            <field name="model">olivegt_sale_payment_plans.reporte</field>
+            <!-- CORRECCIÓN AQUÍ -->
+            <field name="model">olivegt_sale_payment_plans.reporte_installments</field>
             <field name="arch" type="xml">
                 <list string="Reportes Disponibles" create="false" edit="false">
                     <field name="name" string="Nombre del Reporte"/>
                     <field name="description" string="Descripción"/>
                     
-                    <!-- 
-                         - type="object"
-                         - name="action_descargar_reporte"
-                    -->
                     <button name="action_descargar_reporte" 
                             string="Descargar" 
                             type="object" 
@@ -43,5 +35,11 @@
                 </list>
             </field>
         </record>
+
+        <menuitem id="reports_submenu" 
+                  name="Descarga de Reportes" 
+                  parent="reports_root" 
+                  action="action_report" 
+                  sequence="30"/>
     </data>
 </odoo>

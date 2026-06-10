@@ -21,6 +21,8 @@ class Reporte(models.Model):
 
         return {
             'type': 'ir.actions.act_url',
-            'url': f'/web/content/?model=olivegt_sale_payment_plans.reporte&id={self.id}&field=report_file&filename_field=file_name&download=true',
+            # CORRECCIÓN EN EL PARÁMETRO MODEL DE LA URL
+            'url': f'/web/content/?model=olivegt_sale_payment_plans.reporte_installments&id={self.id}&field=report_file&filename_field=file_name&download=true',
             'target': 'self',
         }
+
