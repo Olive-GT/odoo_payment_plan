@@ -13,19 +13,19 @@
             </field>
         </record>
 
-        <record id="view_mi_modulo_reporte_list" model="ir.ui.view">
-            <field name="name">olivegt_sale_payment_plans.reporte.list</field>
+        <record id="view_reporte_installments_list" model="ir.ui.view">
+            <field name="name">olivegt_sale_payment_plans.reporte_installments.list</field>
             <field name="model">olivegt_sale_payment_plans.reporte_installments</field>
             <field name="arch" type="xml">
-                <list string="Reportes Disponibles" create="false" edit="false">
-                    <field name="name" string="Nombre del Reporte"/>
-                    <field name="description" string="Descripción"/>
+                <list string="Formatos Disponibles" create="false" delete="false" edit="false">
+                    <field name="name" string="Reporte"/>
+                    <field name="description" string="Descripción Básica"/>
                     
                     <button name="action_descargar_reporte" 
-                            string="Descargar" 
+                            string="Generar Excel (.xlsx)" 
                             type="object" 
-                            icon="fa-download" 
-                            class="btn-primary"/>
+                            icon="fa-file-excel-o" 
+                            class="btn-success"/>
                 </list>
             </field>
         </record>

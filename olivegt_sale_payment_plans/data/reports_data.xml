@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="registro_unico_reporte_cuotas" model="olivegt_sale_payment_plans.reporte_installments">
+            <field name="name">Reporte Global de Cuotas por Cobrar</field>
+            <field name="description">Genera un archivo Excel agrupado con pestañas independientes por cada cliente que tenga saldos pendientes de pago.</field>
+        </record>
+    </data>
+</odoo>

@@ -27,6 +27,7 @@
         'security/payment_plan_security.xml',
         'data/payment_plan_sequence.xml',
         'data/payment_plan_cron.xml',
+        'data/reports_data.xml',
         'reports/payment_plan_report.xml',
         'data/payment_plan_reconciliation_email_template.xml',
         'views/menu_payment_plan.xml',
