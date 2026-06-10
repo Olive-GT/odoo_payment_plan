@@ -17,7 +17,7 @@
             <field name="name">olivegt_sale_payment_plans.reporte.list</field>
             <field name="model">olivegt_sale_payment_plans.reporte_installments</field>
             <field name="arch" type="xml">
-                <tree string="Reportes Disponibles" create="false" edit="false">
+                <list string="Reportes Disponibles" create="false" edit="false">
                     <field name="name" string="Nombre del Reporte"/>
                     <field name="description" string="Descripción"/>
                     
@@ -26,7 +26,7 @@
                             type="object" 
                             icon="fa-download" 
                             class="btn-primary"/>
-                </tree>
+                </list>
             </field>
         </record>
 
