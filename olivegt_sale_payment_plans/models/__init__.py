@@ -4,3 +4,4 @@ from . import payment_plan_reconciliation
 from . import sale_order
 from . import account_move_line
 from . import company
+from . import reports
