@@ -15,11 +15,8 @@ class ReporteInstallments(models.Model):
     name = fields.Char(string="Title", required=True)
     description = fields.Text(string="Description")
     
-    # NUEVO CAMPO: Define el tipo técnico del reporte
     report_type = fields.Selection([
-        ('installments_overdue', 'Global de Cuotas por Cobrar'),
-        ('payment_history', 'Historial de Pagos Recibidos'),  # Ejemplo de reporte 2
-        ('interest_generated', 'Reporte de Intereses Clientes'), # Ejemplo de reporte 3
+        ('installments_overdue', 'Global de Cuotas por Cobrar')
     ], string="Tipo de Reporte", required=True, default='installments_overdue')
 
     excel_file = fields.Binary(string="Archivo Excel")
