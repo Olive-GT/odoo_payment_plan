@@ -82,37 +82,33 @@ class ReporteInstallments(models.Model):
             'bottom': 2  
         })
         
-        # 2. Buscar las cuotas directamente usando el modelo real de Odoo
-        lines = self.env['payment.plan.line'].sudo().search([
-            ('state', 'in', ['pending', 'partial', 'overdue'])
+        # 2. Buscar TODOS los planes activos primero para saber 
+        # qué clientes tienen movimientos
+        all_lines = self.env['payment.plan.line'].sudo().search([
+            ('state', 'in', ['pending', 'partial', 'overdue']),
+            ('paid', '=', False),
+            ('date', '<', fields.Date.context_today(self))
         ])
         
-        if not lines:
-            raise UserError("No se encontraron cuotas pendientes o vencidas en el sistema para generar el reporte.")
+        if not all_lines:
+            raise UserError("No se encontraron cuotas vencidas y pendientes en el sistema para generar el reporte.")
 
-        # Agrupar las cuotas por cliente
-        partner_lines = {}
-        for line in lines:
-            partner = line.sudo().payment_plan_id.partner_id
-            if not partner:
-                continue 
-                
-            if partner not in partner_lines:
-                partner_lines[partner] = []
-            partner_lines[partner].append(line)
+        # Agrupamos los partners únicos que tienen cuotas vencidas
+        partners = all_lines.mapped('payment_plan_id.partner_id')
+        sorted_partners = sorted(partners, key=lambda p: p.display_name or '')
 
-        # 3. Construir una pestaña (Sheet) por cada Cliente
-        sorted_partners = sorted(partner_lines.keys(), key=lambda p: p.display_name or '')
-
+        # 3. Construir las pestañas
         for partner in sorted_partners:
-            lines = self.env['payment.plan.line'].sudo().search([
+            p_lines_sorted = self.env['payment.plan.line'].sudo().search([
+                ('payment_plan_id.partner_id', '=', partner.id),
                 ('state', 'in', ['pending', 'partial', 'overdue']),
                 ('paid', '=', False),
-                ('date', '<', Date.context_today(self))
-            ])
-            
-            if not lines:
-                raise UserError("No se encontraron cuotas vencidas y pendientes en el sistema para generar el reporte.")
+                ('date', '<', fields.Date.context_today(self))
+            ], order='date asc')
+
+            # Si este cliente no tiene líneas que cumplan el criterio, saltamos a la siguiente pestaña
+            if not p_lines_sorted:
+                continue
 
             # Sanitizar el nombre de la pestaña
             raw_name = partner.name or f"Cliente_{partner.id}"
