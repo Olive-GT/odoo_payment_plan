@@ -3,12 +3,12 @@
     <data>
         
         <record id="action_report" model="ir.actions.act_window">
-            <field name="name">Lista de Reportes</field>
+            <field name="name">Reportes</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">olivegt_sale_payment_plans.reporte_installments</field> 
             <field name="view_mode">list,form</field> <field name="help" type="html">
                 <p class="o_view_nocontent_smiling_face">
-                    No hay reportes definidos aún. ¡Pero el menú funciona!
+                    No hay reportes definidos aún.
                 </p>
             </field>
         </record>
@@ -19,12 +19,12 @@
             <field name="arch" type="xml">
                 <list string="Formatos Disponibles" create="false" delete="false" edit="false">
                     <field name="name" string="Reporte"/>
-                    <field name="description" string="Descripción Básica"/>
+                    <field name="description" string="Descripción"/>
                     
                     <button name="action_descargar_reporte" 
-                            string="Generar Excel (.xlsx)" 
+                            string="Descargar reporte (.xlsx)" 
                             type="object" 
-                            icon="fa-file-excel-o" 
+                            icon="fa fa-download" 
                             class="btn-success"/>
                 </list>
             </field>

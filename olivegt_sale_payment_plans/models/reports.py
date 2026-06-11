@@ -30,20 +30,17 @@ class ReporteInstallments(models.Model):
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
         
         title_format = workbook.add_format({
-            'bold': True,
-            'size': 14,
+            'size': 10,
             'align': 'center',
             'valign': 'vcenter'
         })
 
         header_format = workbook.add_format({
-            'bold': True,
             'size': 10,
             'align': 'center',
             'valign': 'vcenter',
             'bottom': 1,
-            'top': 1,
-            'bg_color': '#F2F2F2'  # Gris claro muy sutil típico de Odoo
+            'top': 1
         })
 
         data_format = workbook.add_format({
@@ -66,7 +63,6 @@ class ReporteInstallments(models.Model):
         })
 
         total_label_format = workbook.add_format({
-            'bold': True,
             'size': 10,
             'align': 'right',
             'valign': 'vcenter',
@@ -122,14 +118,14 @@ class ReporteInstallments(models.Model):
             worksheet.hide_gridlines(0)
 
             # Título superior de la hoja
-            worksheet.merge_range('A1:I1', f"CUOTAS POR COBRAR - {partner.name.upper()}", title_format)
+            worksheet.merge_range('A1:I1', partner.name.upper(), title_format)
             worksheet.set_row(0, 30)
 
             # Definir encabezados de columnas con nombres genéricos limpios tipo reporte Odoo
-            headers = ['#', 'Plan de Pago', 'Descripción Cuota', 'Fecha Vence', 'Monto Original', 'Monto Asignado', 'Monto Pendiente', 'Días Venc.', 'Estado']
-            worksheet.set_row(2, 22) 
+            headers = ['number', 'payment_plan', 'description', 'overdue_date', 'total_amount', 'allocated_amount', 'pending_amount', 'overdue_days', 'state']
+            worksheet.set_row(1, 22) 
             for col_num, header in enumerate(headers):
-                worksheet.write(2, col_num, header, header_format)
+                worksheet.write(1, col_num, header, header_format)
             
             # Anchos óptimos de columna
             worksheet.set_column('A:A', 5)   # #

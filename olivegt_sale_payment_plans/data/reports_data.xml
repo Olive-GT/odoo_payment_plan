@@ -3,7 +3,10 @@
     <data noupdate="1">
         <record id="registro_unico_reporte_cuotas" model="olivegt_sale_payment_plans.reporte_installments">
             <field name="name">Reporte Global de Cuotas por Cobrar</field>
-            <field name="description">Genera un archivo Excel agrupado con pestañas independientes por cada cliente que tenga saldos pendientes de pago.</field>
+            <field name="description">
+                Genera un archivo Excel agrupado con pestañas independientes por cada cliente que tenga saldos pendientes de pago.
+                Las líneas de planes de pago que se incluyen son las pendientes, o parciales que ya se hayan vencido.
+            </field>
         </record>
     </data>
 </odoo>
