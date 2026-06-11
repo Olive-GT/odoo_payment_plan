@@ -1,5 +1,5 @@
 import io
-import base64
+from odoo.fields import Date
 from odoo import models, fields, api
 from odoo.exceptions import UserError
 
@@ -105,9 +105,14 @@ class ReporteInstallments(models.Model):
         sorted_partners = sorted(partner_lines.keys(), key=lambda p: p.display_name or '')
 
         for partner in sorted_partners:
-            p_lines = partner_lines[partner]
-            # Se ordena por el campo 'date' directo de la línea (Due Date)
-            p_lines_sorted = sorted(p_lines, key=lambda l: l.date or fields.Date.today())
+            lines = self.env['payment.plan.line'].sudo().search([
+                ('state', 'in', ['pending', 'partial', 'overdue']),
+                ('paid', '=', False),
+                ('date', '<', Date.context_today(self))
+            ])
+            
+            if not lines:
+                raise UserError("No se encontraron cuotas vencidas y pendientes en el sistema para generar el reporte.")
 
             # Sanitizar el nombre de la pestaña
             raw_name = partner.name or f"Cliente_{partner.id}"
