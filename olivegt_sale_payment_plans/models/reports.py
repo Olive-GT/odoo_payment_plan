@@ -28,7 +28,6 @@ class ReporteInstallments(models.Model):
         output = io.BytesIO()
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
         
-        #
         title_format = workbook.add_format({
             'bold': True,
             'size': 14,
@@ -80,7 +79,7 @@ class ReporteInstallments(models.Model):
             'valign': 'vcenter',
             'num_format': '#,##0.00',
             'top': 1,
-            'bottom': 2 
+            'bottom': 2  
         })
         
         # 2. Buscar las cuotas directamente usando el modelo real de Odoo
@@ -107,6 +106,7 @@ class ReporteInstallments(models.Model):
 
         for partner in sorted_partners:
             p_lines = partner_lines[partner]
+            # Se ordena por el campo 'date' directo de la línea (Due Date)
             p_lines_sorted = sorted(p_lines, key=lambda l: l.date or fields.Date.today())
 
             # Sanitizar el nombre de la pestaña
@@ -123,25 +123,26 @@ class ReporteInstallments(models.Model):
             worksheet.merge_range('A1:I1', f"CUOTAS POR COBRAR - {partner.name.upper()}", title_format)
             worksheet.set_row(0, 30)
 
-            # Definir encabezados de columnas
-            headers = ['#', 'Plan', 'Cuota', 'Vence', 'Original', 'Pagado', 'Pendiente', 'Días Venc.', 'Estado']
+            # Definir encabezados de columnas con nombres genéricos limpios tipo reporte Odoo
+            headers = ['#', 'Plan de Pago', 'Descripción Cuota', 'Fecha Vence', 'Monto Original', 'Monto Asignado', 'Monto Pendiente', 'Días Venc.', 'Estado']
             worksheet.set_row(2, 22) 
             for col_num, header in enumerate(headers):
                 worksheet.write(2, col_num, header, header_format)
             
             # Anchos óptimos de columna
             worksheet.set_column('A:A', 5)   # #
-            worksheet.set_column('B:B', 22)  # Plan
-            worksheet.set_column('C:C', 30)  # Cuota (Descripción)
-            worksheet.set_column('D:D', 13)  # Vence
-            worksheet.set_column('E:G', 15)  # Original, Pagado, Pendiente
+            worksheet.set_column('B:B', 22)  # Plan de Pago
+            worksheet.set_column('C:C', 30)  # Descripción Cuota
+            worksheet.set_column('D:D', 13)  # Fecha Vence
+            worksheet.set_column('E:G', 15)  # Original, Asignado, Pendiente
             worksheet.set_column('H:H', 12)  # Días Venc.
-            worksheet.set_column('I:I', 13)  # Estado
+            worksheet.set_column('I:I', 15)  # Estado
 
-            # Mapeo amigable para los estados técnicos
             state_mapping = {
                 'pending': 'Pendiente',
-                'partial': 'Parcial',
+                'partial': 'Parcialmente Asignado',
+                'allocated': 'Asignado',
+                'paid': 'Pagado',
                 'overdue': 'Vencido'
             }
 
@@ -150,22 +151,28 @@ class ReporteInstallments(models.Model):
             for idx, line in enumerate(p_lines_sorted):
                 worksheet.set_row(row_idx, 18)
                 worksheet.write(row_idx, 0, idx + 1, center_format)
-                worksheet.write(row_idx, 1, line.payment_plan_id.name or '', data_format)
-                worksheet.write(row_idx, 2, line.description or '', data_format)
                 
+                # Nombre del plan de pago (Cabecera)
+                worksheet.write(row_idx, 1, line.payment_plan_id.name or '', data_format)
+                # Descripción de la línea (Mapeado a tu campo 'name')
+                worksheet.write(row_idx, 2, line.name or '', data_format)
+                
+                # Fecha de vencimiento de la línea
                 date_str = line.date.strftime('%d/%m/%Y') if line.date else '—'
                 worksheet.write(row_idx, 3, date_str, center_format)
                 
-                worksheet.write(row_idx, 4, line.total_amount or 0.0, amount_format)
+                # Montos correctos mapeados a la línea
+                worksheet.write(row_idx, 4, line.amount or 0.0, amount_format)
                 worksheet.write(row_idx, 5, line.allocated_amount or 0.0, amount_format)
                 
-                # Se utiliza una resta matemática para el saldo pendiente real en la col G (columna 6)
-                pending_amount = (line.total_amount or 0.0) - (line.allocated_amount or 0.0)
+                # Cálculo de saldo pendiente correcto por línea individual (Monto original - Monto Asignado)
+                pending_amount = (line.amount or 0.0) - (line.allocated_amount or 0.0)
                 worksheet.write(row_idx, 6, pending_amount, amount_format)
                 
-                # Se corrige el índice de columna para Días Vencidos (Columna H = 7)
+                # Días vencidos de la línea
                 worksheet.write(row_idx, 7, line.overdue_days or 0, center_format)
                 
+                # Estado actual de la línea
                 readable_state = state_mapping.get(line.state, line.state or '—')
                 worksheet.write(row_idx, 8, readable_state, center_format)
                 row_idx += 1
