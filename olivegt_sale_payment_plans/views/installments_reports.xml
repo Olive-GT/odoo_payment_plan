@@ -18,13 +18,13 @@
             <field name="model">olivegt_sale_payment_plans.reporte_installments</field>
             <field name="arch" type="xml">
                 <list string="Formatos Disponibles" create="false" delete="false" edit="false">
-                    <field name="name" string="Reporte"/>
-                    <field name="description" string="Descripción"/>
+                    <field name="name" string="Name"/>
+                    <field name="description" string="Description"/>
                     
                     <button name="action_descargar_reporte" 
                             string="Descargar reporte (.xlsx)" 
                             type="object" 
-                            icon="fa fa-download" 
+                            icon="fa-file-excel-o" 
                             class="btn-success"/>
                 </list>
             </field>
