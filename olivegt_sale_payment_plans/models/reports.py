@@ -143,8 +143,20 @@ class ReporteInstallments(models.Model):
                 
                 pending_amount = (line.amount or 0.0) - (line.allocated_amount or 0.0)
                 worksheet.write(row_idx, 6, pending_amount, amount_format)
-                worksheet.write(row_idx, 7, line.overdue_days or 0, center_format)
-                
+
+                # overdue days 
+                temp_overdue_days = 0
+                if line.overdue_days:
+                    temp_overdue_days = line.overdue_days
+                # calculo de los dias de vencimiento calculado segun el overdue_date
+                elif line.date:
+                    hoy = fields.Date.context_today(self)
+                    if line.date < hoy:
+                        temp_overdue_days = (hoy - line.date).days
+
+                worksheet.write(row_idx, 7, temp_overdue_days, center_format)
+
+
                 readable_state = state_mapping.get(line.state, line.state or '—')
                 worksheet.write(row_idx, 8, readable_state, center_format)
                 row_idx += 1
