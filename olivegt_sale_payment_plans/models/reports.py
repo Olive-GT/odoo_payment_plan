@@ -28,8 +28,62 @@ class ReporteInstallments(models.Model):
         output = io.BytesIO()
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
         
+        #
+        title_format = workbook.add_format({
+            'bold': True,
+            'size': 14,
+            'align': 'center',
+            'valign': 'vcenter'
+        })
+
+        header_format = workbook.add_format({
+            'bold': True,
+            'size': 10,
+            'align': 'center',
+            'valign': 'vcenter',
+            'bottom': 1,
+            'top': 1,
+            'bg_color': '#F2F2F2'  # Gris claro muy sutil típico de Odoo
+        })
+
+        data_format = workbook.add_format({
+            'size': 10,
+            'align': 'left',
+            'valign': 'vcenter'
+        })
+
+        center_format = workbook.add_format({
+            'size': 10,
+            'align': 'center',
+            'valign': 'vcenter'
+        })
+
+        amount_format = workbook.add_format({
+            'size': 10,
+            'align': 'right',
+            'valign': 'vcenter',
+            'num_format': '#,##0.00'
+        })
+
+        total_label_format = workbook.add_format({
+            'bold': True,
+            'size': 10,
+            'align': 'right',
+            'valign': 'vcenter',
+            'top': 1
+        })
+
+        total_amount_format = workbook.add_format({
+            'bold': True,
+            'size': 10,
+            'align': 'right',
+            'valign': 'vcenter',
+            'num_format': '#,##0.00',
+            'top': 1,
+            'bottom': 2 
+        })
+        
         # 2. Buscar las cuotas directamente usando el modelo real de Odoo
-        # NOTA: Reemplaza 'payment.plan.line' por el nombre técnico real de tu modelo de cuotas
         lines = self.env['payment.plan.line'].sudo().search([
             ('state', 'in', ['pending', 'partial', 'overdue'])
         ])
@@ -37,34 +91,30 @@ class ReporteInstallments(models.Model):
         if not lines:
             raise UserError("No se encontraron cuotas pendientes o vencidas en el sistema para generar el reporte.")
 
-        # Agrupar las cuotas por cliente (navegando a través del plan de pago)
+        # Agrupar las cuotas por cliente
         partner_lines = {}
         for line in lines:
-            # Navegamos: de la línea vamos al Plan, y del Plan extraemos el Cliente
             partner = line.sudo().payment_plan_id.partner_id
-            
             if not partner:
-                continue # Si por alguna razón el plan no tiene cliente, lo saltamos
+                continue 
                 
             if partner not in partner_lines:
                 partner_lines[partner] = []
             partner_lines[partner].append(line)
 
         # 3. Construir una pestaña (Sheet) por cada Cliente
-        # Ordenamos los clientes alfabéticamente por su nombre visible
         sorted_partners = sorted(partner_lines.keys(), key=lambda p: p.display_name or '')
 
         for partner in sorted_partners:
             p_lines = partner_lines[partner]
-            # Ordenar las cuotas de este cliente por fecha de vencimiento
-            p_lines_sorted = sorted(p_lines, key=lambda l: l.payment_plan_id.date or fields.Date.today())
+            p_lines_sorted = sorted(p_lines, key=lambda l: l.date or fields.Date.today())
 
-            # Sanitizar el nombre de la pestaña (Máximo 31 caracteres, sin caracteres prohibidos por Excel)
+            # Sanitizar el nombre de la pestaña
             raw_name = partner.name or f"Cliente_{partner.id}"
             sheet_name = raw_name[:30].translate(str.maketrans('', '', '[]:*?\/'))
             
             worksheet = workbook.add_worksheet(sheet_name)
-            worksheet.set_landscape() # Formato horizontal para que quepa bien
+            worksheet.set_landscape() 
 
             # Forzar cuadrícula visible en Excel
             worksheet.hide_gridlines(0)
@@ -75,7 +125,7 @@ class ReporteInstallments(models.Model):
 
             # Definir encabezados de columnas
             headers = ['#', 'Plan', 'Cuota', 'Vence', 'Original', 'Pagado', 'Pendiente', 'Días Venc.', 'Estado']
-            worksheet.set_row(2, 22) # Altura del encabezado
+            worksheet.set_row(2, 22) 
             for col_num, header in enumerate(headers):
                 worksheet.write(2, col_num, header, header_format)
             
@@ -108,16 +158,22 @@ class ReporteInstallments(models.Model):
                 
                 worksheet.write(row_idx, 4, line.total_amount or 0.0, amount_format)
                 worksheet.write(row_idx, 5, line.allocated_amount or 0.0, amount_format)
-                # worksheet.write(row_idx, 6, line.pending_amount or 0.0, amount_format)
-                worksheet.write(row_idx, 6, line.overdue_days or 0, center_format)
                 
-                readable_state = state_mapping.get(line.payment_plan_id.state, line.state or '—')
+                # Se utiliza una resta matemática para el saldo pendiente real en la col G (columna 6)
+                pending_amount = (line.total_amount or 0.0) - (line.allocated_amount or 0.0)
+                worksheet.write(row_idx, 6, pending_amount, amount_format)
+                
+                # Se corrige el índice de columna para Días Vencidos (Columna H = 7)
+                worksheet.write(row_idx, 7, line.overdue_days or 0, center_format)
+                
+                readable_state = state_mapping.get(line.state, line.state or '—')
                 worksheet.write(row_idx, 8, readable_state, center_format)
                 row_idx += 1
 
             # Agregar fila de Subtotales por hoja de cliente utilizando fórmulas de Excel nativas
             worksheet.set_row(row_idx, 20)
             worksheet.write(row_idx, 3, "Total Cliente:", total_label_format)
+            
             # Excel cuenta las filas desde 1, por lo tanto en las fórmulas usamos row_idx + 1
             worksheet.write_formula(row_idx, 4, f"=SUM(E4:E{row_idx})", total_amount_format)
             worksheet.write_formula(row_idx, 5, f"=SUM(F4:F{row_idx})", total_amount_format)
@@ -129,7 +185,6 @@ class ReporteInstallments(models.Model):
         excel_data = base64.b64encode(output.read())
         output.close()
 
-        # Guardar el archivo generado en el registro actual
         self.write({
             'excel_file': excel_data,
             'excel_filename': f"Cuentas_Por_Cobrar_{fields.Date.today().strftime('%d_%m_%Y')}.xlsx"
