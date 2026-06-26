@@ -64,7 +64,7 @@ class ReporteInstallments(models.Model):
         }
 
     def _generate_installments_overdue(self, workbook):
-        """ REPORTE 1: Cuotas por cobrar (Tu código actual estructurado) """
+        """ REPORTE 1: Cuotas por cobrar """
         # Creamos los formatos locales que requiere este reporte específico
         title_format = workbook.add_format({'size': 10, 'align': 'center', 'valign': 'vcenter'})
         header_format = workbook.add_format({'size': 10, 'align': 'center', 'valign': 'vcenter', 'bottom': 1, 'top': 1})
@@ -75,6 +75,7 @@ class ReporteInstallments(models.Model):
         total_amount_format = workbook.add_format({'size': 10, 'align': 'right', 'valign': 'vcenter', 'num_format': '#,##0.00', 'top': 1, 'bottom': 2})
 
         all_lines = self.env['payment.plan.line'].sudo().search([
+            ('payment_plan_id.company_id', '=', self.env.company.id),
             ('state', 'in', ['pending', 'partial', 'overdue']),
             ('paid', '=', False),
             ('date', '<', fields.Date.context_today(self))
