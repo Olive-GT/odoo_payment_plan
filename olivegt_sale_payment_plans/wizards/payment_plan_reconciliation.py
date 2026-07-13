@@ -53,34 +53,65 @@ class PaymentPlanReconciliationWizardLine(models.TransientModel):
         string='Currency',
         store=False
     )
-    
+
+    company_currency_id = fields.Many2one(
+        related='wizard_id.company_currency_id',
+        string='Company Currency',
+        store=False
+    )
+
+    is_multicurrency = fields.Boolean(
+        related='wizard_id.is_multicurrency',
+        store=False
+    )
+
     payment_reference = fields.Char(
         related='move_id.payment_reference',
         string='Reference',
         store=False
     )
-    
+
     partner_id = fields.Many2one(
         related='move_id.partner_id',
         string='Partner',
         store=False
     )
-    
+
     amount = fields.Monetary(
-        string='Amount',
-        help='Amount to allocate from this journal item'
+        string='Dollars',
+        help='Amount consumed from the payment plan line, in the plan currency '
+             '(e.g. USD). Result of dividing the GTQ amount by the exchange rate.'
     )
-    
+
+    exchange_rate = fields.Float(
+        string='Exchange Rate',
+        default=0.0,
+        digits=(12, 6),
+        help='Quetzales per dollar. Type this and the dollars are computed, or '
+             'type the dollars and this rate is computed automatically. Starts '
+             'empty so the dollars stay blank until you enter the agreed rate.'
+    )
+
+    amount_company = fields.Monetary(
+        string='Quetzales',
+        currency_field='company_currency_id',
+        help='Portion of the bank deposit (in GTQ) applied to this line. '
+             'Defaults to the full available amount; lower it for a partial '
+             'application. This is the pivot of the conversion.'
+    )
+
     available_amount = fields.Monetary(
         string='Available',
+        currency_field='company_currency_id',
         compute='_compute_available',
-        help='Available amount that can be allocated'
+        help='Available amount that can be allocated (company currency, GTQ)'
     )
-    
+
     original_amount = fields.Monetary(
         string='Original',
+        currency_field='company_currency_id',
         compute='_compute_available',
-        help='Original amount of the journal item'
+        help='Original amount of the journal item (company currency, GTQ)'
     )
     
     @api.onchange('move_line_id')
@@ -98,30 +129,76 @@ class PaymentPlanReconciliationWizardLine(models.TransientModel):
                 line.available_amount = 0.0  # No available amount for existing reconciliations
                 continue
                 
-            # Calculate original amount from move line
+            # Calculate original amount from move line (company currency, GTQ)
             line.original_amount = abs(line.move_line_id.balance)
-            
+
             # Find existing reconciliations for this move line
             reconciliations = self.env['payment.plan.reconciliation'].search([
                 ('move_line_id', '=', line.move_line_id.id),
                 ('state', '=', 'confirmed')
             ])
-            allocated = sum(reconciliations.mapped('amount'))            # Available amount is original minus allocated
+            # Consume the deposit in company currency (GTQ)
+            allocated = sum(reconciliations.mapped('amount_company'))
+            # Available amount is original minus allocated
             line.available_amount = line.original_amount - allocated
-            # If no amount is set and it's not a readonly line, default to available amount
-            if not line.amount and not line.is_readonly:
-                line.amount = min(line.available_amount, line.wizard_id.remaining_to_allocate)
+
+            if line.is_readonly:
+                continue
+
+            if line.is_multicurrency:
+                # USD plan: the GTQ amount is the pivot and defaults to the full
+                # available deposit; the dollars are derived from the rate.
+                if not line.amount_company:
+                    line.amount_company = line.available_amount
+                if line.exchange_rate:
+                    line.amount = line.amount_company / line.exchange_rate
+            else:
+                # GTQ plan: unchanged legacy behaviour.
+                if not line.amount:
+                    line.amount = min(line.available_amount, line.wizard_id.remaining_to_allocate)
     
     @api.onchange('move_line_id')
     def _onchange_move_line_id(self):
-        """When move_line_id changes, automatically set the amount to the lesser of 
-        available amount or remaining to allocate"""
+        """When move_line_id changes, prefill the amounts.
+
+        - GTQ plans: legacy behaviour (amount = min(available, remaining)).
+        - USD plans: default the GTQ pivot to the full available deposit and
+          derive the dollars from the current rate.
+        """
         for line in self:
             if line.move_line_id and not line.is_readonly:
                 # First ensure available amount is calculated
-                line._compute_available()                # Then set the amount based on availability and remaining to allocate
-                if line.wizard_id and line.available_amount > 0:
-                    line.amount = min(line.available_amount, line.wizard_id.remaining_to_allocate)
+                line._compute_available()
+                if line.is_multicurrency:
+                    if line.available_amount > 0:
+                        line.amount_company = line.available_amount
+                        if line.exchange_rate:
+                            line.amount = line.amount_company / line.exchange_rate
+                else:
+                    # Then set the amount based on availability and remaining to allocate
+                    if line.wizard_id and line.available_amount > 0:
+                        line.amount = min(line.available_amount, line.wizard_id.remaining_to_allocate)
+
+    @api.onchange('exchange_rate', 'amount_company')
+    def _onchange_rate_or_company(self):
+        """Two-way calculator (USD side): the GTQ amount is the pivot, so typing
+        the rate (or changing the GTQ) recomputes the dollars."""
+        for line in self:
+            if line.is_readonly or not line.is_multicurrency:
+                continue
+            if line.exchange_rate:
+                line.amount = line.amount_company / line.exchange_rate
+
+    @api.onchange('amount')
+    def _onchange_amount_usd(self):
+        """Two-way calculator (USD side): typing the dollars recomputes the rate
+        from the GTQ pivot. Consistent with _onchange_rate_or_company, so the
+        cascade converges to amount_company = amount * exchange_rate."""
+        for line in self:
+            if line.is_readonly or not line.is_multicurrency:
+                continue
+            if line.amount:
+                line.exchange_rate = line.amount_company / line.amount
     
     @api.model
     def create(self, values):
@@ -132,18 +209,29 @@ class PaymentPlanReconciliationWizardLine(models.TransientModel):
             return super(PaymentPlanReconciliationWizardLine, self).create(values)
         return super(PaymentPlanReconciliationWizardLine, self).create(values)
 
-    @api.constrains('amount', 'is_readonly')
+    @api.constrains('amount', 'amount_company', 'is_readonly')
     def _check_amount(self):
         for line in self:
             # Skip validation for readonly lines or lines without move_line_id
             if line.is_readonly or not line.move_line_id:
                 continue
-                
-            if float_compare(line.amount, 0.0, precision_rounding=line.currency_id.rounding) < 0:
+
+            # The deposit is consumed in company currency (GTQ). For USD plans the
+            # bound is amount_company vs available; for GTQ plans amount is the
+            # same magnitude, keeping the legacy check.
+            if line.is_multicurrency:
+                consumed = line.amount_company
+                rounding = line.company_currency_id.rounding
+                if float_compare(line.amount, 0.0, precision_rounding=line.currency_id.rounding) <= 0:
+                    raise ValidationError(_("The dollar amount must be positive."))
+            else:
+                consumed = line.amount
+                rounding = line.currency_id.rounding
+
+            if float_compare(consumed, 0.0, precision_rounding=rounding) < 0:
                 raise ValidationError(_("Amount must be positive."))
-                
-            if float_compare(line.amount, line.available_amount, 
-                          precision_rounding=line.currency_id.rounding) > 0:
+
+            if float_compare(consumed, line.available_amount, precision_rounding=rounding) > 0:
                 raise ValidationError(_("Cannot allocate more than the available amount."))
 
 
@@ -186,7 +274,29 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
         related='payment_plan_id.company_id',
         store=False
     )
-    
+
+    company_currency_id = fields.Many2one(
+        'res.currency',
+        string='Company Currency',
+        related='payment_plan_id.company_id.currency_id',
+        store=False
+    )
+
+    is_multicurrency = fields.Boolean(
+        string='Multicurrency',
+        compute='_compute_is_multicurrency',
+        help='True when the plan currency differs from the company currency; '
+             'that is when the exchange-rate fields become relevant.'
+    )
+
+    @api.depends('currency_id', 'company_currency_id')
+    def _compute_is_multicurrency(self):
+        for wizard in self:
+            wizard.is_multicurrency = bool(
+                wizard.currency_id and wizard.company_currency_id
+                and wizard.currency_id != wizard.company_currency_id
+            )
+
     date = fields.Date(
         string='Date',
         default=lambda self: fields.Date.context_today(self),
@@ -291,6 +401,8 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
                 commands.append((0, 0, {
                     'move_line_id': rec.move_line_id.id,
                     'amount': rec.amount,
+                    'amount_company': rec.amount_company,
+                    'exchange_rate': rec.exchange_rate,
                     'is_readonly': True,
                     'existing_reconciliation_id': rec.id,
                 }))
@@ -313,7 +425,10 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
             vals = {
                 'wizard_id': self.id,
                 'move_line_id': rec.move_line_id.id,
-                'amount': rec.amount,                'is_readonly': True,
+                'amount': rec.amount,
+                'amount_company': rec.amount_company,
+                'exchange_rate': rec.exchange_rate,
+                'is_readonly': True,
                 'existing_reconciliation_id': rec.id,
             }
             self.env['payment.plan.reconciliation.wizard.line'].create(vals)
@@ -367,6 +482,10 @@ class PaymentPlanReconciliationWizard(models.TransientModel):
                 'payment_plan_line_id': self.payment_plan_line_id.id,
                 'move_line_id': line.move_line_id.id,
                 'amount': line.amount,
+                # For USD plans the GTQ pivot and rate are carried through; for GTQ
+                # plans amount_company == amount and rate == 1 (model default).
+                'amount_company': line.amount_company if line.is_multicurrency else line.amount,
+                'exchange_rate': line.exchange_rate or 1.0,
                 'date': move_date,  # Usar la fecha del move_id, no la fecha del wizard
                 'state': 'draft',
             })

@@ -42,12 +42,45 @@ class PaymentPlanReconciliation(models.Model):
     amount = fields.Monetary(
         string='Allocated Amount',
         required=True,
-        help='Amount allocated to this payment plan line'
+        help='Amount allocated to this payment plan line, in the plan currency (e.g. USD).'
     )
     currency_id = fields.Many2one(
         related='payment_plan_line_id.currency_id',
         string='Currency'
     )
+    company_currency_id = fields.Many2one(
+        related='company_id.currency_id',
+        string='Company Currency',
+        help='Accounting currency of the company (e.g. GTQ).'
+    )
+    exchange_rate = fields.Float(
+        string='Exchange Rate',
+        default=1.0,
+        digits=(12, 6),
+        help='Company-currency units per one unit of the plan currency '
+             '(e.g. quetzales per dollar). It is 1 when the plan is already '
+             'in the company currency, so existing GTQ plans are unaffected.'
+    )
+    amount_company = fields.Monetary(
+        string='Amount (Company Currency)',
+        currency_field='company_currency_id',
+        help='Portion of the bank deposit consumed by this allocation, in the '
+             'company currency (GTQ). Pivot of the conversion: '
+             'amount = amount_company / exchange_rate.'
+    )
+    is_multicurrency = fields.Boolean(
+        string='Multicurrency',
+        compute='_compute_is_multicurrency',
+        help='True when the plan currency differs from the company currency.'
+    )
+
+    @api.depends('currency_id', 'company_currency_id')
+    def _compute_is_multicurrency(self):
+        for rec in self:
+            rec.is_multicurrency = bool(
+                rec.currency_id and rec.company_currency_id
+                and rec.currency_id != rec.company_currency_id
+            )
     date = fields.Date(
         string='Date',
         default=lambda self: fields.Date.context_today(self),
@@ -111,9 +144,15 @@ class PaymentPlanReconciliation(models.Model):
             if float_compare(rec.amount, 0.0, precision_rounding=rec.currency_id.rounding) <= 0:
                 raise ValidationError(_("Allocated amount must be positive."))
     
-    @api.constrains('move_line_id', 'amount')
+    @api.constrains('move_line_id', 'amount_company')
     def _check_available_amount(self):
-        """Ensure allocated amount doesn't exceed available amount in move line"""
+        """Ensure allocated amount doesn't exceed available amount in move line.
+
+        This check lives entirely in the company currency (GTQ): the bank deposit
+        is in GTQ, so the amount consumed from it (``amount_company``) is what we
+        compare. For GTQ plans ``amount_company`` equals ``amount``, so behaviour
+        is identical to before.
+        """
         for rec in self:
             # Get all allocations for this move line
             allocations = self.search([
@@ -121,16 +160,16 @@ class PaymentPlanReconciliation(models.Model):
                 ('state', '!=', 'cancelled'),
                 ('id', '!=', rec.id)  # Exclude current record
             ])
-            
-            # Calculate already allocated amount
-            allocated_amount = sum(allocations.mapped('amount'))
-            
+
+            # Calculate already allocated amount (company currency)
+            allocated_amount = sum(allocations.mapped('amount_company'))
+
             # Calculate available amount from move line (debit or credit)
             available_amount = abs(rec.move_line_id.balance)
-            
+
             # Check if allocation exceeds available amount
-            if float_compare(allocated_amount + rec.amount, available_amount, 
-                           precision_rounding=rec.currency_id.rounding) > 0:
+            if float_compare(allocated_amount + rec.amount_company, available_amount,
+                           precision_rounding=rec.company_currency_id.rounding) > 0:
                 raise ValidationError(_(
                     "Cannot allocate more than the available amount.\n"
                     "Available: %(available).2f\n"
@@ -139,7 +178,7 @@ class PaymentPlanReconciliation(models.Model):
                 ) % {
                     'available': available_amount,
                     'allocated': allocated_amount,
-                    'amount': rec.amount
+                    'amount': rec.amount_company
                 })
     
     @api.constrains('payment_plan_line_id', 'amount')
@@ -377,7 +416,17 @@ class PaymentPlanReconciliation(models.Model):
             if move_line and move_line.move_id.date:
                 # Siempre forzar la fecha del asiento contable, incluso si ya hay una fecha en vals
                 vals['date'] = move_line.move_id.date
-        elif not vals.get('date'):
+
+        # Backward-compatible default for the company-currency amount.
+        # When the caller does not provide amount_company (e.g. GTQ plans or the
+        # legacy flow), derive it from amount and the rate. With the default
+        # rate of 1 this yields amount_company == amount, so nothing changes for
+        # existing single-currency plans.
+        if not vals.get('amount_company'):
+            rate = vals.get('exchange_rate') or 1.0
+            vals['amount_company'] = (vals.get('amount') or 0.0) * rate
+
+        if not vals.get('date'):
             vals['date'] = fields.Date.context_today(self)
         return super().create(vals)
     
