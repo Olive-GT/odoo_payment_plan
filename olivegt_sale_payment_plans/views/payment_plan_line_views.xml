@@ -85,6 +85,8 @@
                 <field name="date"/>
                 <field name="move_id"/>
                 <field name="amount" widget="monetary"/>
+                <field name="amount_company" widget="monetary" string="Quetzales" optional="hide"/>
+                <field name="exchange_rate" string="Tasa" optional="hide"/>
                 <field name="currency_id" invisible="1"/>
                 <field name="move_payment_reference"/>
                 <field name="move_date"/>

@@ -607,6 +607,7 @@ class PaymentPlanLine(models.Model):
             # Mostrar de forma clara la cantidad de asignaciones y el total
             total_amount = sum(confirmed_reconciliations.mapped('amount'))
             formatted_amount = "{:,.2f}".format(total_amount)
+            currency_symbol = line.currency_id.symbol or 'Q'
             count = len(confirmed_reconciliations)
             
             # Obtener una lista de los journals involucrados
@@ -618,9 +619,9 @@ class PaymentPlanLine(models.Model):
                 journal_text = ", ".join(unique_journals[:2])
                 if len(unique_journals) > 2:
                     journal_text += f" y {len(unique_journals) - 2} más"
-                line.allocation_summary = f"{count} asign: Q{formatted_amount} ({journal_text})"
+                line.allocation_summary = f"{count} asign: {currency_symbol}{formatted_amount} ({journal_text})"
             else:
-                line.allocation_summary = f"{count} asignaciones: Q{formatted_amount}"    @api.depends('reconciliation_ids.state', 'reconciliation_ids.move_id', 'reconciliation_ids.amount', 
+                line.allocation_summary = f"{count} asignaciones: {currency_symbol}{formatted_amount}"    @api.depends('reconciliation_ids.state', 'reconciliation_ids.move_id', 'reconciliation_ids.amount', 
                 'reconciliation_ids.date', 'reconciliation_ids.journal_id', 'reconciliation_ids.move_payment_reference')
     def _compute_move_lines_summary(self):
         """Generate a formatted HTML table with the move lines details for this payment plan line"""

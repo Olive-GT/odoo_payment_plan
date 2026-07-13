@@ -25,7 +25,11 @@
                             <field name="interest_amount" widget="monetary" string="Interés por mora" readonly="1" invisible="1"/>
                             <field name="total_with_interest" widget="monetary" string="Total con interés" readonly="1" invisible="1"/>
                             <field name="amount" widget="monetary" readonly="1"/>
+                            <field name="amount_company" widget="monetary" readonly="1" string="Quetzales" invisible="not is_multicurrency"/>
+                            <field name="exchange_rate" readonly="1" string="Tasa de cambio" invisible="not is_multicurrency"/>
                             <field name="currency_id" invisible="1"/>
+                            <field name="company_currency_id" invisible="1"/>
+                            <field name="is_multicurrency" invisible="1"/>
                         </group>
                         <group>
                             <field name="move_line_id" readonly="1"/>
@@ -51,6 +55,8 @@
                 <field name="payment_plan_line_id"/>
                 <field name="date"/>
                 <field name="amount" sum="Total"/>
+                <field name="amount_company" string="Quetzales" optional="hide"/>
+                <field name="exchange_rate" string="Tasa" optional="hide"/>
                 <field name="move_id"/>
                 <field name="move_date"/>
                 <field name="move_payment_reference"/>

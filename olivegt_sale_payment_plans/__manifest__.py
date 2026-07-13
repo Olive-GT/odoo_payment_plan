@@ -1,6 +1,6 @@
 {
     'name': 'Sale Payment Plans',
-    'version': '18.0.1.0.1',
+    'version': '18.0.1.1.0',
     'summary': 'Payment Plans for Sale Orders',
     'description': """
         This module allows you to create payment plans from sale orders.

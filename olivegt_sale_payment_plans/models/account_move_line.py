@@ -23,10 +23,15 @@ class AccountMoveLine(models.Model):
         help='True when this line has been fully consumed by payment plan reconciliations'
     )
     
-    @api.depends('balance', 'account_id.reconcile', 'reconciliation_ids.state')
+    @api.depends('balance', 'account_id.reconcile', 'reconciliation_ids.state',
+                 'reconciliation_ids.amount_company')
     def _compute_payment_plan_available_amount(self):
         """
-        Calculate the amount available for allocation to payment plans
+        Calculate the amount available for allocation to payment plans.
+
+        The deposit and its available balance are in the company currency (GTQ),
+        so we consume it using ``amount_company``. For single-currency (GTQ)
+        plans ``amount_company`` equals ``amount``, keeping the previous result.
         """
         for move_line in self:
             # Skip if this line isn't reconcilable
@@ -34,18 +39,18 @@ class AccountMoveLine(models.Model):
                 move_line.payment_plan_available_amount = 0.0
                 move_line.is_fully_consumed = True
                 continue
-                
+
             # Original amount is the absolute value of balance
             original_amount = abs(move_line.balance)
-            
+
             # Find existing reconciliations for this move line
             reconciliations = self.env['payment.plan.reconciliation'].search([
                 ('move_line_id', '=', move_line.id),
                 ('state', '=', 'confirmed')
             ])
-            
-            # Calculate allocated amount
-            allocated_amount = sum(reconciliations.mapped('amount'))
+
+            # Calculate allocated amount (company currency)
+            allocated_amount = sum(reconciliations.mapped('amount_company'))
             
             # Available amount is original minus allocated
             available = original_amount - allocated_amount
