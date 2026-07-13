@@ -143,20 +143,10 @@ class PaymentPlanReconciliationWizardLine(models.TransientModel):
             # Available amount is original minus allocated
             line.available_amount = line.original_amount - allocated
 
-            if line.is_readonly:
-                continue
-
-            if line.is_multicurrency:
-                # USD plan: the GTQ amount is the pivot and defaults to the full
-                # available deposit; the dollars are derived from the rate.
-                if not line.amount_company:
-                    line.amount_company = line.available_amount
-                if line.exchange_rate:
-                    line.amount = line.amount_company / line.exchange_rate
-            else:
-                # GTQ plan: unchanged legacy behaviour.
-                if not line.amount:
-                    line.amount = min(line.available_amount, line.wizard_id.remaining_to_allocate)
+            # NOTE: prefilling of amount / amount_company is done exclusively in
+            # _onchange_move_line_id. Doing it here as well caused the default to
+            # be applied twice: the first assignment shrank remaining_to_allocate,
+            # and the second min() then capped the amount at that shrunken value.
     
     @api.onchange('move_line_id')
     def _onchange_move_line_id(self):
