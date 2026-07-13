@@ -182,22 +182,32 @@ class PaymentPlanReconciliationWizardLine(models.TransientModel):
     @api.onchange('exchange_rate', 'amount_company')
     def _onchange_rate_or_company(self):
         """Two-way calculator (USD side): the GTQ amount is the pivot, so typing
-        the rate (or changing the GTQ) recomputes the dollars."""
+        the rate (or changing the GTQ) recomputes the dollars.
+
+        The guard is the GTQ pivot value itself, not ``is_multicurrency``: that
+        related field is read through the parent wizard and is not reliably
+        available inside a line onchange. For GTQ plans ``amount_company`` stays
+        0, so this is a no-op there — no dependency on the parent needed.
+        """
         for line in self:
-            if line.is_readonly or not line.is_multicurrency:
+            if line.is_readonly:
                 continue
-            if line.exchange_rate:
+            if line.exchange_rate and line.amount_company:
                 line.amount = line.amount_company / line.exchange_rate
 
     @api.onchange('amount')
     def _onchange_amount_usd(self):
         """Two-way calculator (USD side): typing the dollars recomputes the rate
         from the GTQ pivot. Consistent with _onchange_rate_or_company, so the
-        cascade converges to amount_company = amount * exchange_rate."""
+        cascade converges to amount_company = amount * exchange_rate.
+
+        Guarded by the GTQ pivot value (see _onchange_rate_or_company): for GTQ
+        plans amount_company is 0, so the rate is never touched there.
+        """
         for line in self:
-            if line.is_readonly or not line.is_multicurrency:
+            if line.is_readonly:
                 continue
-            if line.amount:
+            if line.amount and line.amount_company:
                 line.exchange_rate = line.amount_company / line.amount
     
     @api.model
