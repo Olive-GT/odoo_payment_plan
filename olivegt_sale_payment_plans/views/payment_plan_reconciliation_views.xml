@@ -24,7 +24,7 @@
                             <field name="overdue_days" string="Días de mora" readonly="1" invisible="1"/>
                             <field name="interest_amount" widget="monetary" string="Interés por mora" readonly="1" invisible="1"/>
                             <field name="total_with_interest" widget="monetary" string="Total con interés" readonly="1" invisible="1"/>
-                            <field name="amount" widget="monetary" readonly="1" string="Dólares"/>
+                            <field name="amount" widget="monetary" readonly="1"/>
                             <field name="amount_company" widget="monetary" readonly="1" string="Quetzales" invisible="not is_multicurrency"/>
                             <field name="exchange_rate" readonly="1" string="Tasa de cambio" invisible="not is_multicurrency"/>
                             <field name="currency_id" invisible="1"/>

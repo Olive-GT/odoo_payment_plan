@@ -78,9 +78,10 @@ class PaymentPlanReconciliationWizardLine(models.TransientModel):
     )
 
     amount = fields.Monetary(
-        string='Dollars',
-        help='Amount consumed from the payment plan line, in the plan currency '
-             '(e.g. USD). Result of dividing the GTQ amount by the exchange rate.'
+        string='Amount',
+        help='Amount consumed from the payment plan line, in the plan currency. '
+             'For USD plans it is the result of dividing the GTQ amount by the '
+             'exchange rate; for GTQ plans it is the plain allocated amount.'
     )
 
     exchange_rate = fields.Float(
