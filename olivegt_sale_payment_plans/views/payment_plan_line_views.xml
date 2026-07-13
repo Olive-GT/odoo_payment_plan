@@ -82,13 +82,11 @@
         <field name="name">payment.plan.reconciliation.detailed.tree</field>
         <field name="model">payment.plan.reconciliation</field>
         <field name="arch" type="xml">            <list>
-                <field name="is_multicurrency" column_invisible="1"/>
-                <field name="company_currency_id" column_invisible="1"/>
                 <field name="date"/>
                 <field name="move_id"/>
-                <field name="amount" widget="monetary" string="Dólares"/>
-                <field name="amount_company" widget="monetary" string="Quetzales" column_invisible="not is_multicurrency"/>
-                <field name="exchange_rate" string="Tasa" column_invisible="not is_multicurrency"/>
+                <field name="amount" widget="monetary"/>
+                <field name="amount_company" widget="monetary" string="Quetzales" optional="hide"/>
+                <field name="exchange_rate" string="Tasa" optional="hide"/>
                 <field name="currency_id" invisible="1"/>
                 <field name="move_payment_reference"/>
                 <field name="move_date"/>

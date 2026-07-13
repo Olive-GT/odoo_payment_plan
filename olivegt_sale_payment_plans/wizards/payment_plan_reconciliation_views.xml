@@ -66,8 +66,8 @@
                                 <field name="payment_reference" readonly="is_readonly"/>
                                 <field name="original_amount" widget="monetary" readonly="is_readonly"/>
                                 <field name="available_amount" widget="monetary" readonly="is_readonly"/>
-                                <field name="amount_company" widget="monetary" readonly="is_readonly" column_invisible="not is_multicurrency"/>
-                                <field name="exchange_rate" readonly="is_readonly" column_invisible="not is_multicurrency"/>
+                                <field name="amount_company" widget="monetary" readonly="is_readonly" column_invisible="not parent.is_multicurrency"/>
+                                <field name="exchange_rate" readonly="is_readonly" column_invisible="not parent.is_multicurrency"/>
                                 <field name="amount" widget="monetary" sum="Total" readonly="is_readonly"/>
                             </list>
                         </field>
