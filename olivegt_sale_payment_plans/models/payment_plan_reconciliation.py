@@ -320,10 +320,17 @@ class PaymentPlanReconciliation(models.Model):
             return f"{label}S"
         return f"{label}ES"
 
-    def get_amount_in_words_plural(self):
-        """Return amount in words forcing currency to plural"""
+    def get_amount_in_words_plural(self, amount=None):
+        """Return amount in words forcing currency to plural.
+
+        ``amount`` defaults to this record's allocated amount. The receipt
+        passes the whole deposit total instead, so the customer reads the
+        figure they actually paid.
+        """
         self.ensure_one()
-        amount_text = (self.currency_id.amount_to_text(self.amount) or '').upper()
+        if amount is None:
+            amount = self.amount
+        amount_text = (self.currency_id.amount_to_text(amount) or '').upper()
         unit_label = (self.currency_id.currency_unit_label or self.currency_id.name or '').upper().strip()
         plural_label = self._pluralize_currency_label(unit_label)
         if amount_text and unit_label and plural_label and unit_label != plural_label:
@@ -334,6 +341,56 @@ class PaymentPlanReconciliation(models.Model):
                 amount_text,
             )
         return amount_text
+
+    def _get_receipt_groups(self):
+        """Group allocations by bank deposit, one group per receipt.
+
+        Every allocation carved out of the same journal item comes from the
+        same deposit, so grouping by ``move_line_id`` turns "one receipt per
+        installment" into "one receipt per payment": the customer sees the
+        total they deposited plus how we spread it across the plan.
+
+        Sibling allocations that were not selected are pulled in on purpose --
+        printing from a single installment must still show the whole deposit.
+        Only confirmed siblings join, so a draft or cancelled allocation never
+        inflates someone else's receipt; whatever was explicitly selected is
+        always printed, cancelled included, to keep the previous behaviour and
+        never render an empty PDF. The currency is part of the key so a deposit
+        touching plans in different currencies never mixes figures.
+        """
+        recs = self
+        if not recs:
+            return []
+
+        siblings = self.search([
+            ('move_line_id', 'in', recs.move_line_id.ids),
+            ('state', '=', 'confirmed'),
+        ])
+
+        grouped = {}
+        for rec in (siblings | recs):
+            grouped.setdefault((rec.move_line_id.id, rec.currency_id.id), []).append(rec.id)
+
+        groups = []
+        for key in sorted(grouped, key=lambda k: min(grouped[k])):
+            lines = self.browse(grouped[key])
+            # A cancelled allocation must never add to a live deposit's total,
+            # but printing one on its own still has to produce its receipt.
+            live = lines.filtered(lambda r: r.state != 'cancelled')
+            lines = (live or lines).sorted(
+                lambda r: (r.payment_plan_line_id.date or fields.Date.today(), r.id)
+            )
+            plans = lines.payment_plan_id
+            groups.append({
+                'main': lines[0],
+                'lines': lines,
+                'plans': plans,
+                'multi_plan': len(plans) > 1,
+                'split': len(lines) > 1,
+                'total': sum(lines.mapped('amount')),
+                'total_company': sum(lines.mapped('amount_company')),
+            })
+        return groups
 
     def action_print_receipt(self):
         """Generate the PDF receipt for this reconciliation"""
@@ -474,3 +531,22 @@ class PaymentPlanReconciliation(models.Model):
         for rec in self:
             if rec.move_line_id and rec.move_line_id.move_id.date:
                 rec.date = rec.move_line_id.move_id.date
+
+
+class ReportPaymentPlanReceipt(models.AbstractModel):
+    _name = 'report.olivegt_sale_payment_plans.report_payment_plan_reconciliation_receipt'
+    _description = 'Payment Plan Receipt'
+
+    def _get_report_values(self, docids, data=None):
+        """Feed the template one entry per deposit instead of one per allocation.
+
+        Selecting several allocations of the same deposit yields a single
+        receipt, so the customer never gets two documents for one payment.
+        """
+        recs = self.env['payment.plan.reconciliation'].browse(docids)
+        return {
+            'doc_ids': docids,
+            'doc_model': 'payment.plan.reconciliation',
+            'docs': recs,
+            'groups': recs._get_receipt_groups(),
+        }
