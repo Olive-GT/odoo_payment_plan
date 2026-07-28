@@ -194,6 +194,83 @@
                 </tbody>
               </table>
 
+              <!-- Pagos recibidos que aun no estan aplicados a una cuota.
+                   Sin esta seccion el recibo (que ampara el deposito completo)
+                   y el estado de cuenta (que solo suma lo aplicado) se
+                   contradicen. -->
+              <t t-set="pagos_sin_aplicar" t-value="o._get_unapplied_payments()"/>
+              <t t-if="pagos_sin_aplicar">
+                <t t-set="moneda_dep" t-value="o.company_id.currency_id"/>
+                <t t-set="simbolo_dep" t-value="moneda_dep.symbol or ''"/>
+                <t t-set="total_sin_aplicar" t-value="sum(p['available'] for p in pagos_sin_aplicar)"/>
+                <t t-set="hay_otros_planes" t-value="any(p['applied_other'] for p in pagos_sin_aplicar)"/>
+
+                <div class="section-title">PAGOS RECIBIDOS PENDIENTES DE APLICAR</div>
+                <table class="table-condensed">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Referencia</th>
+                      <th class="text-right">Depositado</th>
+                      <th class="text-right">Aplicado a este plan</th>
+                      <th class="text-right" t-if="hay_otros_planes">Aplicado a otros planes</th>
+                      <th class="text-right">Pendiente de aplicar</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr t-foreach="pagos_sin_aplicar" t-as="pago">
+                      <td class="text-center">
+                        <span t-if="pago['date']" t-esc="format_date(o.env, pago['date'], lang_code=o.partner_id.lang or o.env.user.lang)"/>
+                      </td>
+                      <td><span t-esc="pago['reference']"/></td>
+                      <td class="text-right">
+                        <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(pago['deposit'] or 0.0)))"/>
+                      </td>
+                      <td class="text-right">
+                        <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(pago['applied_here'] or 0.0)))"/>
+                      </td>
+                      <td class="text-right" t-if="hay_otros_planes">
+                        <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(pago['applied_other'] or 0.0)))"/>
+                      </td>
+                      <td class="text-right">
+                        <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(pago['available'] or 0.0)))"/>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td t-attf-colspan="#{5 if hay_otros_planes else 4}" class="text-right"><strong>Total pendiente de aplicar</strong></td>
+                      <td class="text-right">
+                        <strong><span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(total_sin_aplicar or 0.0)))"/></strong>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <!-- El saldo estimado solo se muestra si el plan esta en la
+                     misma moneda del deposito: convertirlo exigiria una tasa
+                     que no corresponde inventar aqui. -->
+                <table class="summary-block" t-if="o.currency_id == moneda_dep">
+                  <tbody>
+                    <tr>
+                      <td><strong>Saldo del plan</strong></td>
+                      <td class="value">
+                        <span t-esc="('%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format((o.amount_residual or 0.0))))"/>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>Saldo al aplicar estos pagos</strong></td>
+                      <td class="value">
+                        <span t-esc="('%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format((o.amount_residual or 0.0) - (total_sin_aplicar or 0.0))))"/>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <div class="footer-note">
+                  <p>Los pagos pendientes de aplicar ya fueron recibidos y se acreditaran a las
+                     siguientes cuotas de su plan.</p>
+                </div>
+              </t>
+
               <!-- Pie -->
               <div class="footer-note">
                 <p>Documento informativo, no representa comprobante fiscal.</p>
