@@ -309,6 +309,9 @@ class PaymentPlanReconciliation(models.Model):
         label = (label or '').strip().upper()
         if not label:
             return label
+        if label.endswith('S'):
+            # Ya viene en plural (DOLARES, QUETZALES): no volver a pluralizar
+            return label
         if label.endswith('L'):
             return f"{label[:-1]}LES"
         if label.endswith('Z'):
@@ -321,10 +324,15 @@ class PaymentPlanReconciliation(models.Model):
         """Return amount in words forcing currency to plural"""
         self.ensure_one()
         amount_text = (self.currency_id.amount_to_text(self.amount) or '').upper()
-        unit_label = (self.currency_id.currency_unit_label or self.currency_id.name or '').upper()
+        unit_label = (self.currency_id.currency_unit_label or self.currency_id.name or '').upper().strip()
         plural_label = self._pluralize_currency_label(unit_label)
         if amount_text and unit_label and plural_label and unit_label != plural_label:
-            amount_text = amount_text.replace(unit_label, plural_label)
+            # Palabra completa: evita que DOLAR haga match dentro de DOLARES
+            amount_text = re.sub(
+                r'\b%s\b' % re.escape(unit_label),
+                plural_label,
+                amount_text,
+            )
         return amount_text
 
     def action_print_receipt(self):

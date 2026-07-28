@@ -84,7 +84,10 @@
                 </tr>
                 <tr>
                   <td><strong>Inmuebles:</strong><br/>
-                    <t t-foreach="o.sale_id.order_line.filtered(lambda l: not l.display_type and l.product_id and (l.product_id.x_studio_tipo_de_inmueble == 'Apartamento'))" t-as="line">
+                    <t t-set="tipos_inmueble" t-value="('apartamento', 'casa')"/>
+                    <t t-set="lineas_inmueble" t-value="o.sale_id.order_line.filtered(lambda l: not l.display_type and l.product_id and (l.product_id.x_studio_tipo_de_inmueble or '').strip().lower().startswith(tipos_inmueble))"/>
+                    <t t-if="not lineas_inmueble" t-set="lineas_inmueble" t-value="o.sale_id.order_line.filtered(lambda l: not l.display_type and l.product_id)"/>
+                    <t t-foreach="lineas_inmueble" t-as="line">
                       <span t-esc="line.product_id.name"/><t t-if="not line_last">, </t>
                     </t>
                   </td>
@@ -239,7 +242,10 @@
                 </div>
                 <div class="receipt-field" style="top: 30mm; left: 110mm; width: 55mm;">
                   <t t-if="rec.payment_plan_id.sale_id">
-                    <t t-foreach="rec.payment_plan_id.sale_id.order_line.filtered(lambda l: not l.display_type and l.product_id and (l.product_id.x_studio_tipo_de_inmueble == 'Apartamento'))" t-as="line">
+                    <t t-set="tipos_inmueble" t-value="('apartamento', 'casa')"/>
+                    <t t-set="lineas_inmueble" t-value="rec.payment_plan_id.sale_id.order_line.filtered(lambda l: not l.display_type and l.product_id and (l.product_id.x_studio_tipo_de_inmueble or '').strip().lower().startswith(tipos_inmueble))"/>
+                    <t t-if="not lineas_inmueble" t-set="lineas_inmueble" t-value="rec.payment_plan_id.sale_id.order_line.filtered(lambda l: not l.display_type and l.product_id)"/>
+                    <t t-foreach="lineas_inmueble" t-as="line">
                       <span t-esc="line.product_id.default_code or line.product_id.name"/>
                       <t t-if="not line_last">, </t>
                     </t>
