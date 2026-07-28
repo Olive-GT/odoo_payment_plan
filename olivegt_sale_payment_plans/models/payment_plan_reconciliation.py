@@ -320,18 +320,19 @@ class PaymentPlanReconciliation(models.Model):
             return f"{label}S"
         return f"{label}ES"
 
-    def get_amount_in_words_plural(self, amount=None):
+    def get_amount_in_words_plural(self, amount=None, currency=None):
         """Return amount in words forcing currency to plural.
 
-        ``amount`` defaults to this record's allocated amount. The receipt
-        passes the whole deposit total instead, so the customer reads the
-        figure they actually paid.
+        ``amount`` and ``currency`` default to this record's own allocation.
+        The receipt passes the whole deposit instead, in the currency the
+        customer actually paid in, so the words match the figure printed.
         """
         self.ensure_one()
         if amount is None:
             amount = self.amount
-        amount_text = (self.currency_id.amount_to_text(amount) or '').upper()
-        unit_label = (self.currency_id.currency_unit_label or self.currency_id.name or '').upper().strip()
+        currency = currency or self.currency_id
+        amount_text = (currency.amount_to_text(amount) or '').upper()
+        unit_label = (currency.currency_unit_label or currency.name or '').upper().strip()
         plural_label = self._pluralize_currency_label(unit_label)
         if amount_text and unit_label and plural_label and unit_label != plural_label:
             # Palabra completa: evita que DOLAR haga match dentro de DOLARES
@@ -381,14 +382,50 @@ class PaymentPlanReconciliation(models.Model):
                 lambda r: (r.payment_plan_line_id.date or fields.Date.today(), r.id)
             )
             plans = lines.payment_plan_id
+            main = lines[0]
+
+            # The receipt covers the whole deposit, not just what we have
+            # allocated so far: the customer paid X and their receipt must say
+            # X. How we spread it across installments is our bookkeeping, and
+            # belongs in the breakdown below, not in the amount.
+            move_line = main.move_line_id
+            deposit_currency = move_line.currency_id or main.company_currency_id
+            deposit_total = abs(move_line.amount_currency) or abs(move_line.balance)
+
+            # Whatever is not on an installment yet is shown as pending, so the
+            # figures on the receipt always add up to the deposit.
+            allocated = sum(lines.mapped('amount'))
+            if deposit_currency == main.currency_id:
+                allocated_in_deposit = allocated
+            elif deposit_currency == main.company_currency_id:
+                allocated_in_deposit = sum(lines.mapped('amount_company'))
+            else:
+                allocated_in_deposit = None
+
+            unallocated = 0.0
+            if allocated_in_deposit is not None and deposit_total:
+                unallocated = deposit_total - allocated_in_deposit
+                if float_compare(unallocated, 0.0,
+                                 precision_rounding=deposit_currency.rounding) <= 0:
+                    unallocated = 0.0
+
             groups.append({
-                'main': lines[0],
+                'main': main,
                 'lines': lines,
                 'plans': plans,
                 'multi_plan': len(plans) > 1,
-                'split': len(lines) > 1,
-                'total': sum(lines.mapped('amount')),
-                'total_company': sum(lines.mapped('amount_company')),
+                'deposit_currency': deposit_currency,
+                'deposit_total': deposit_total or allocated,
+                'allocated': allocated,
+                'allocated_company': sum(lines.mapped('amount_company')),
+                'unallocated': unallocated,
+                # A single installment with nothing pending needs no breakdown
+                'show_detail': len(lines) > 1 or bool(unallocated),
+                # When the plan is in another currency, the installment amounts
+                # alone would not add up to the deposit on paper, so the
+                # breakdown also carries the equivalent in the deposit currency.
+                'show_equivalent': (deposit_currency == main.company_currency_id
+                                    and main.currency_id != main.company_currency_id),
             })
         return groups
 

@@ -210,6 +210,7 @@
         <t t-foreach="groups" t-as="grp">
           <t t-set="rec" t-value="grp['main']"/>
           <t t-set="simbolo" t-value="rec.currency_id.symbol or ''"/>
+          <t t-set="simbolo_dep" t-value="grp['deposit_currency'].symbol or ''"/>
           <t t-set="receipt_bg_url" t-value="rec.company_id.payment_plan_receipt_bg_url or 'https://storage.googleapis.com/pale-public-images/payment_plan_receipt_bg.png'"/>
           <t t-call="web.basic_layout">
             <style>
@@ -298,17 +299,17 @@
                   <span t-esc="rec.partner_id.display_name"/>
                 </div>
 
-                <!-- Monto en letras: el total del deposito, no la porcion de una cuota -->
+                <!-- Monto en letras: el deposito completo, no la porcion asignada -->
                 <div class="receipt-field amount-words" style="top: 50mm; left: 40mm; width: 120mm;">
-                  <span t-esc="rec.get_amount_in_words_plural(grp['total'])"/>
+                  <span t-esc="rec.get_amount_in_words_plural(grp['deposit_total'], grp['deposit_currency'])"/>
                 </div>
 
                 <div class="receipt-field" style="top: 35mm; left: 155mm; width: 35mm; text-align: right; font-weight: 600;">
-                  <span t-esc="('%s %s' % (simbolo, '{:,.2f}'.format(grp['total'] or 0.0)))"/>
+                  <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(grp['deposit_total'] or 0.0)))"/>
                 </div>
 
                 <div class="receipt-field" style="top: 60mm; left: 40mm; width: 120mm;">
-                  <t t-if="grp['split']">
+                  <t t-if="len(grp['lines']) &gt; 1">
                     <t t-foreach="grp['lines']" t-as="alloc">
                       <span t-esc="alloc.payment_plan_line_id.name or alloc.payment_plan_id.name"/><t t-if="not alloc_last">, </t>
                     </t>
@@ -323,8 +324,8 @@
                 </div>
               </div>
 
-              <!-- Distribucion del pago: solo cuando el deposito cubre mas de una cuota -->
-              <div class="receipt-detail" t-if="grp['split']">
+              <!-- Distribucion del pago: como se repartio el deposito en el plan -->
+              <div class="receipt-detail" t-if="grp['show_detail']">
                 <h3>APLICACION DEL PAGO</h3>
                 <table>
                   <thead>
@@ -333,6 +334,7 @@
                       <th>Vence</th>
                       <th t-if="grp['multi_plan']">Plan</th>
                       <th class="num">Monto aplicado</th>
+                      <th class="num" t-if="grp['show_equivalent']">Equivalente</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -345,13 +347,30 @@
                       <td class="num">
                         <span t-esc="('%s %s' % (simbolo, '{:,.2f}'.format(alloc.amount or 0.0)))"/>
                       </td>
+                      <td class="num" t-if="grp['show_equivalent']">
+                        <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(alloc.amount_company or 0.0)))"/>
+                      </td>
+                    </tr>
+                    <tr t-if="grp['unallocated']">
+                      <td>Pendiente de aplicar</td>
+                      <td/>
+                      <td t-if="grp['multi_plan']"/>
+                      <td class="num">
+                        <span t-if="not grp['show_equivalent']" t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(grp['unallocated'] or 0.0)))"/>
+                      </td>
+                      <td class="num" t-if="grp['show_equivalent']">
+                        <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(grp['unallocated'] or 0.0)))"/>
+                      </td>
                     </tr>
                     <tr class="total-row">
                       <td>Total recibido</td>
                       <td/>
                       <td t-if="grp['multi_plan']"/>
                       <td class="num">
-                        <span t-esc="('%s %s' % (simbolo, '{:,.2f}'.format(grp['total'] or 0.0)))"/>
+                        <span t-if="not grp['show_equivalent']" t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(grp['deposit_total'] or 0.0)))"/>
+                      </td>
+                      <td class="num" t-if="grp['show_equivalent']">
+                        <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(grp['deposit_total'] or 0.0)))"/>
                       </td>
                     </tr>
                   </tbody>
@@ -364,14 +383,20 @@
                       <span t-esc="('%s %s' % (plan.currency_id.symbol or '', '{:,.2f}'.format(plan.amount_residual or 0.0)))"/>
                     </div>
                   </t>
-                  <div t-if="rec.is_multicurrency and grp['total_company']">
-                    <strong>Equivalente depositado:</strong>
-                    <span t-esc="('%s %s' % (rec.company_currency_id.symbol or '', '{:,.2f}'.format(grp['total_company'] or 0.0)))"/>
+                  <div t-if="rec.is_multicurrency and grp['allocated_company']">
+                    <strong>Equivalente aplicado:</strong>
+                    <span t-esc="('%s %s' % (rec.company_currency_id.symbol or '', '{:,.2f}'.format(grp['allocated_company'] or 0.0)))"/>
                   </div>
                 </div>
 
                 <div class="note">
-                  El monto recibido se aplico a las cuotas detalladas segun el plan de pagos vigente.
+                  <t t-if="grp['unallocated']">
+                    El monto recibido se acredito en su totalidad. El saldo pendiente de aplicar
+                    quedo a su favor y se aplicara a las siguientes cuotas del plan.
+                  </t>
+                  <t t-else="">
+                    El monto recibido se aplico a las cuotas detalladas segun el plan de pagos vigente.
+                  </t>
                 </div>
               </div>
             </div>
