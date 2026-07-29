@@ -1,5 +1,6 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
+from odoo.tools import float_compare
 from datetime import datetime
 
 
@@ -89,6 +90,53 @@ class PaymentPlan(models.Model):
             plan.amount_residual = plan.total_amount - plan.amount_paid
             plan.total_interest = sum(plan.line_ids.mapped('interest_amount'))
             plan.total_with_interest = plan.total_amount + plan.total_interest
+
+    def _get_unapplied_payments(self):
+        """Deposits already used on this plan that still have money left over.
+
+        The customer's receipt now covers the whole deposit, so the statement
+        has to account for the part we have not put on an installment yet --
+        otherwise the two documents contradict each other and the customer is
+        back to asking why the figures do not match.
+
+        Only deposits that already touched this plan are listed: an unrelated
+        payment sitting in the customer's account may belong to another project
+        and showing it here would suggest credit that is not theirs on this
+        plan. Everything is in company currency, which is what the deposit and
+        ``payment_plan_available_amount`` are expressed in.
+        """
+        self.ensure_one()
+        company_currency = self.company_id.currency_id
+        recs = self.line_ids.reconciliation_ids.filtered(lambda r: r.state == 'confirmed')
+
+        rows = []
+        for move_line in recs.move_line_id:
+            available = move_line.payment_plan_available_amount or 0.0
+            if float_compare(available, 0.0,
+                             precision_rounding=company_currency.rounding) <= 0:
+                continue
+            applied_here = sum(
+                recs.filtered(lambda r: r.move_line_id == move_line).mapped('amount_company')
+            )
+            deposit = abs(move_line.balance)
+            # The same deposit may have been split with another plan. Without
+            # showing that share, the row would not add up on paper.
+            applied_other = deposit - applied_here - available
+            if float_compare(applied_other, 0.0,
+                             precision_rounding=company_currency.rounding) <= 0:
+                applied_other = 0.0
+
+            rows.append({
+                'move_line': move_line,
+                'date': move_line.move_id.date or move_line.date,
+                'reference': move_line.move_id.ref or move_line.move_id.name or '',
+                'deposit': deposit,
+                'applied_here': applied_here,
+                'applied_other': applied_other,
+                'available': available,
+            })
+
+        return sorted(rows, key=lambda r: (r['date'] or fields.Date.today(), r['move_line'].id))
 
     @api.depends('line_ids.allocated_amount', 'line_ids.allocation_state')
     def _compute_allocation_statistics(self):

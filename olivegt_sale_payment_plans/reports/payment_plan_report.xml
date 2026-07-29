@@ -194,6 +194,83 @@
                 </tbody>
               </table>
 
+              <!-- Pagos recibidos que aun no estan aplicados a una cuota.
+                   Sin esta seccion el recibo (que ampara el deposito completo)
+                   y el estado de cuenta (que solo suma lo aplicado) se
+                   contradicen. -->
+              <t t-set="pagos_sin_aplicar" t-value="o._get_unapplied_payments()"/>
+              <t t-if="pagos_sin_aplicar">
+                <t t-set="moneda_dep" t-value="o.company_id.currency_id"/>
+                <t t-set="simbolo_dep" t-value="moneda_dep.symbol or ''"/>
+                <t t-set="total_sin_aplicar" t-value="sum(p['available'] for p in pagos_sin_aplicar)"/>
+                <t t-set="hay_otros_planes" t-value="any(p['applied_other'] for p in pagos_sin_aplicar)"/>
+
+                <div class="section-title">PAGOS RECIBIDOS PENDIENTES DE APLICAR</div>
+                <table class="table-condensed">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Referencia</th>
+                      <th class="text-right">Depositado</th>
+                      <th class="text-right">Aplicado a este plan</th>
+                      <th class="text-right" t-if="hay_otros_planes">Aplicado a otros planes</th>
+                      <th class="text-right">Pendiente de aplicar</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr t-foreach="pagos_sin_aplicar" t-as="pago">
+                      <td class="text-center">
+                        <span t-if="pago['date']" t-esc="format_date(o.env, pago['date'], lang_code=o.partner_id.lang or o.env.user.lang)"/>
+                      </td>
+                      <td><span t-esc="pago['reference']"/></td>
+                      <td class="text-right">
+                        <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(pago['deposit'] or 0.0)))"/>
+                      </td>
+                      <td class="text-right">
+                        <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(pago['applied_here'] or 0.0)))"/>
+                      </td>
+                      <td class="text-right" t-if="hay_otros_planes">
+                        <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(pago['applied_other'] or 0.0)))"/>
+                      </td>
+                      <td class="text-right">
+                        <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(pago['available'] or 0.0)))"/>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td t-attf-colspan="#{5 if hay_otros_planes else 4}" class="text-right"><strong>Total pendiente de aplicar</strong></td>
+                      <td class="text-right">
+                        <strong><span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(total_sin_aplicar or 0.0)))"/></strong>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <!-- El saldo estimado solo se muestra si el plan esta en la
+                     misma moneda del deposito: convertirlo exigiria una tasa
+                     que no corresponde inventar aqui. -->
+                <table class="summary-block" t-if="o.currency_id == moneda_dep">
+                  <tbody>
+                    <tr>
+                      <td><strong>Saldo del plan</strong></td>
+                      <td class="value">
+                        <span t-esc="('%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format((o.amount_residual or 0.0))))"/>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>Saldo al aplicar estos pagos</strong></td>
+                      <td class="value">
+                        <span t-esc="('%s %s' % (o.currency_id.symbol or '', '{:,.2f}'.format((o.amount_residual or 0.0) - (total_sin_aplicar or 0.0))))"/>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <div class="footer-note">
+                  <p>Los pagos pendientes de aplicar ya fueron recibidos y se acreditaran a las
+                     siguientes cuotas de su plan.</p>
+                </div>
+              </t>
+
               <!-- Pie -->
               <div class="footer-note">
                 <p>Documento informativo, no representa comprobante fiscal.</p>
@@ -204,10 +281,13 @@
       </t>
     </template>
 
-    <!-- Template QWeb Recibo de Conciliación -->
+    <!-- Template QWeb Recibo de Pago (un recibo por deposito, no por cuota) -->
     <template id="report_payment_plan_reconciliation_receipt">
       <t t-call="web.html_container">
-        <t t-foreach="docs" t-as="rec">
+        <t t-foreach="groups" t-as="grp">
+          <t t-set="rec" t-value="grp['main']"/>
+          <t t-set="simbolo" t-value="rec.currency_id.symbol or ''"/>
+          <t t-set="simbolo_dep" t-value="grp['deposit_currency'].symbol or ''"/>
           <t t-set="receipt_bg_url" t-value="rec.company_id.payment_plan_receipt_bg_url or 'https://storage.googleapis.com/pale-public-images/payment_plan_receipt_bg.png'"/>
           <t t-call="web.basic_layout">
             <style>
@@ -233,9 +313,49 @@
                 font-weight: 700;
                 color: #b30000;
               }
+
+              /* Detalle de distribucion: va debajo del arte preimpreso (100mm) */
+              .receipt-detail {
+                margin: 108mm 15mm 0 15mm;
+                font-family: 'Lato','Helvetica',sans-serif;
+                color: #000;
+                font-size: 10px;
+              }
+              .receipt-detail h3 {
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: .5px;
+                margin: 0 0 3mm 0;
+                padding-bottom: 1mm;
+                border-bottom: 1px solid #000;
+              }
+              .receipt-detail table { width: 100%; border-collapse: collapse; }
+              .receipt-detail th {
+                text-align: left;
+                font-weight: 700;
+                border-bottom: 1px solid #999;
+                padding: 1.2mm 2mm;
+              }
+              .receipt-detail td { padding: 1.2mm 2mm; border-bottom: 1px solid #e0e0e0; }
+              .receipt-detail .num { text-align: right; white-space: nowrap; }
+              .receipt-detail .total-row td {
+                font-weight: 700;
+                border-top: 1px solid #000;
+                border-bottom: none;
+              }
+              .receipt-detail .balance {
+                margin-top: 3mm;
+                font-size: 10px;
+              }
+              .receipt-detail .note {
+                margin-top: 3mm;
+                font-size: 8px;
+                color: #555;
+              }
+              .page-break { page-break-after: always; }
             </style>
 
-            <div class="receipt-page-wrapper">
+            <div t-attf-class="receipt-page-wrapper#{'' if grp_last else ' page-break'}">
               <div class="receipt-template" t-attf-style="background: url('{{ receipt_bg_url }}') no-repeat left top; background-size: 220mm 100mm;">
                 <div class="receipt-field" style="top: 30mm; left: 30mm; width: 70mm;">
                   <span t-field="rec.date" t-options="{&quot;format&quot;:&quot;dd/MM/yyyy&quot;}"/>
@@ -256,20 +376,104 @@
                   <span t-esc="rec.partner_id.display_name"/>
                 </div>
 
+                <!-- Monto en letras: el deposito completo, no la porcion asignada -->
                 <div class="receipt-field amount-words" style="top: 50mm; left: 40mm; width: 120mm;">
-                  <span t-esc="rec.get_amount_in_words_plural()"/>
+                  <span t-esc="rec.get_amount_in_words_plural(grp['deposit_total'], grp['deposit_currency'])"/>
                 </div>
 
                 <div class="receipt-field" style="top: 35mm; left: 155mm; width: 35mm; text-align: right; font-weight: 600;">
-                  <span t-esc="('%s %s' % (rec.currency_id.symbol or '', '{:,.2f}'.format((rec.amount or 0.0))))"/>
+                  <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(grp['deposit_total'] or 0.0)))"/>
                 </div>
 
                 <div class="receipt-field" style="top: 60mm; left: 40mm; width: 120mm;">
-                  <span t-esc="rec.payment_plan_line_id.name or rec.payment_plan_id.name"/>
+                  <t t-if="len(grp['lines']) &gt; 1">
+                    <t t-foreach="grp['lines']" t-as="alloc">
+                      <span t-esc="alloc.payment_plan_line_id.name or alloc.payment_plan_id.name"/><t t-if="not alloc_last">, </t>
+                    </t>
+                  </t>
+                  <t t-else="">
+                    <span t-esc="rec.payment_plan_line_id.name or rec.payment_plan_id.name"/>
+                  </t>
                 </div>
 
                 <div class="receipt-field reference" style="top: 73mm; left: 140mm; width: 70mm; height: 30mm; text-align: center;">
                   <span t-esc="rec.move_payment_reference or rec.move_id.name or ''"/>
+                </div>
+              </div>
+
+              <!-- Distribucion del pago: como se repartio el deposito en el plan -->
+              <div class="receipt-detail" t-if="grp['show_detail']">
+                <h3>APLICACION DEL PAGO</h3>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Cuota</th>
+                      <th>Vence</th>
+                      <th t-if="grp['multi_plan']">Plan</th>
+                      <th class="num">Monto aplicado</th>
+                      <th class="num" t-if="grp['show_equivalent']">Equivalente</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr t-foreach="grp['lines']" t-as="alloc">
+                      <td><span t-esc="alloc.payment_plan_line_id.name or alloc.payment_plan_id.name"/></td>
+                      <td>
+                        <span t-if="alloc.payment_plan_line_id.date" t-field="alloc.payment_plan_line_id.date" t-options="{&quot;format&quot;:&quot;dd/MM/yyyy&quot;}"/>
+                      </td>
+                      <td t-if="grp['multi_plan']"><span t-esc="alloc.payment_plan_id.name"/></td>
+                      <td class="num">
+                        <span t-esc="('%s %s' % (simbolo, '{:,.2f}'.format(alloc.amount or 0.0)))"/>
+                      </td>
+                      <td class="num" t-if="grp['show_equivalent']">
+                        <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(alloc.amount_company or 0.0)))"/>
+                      </td>
+                    </tr>
+                    <tr t-if="grp['unallocated']">
+                      <td>Pendiente de aplicar</td>
+                      <td/>
+                      <td t-if="grp['multi_plan']"/>
+                      <td class="num">
+                        <span t-if="not grp['show_equivalent']" t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(grp['unallocated'] or 0.0)))"/>
+                      </td>
+                      <td class="num" t-if="grp['show_equivalent']">
+                        <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(grp['unallocated'] or 0.0)))"/>
+                      </td>
+                    </tr>
+                    <tr class="total-row">
+                      <td>Total recibido</td>
+                      <td/>
+                      <td t-if="grp['multi_plan']"/>
+                      <td class="num">
+                        <span t-if="not grp['show_equivalent']" t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(grp['deposit_total'] or 0.0)))"/>
+                      </td>
+                      <td class="num" t-if="grp['show_equivalent']">
+                        <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(grp['deposit_total'] or 0.0)))"/>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <div class="balance">
+                  <t t-foreach="grp['plans']" t-as="plan">
+                    <div>
+                      <strong>Saldo pendiente<t t-if="grp['multi_plan']"> (<span t-esc="plan.name"/>)</t>:</strong>
+                      <span t-esc="('%s %s' % (plan.currency_id.symbol or '', '{:,.2f}'.format(plan.amount_residual or 0.0)))"/>
+                    </div>
+                  </t>
+                  <div t-if="rec.is_multicurrency and grp['allocated_company']">
+                    <strong>Equivalente aplicado:</strong>
+                    <span t-esc="('%s %s' % (rec.company_currency_id.symbol or '', '{:,.2f}'.format(grp['allocated_company'] or 0.0)))"/>
+                  </div>
+                </div>
+
+                <div class="note">
+                  <t t-if="grp['unallocated']">
+                    El monto recibido se acredito en su totalidad. El saldo pendiente de aplicar
+                    quedo a su favor y se aplicara a las siguientes cuotas del plan.
+                  </t>
+                  <t t-else="">
+                    El monto recibido se aplico a las cuotas detalladas segun el plan de pagos vigente.
+                  </t>
                 </div>
               </div>
             </div>
