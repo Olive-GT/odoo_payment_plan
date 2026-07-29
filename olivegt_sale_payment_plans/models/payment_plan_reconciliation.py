@@ -343,8 +343,12 @@ class PaymentPlanReconciliation(models.Model):
             )
         return amount_text
 
-    def _get_receipt_groups(self):
+    def get_receipt_groups(self):
         """Group allocations by bank deposit, one group per receipt.
+
+        Called straight from the QWeb template: a report AbstractModel would
+        need the name ``report.<module>.<template>``, which lands at 76 chars
+        and blows past PostgreSQL's 63-character table name limit.
 
         Every allocation carved out of the same journal item comes from the
         same deposit, so grouping by ``move_line_id`` turns "one receipt per
@@ -568,22 +572,3 @@ class PaymentPlanReconciliation(models.Model):
         for rec in self:
             if rec.move_line_id and rec.move_line_id.move_id.date:
                 rec.date = rec.move_line_id.move_id.date
-
-
-class ReportPaymentPlanReceipt(models.AbstractModel):
-    _name = 'report.olivegt_sale_payment_plans.report_payment_plan_reconciliation_receipt'
-    _description = 'Payment Plan Receipt'
-
-    def _get_report_values(self, docids, data=None):
-        """Feed the template one entry per deposit instead of one per allocation.
-
-        Selecting several allocations of the same deposit yields a single
-        receipt, so the customer never gets two documents for one payment.
-        """
-        recs = self.env['payment.plan.reconciliation'].browse(docids)
-        return {
-            'doc_ids': docids,
-            'doc_model': 'payment.plan.reconciliation',
-            'docs': recs,
-            'groups': recs._get_receipt_groups(),
-        }

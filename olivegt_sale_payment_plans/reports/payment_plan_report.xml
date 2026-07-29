@@ -198,7 +198,7 @@
                    Sin esta seccion el recibo (que ampara el deposito completo)
                    y el estado de cuenta (que solo suma lo aplicado) se
                    contradicen. -->
-              <t t-set="pagos_sin_aplicar" t-value="o._get_unapplied_payments()"/>
+              <t t-set="pagos_sin_aplicar" t-value="o.get_unapplied_payments()"/>
               <t t-if="pagos_sin_aplicar">
                 <t t-set="moneda_dep" t-value="o.company_id.currency_id"/>
                 <t t-set="simbolo_dep" t-value="moneda_dep.symbol or ''"/>
@@ -284,6 +284,7 @@
     <!-- Template QWeb Recibo de Pago (un recibo por deposito, no por cuota) -->
     <template id="report_payment_plan_reconciliation_receipt">
       <t t-call="web.html_container">
+        <t t-set="groups" t-value="docs.get_receipt_groups()"/>
         <t t-foreach="groups" t-as="grp">
           <t t-set="rec" t-value="grp['main']"/>
           <t t-set="simbolo" t-value="rec.currency_id.symbol or ''"/>
