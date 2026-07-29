@@ -91,7 +91,7 @@ class PaymentPlan(models.Model):
             plan.total_interest = sum(plan.line_ids.mapped('interest_amount'))
             plan.total_with_interest = plan.total_amount + plan.total_interest
 
-    def _get_unapplied_payments(self):
+    def get_unapplied_payments(self):
         """Deposits already used on this plan that still have money left over.
 
         The customer's receipt now covers the whole deposit, so the statement
