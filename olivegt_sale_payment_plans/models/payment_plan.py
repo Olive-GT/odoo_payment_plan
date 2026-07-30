@@ -106,9 +106,12 @@ class PaymentPlan(models.Model):
 
         Figures come out in the plan's currency, so a statement for a plan sold
         in dollars stays in dollars even though the deposit and
-        ``payment_plan_available_amount`` are stored in company currency. The
-        conversion uses the rate each allocation was made at, which is the same
-        pivot the reconciliation uses (amount = amount_company / exchange_rate).
+        ``payment_plan_available_amount`` are stored in company currency.
+
+        What was applied is taken from the allocations themselves, each of
+        which carries the rate captured for it, so those amounts are exact even
+        when a deposit was applied at different rates. Only the part still
+        unapplied has no rate yet and has to be converted.
         """
         self.ensure_one()
         company_currency = self.company_id.currency_id
@@ -122,19 +125,26 @@ class PaymentPlan(models.Model):
                 continue
 
             here = recs.filtered(lambda r: r.move_line_id == move_line)
-            rate = here[0].exchange_rate or 1.0
+            rate = here[-1].exchange_rate or 1.0
             if rate <= 0:
                 rate = 1.0
 
+            # Exact: comes from the allocations, each at its own captured rate
             applied_here = sum(here.mapped('amount'))
-            deposit = abs(move_line.balance) / rate
+            applied_here_company = sum(here.mapped('amount_company'))
             available = available_company / rate
+
             # The same deposit may have been split with another plan. Without
             # showing that share, the row would not add up on paper.
-            applied_other = deposit - applied_here - available
-            if float_compare(applied_other, 0.0,
-                             precision_rounding=self.currency_id.rounding) <= 0:
-                applied_other = 0.0
+            applied_other_company = (abs(move_line.balance)
+                                     - applied_here_company - available_company)
+            if float_compare(applied_other_company, 0.0,
+                             precision_rounding=company_currency.rounding) <= 0:
+                applied_other_company = 0.0
+            applied_other = applied_other_company / rate
+
+            # Built from the parts so the row always adds up on paper
+            deposit = applied_here + applied_other + available
 
             rows.append({
                 'move_line': move_line,
