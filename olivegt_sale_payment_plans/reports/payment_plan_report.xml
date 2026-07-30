@@ -288,9 +288,8 @@
         <t t-set="groups" t-value="docs.get_receipt_groups()"/>
         <t t-foreach="groups" t-as="grp">
           <t t-set="rec" t-value="grp['main']"/>
-          <t t-set="simbolo" t-value="rec.currency_id.symbol or ''"/>
+          <!-- Una sola moneda en todo el recibo: la del plan -->
           <t t-set="simbolo_dep" t-value="grp['deposit_currency'].symbol or ''"/>
-          <t t-set="simbolo_cia" t-value="rec.company_currency_id.symbol or ''"/>
           <t t-set="receipt_bg_url" t-value="rec.company_id.payment_plan_receipt_bg_url or 'https://storage.googleapis.com/pale-public-images/payment_plan_receipt_bg.png'"/>
           <t t-call="web.basic_layout">
             <style>
@@ -414,7 +413,6 @@
                       <th>Vence</th>
                       <th t-if="grp['multi_plan']">Plan</th>
                       <th class="num">Monto aplicado</th>
-                      <th class="num" t-if="grp['show_equivalent']">Equivalente</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -425,10 +423,7 @@
                       </td>
                       <td t-if="grp['multi_plan']"><span t-esc="alloc.payment_plan_id.name"/></td>
                       <td class="num">
-                        <span t-esc="('%s %s' % (simbolo, '{:,.2f}'.format(alloc.amount or 0.0)))"/>
-                      </td>
-                      <td class="num" t-if="grp['show_equivalent']">
-                        <span t-esc="('%s %s' % (simbolo_cia, '{:,.2f}'.format(alloc.amount_company or 0.0)))"/>
+                        <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(alloc.amount or 0.0)))"/>
                       </td>
                     </tr>
                     <tr t-if="grp['unallocated']">
@@ -438,9 +433,6 @@
                       <td class="num">
                         <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(grp['unallocated'] or 0.0)))"/>
                       </td>
-                      <td class="num" t-if="grp['show_equivalent']">
-                        <span t-esc="('%s %s' % (simbolo_cia, '{:,.2f}'.format(grp['unallocated_company'] or 0.0)))"/>
-                      </td>
                     </tr>
                     <tr class="total-row">
                       <td>Total recibido</td>
@@ -448,9 +440,6 @@
                       <td t-if="grp['multi_plan']"/>
                       <td class="num">
                         <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(grp['deposit_total'] or 0.0)))"/>
-                      </td>
-                      <td class="num" t-if="grp['show_equivalent']">
-                        <span t-esc="('%s %s' % (simbolo_cia, '{:,.2f}'.format(grp['deposit_company'] or 0.0)))"/>
                       </td>
                     </tr>
                   </tbody>
@@ -460,13 +449,9 @@
                   <t t-foreach="grp['plans']" t-as="plan">
                     <div>
                       <strong>Saldo pendiente<t t-if="grp['multi_plan']"> (<span t-esc="plan.name"/>)</t>:</strong>
-                      <span t-esc="('%s %s' % (plan.currency_id.symbol or '', '{:,.2f}'.format(plan.amount_residual or 0.0)))"/>
+                      <span t-esc="('%s %s' % (simbolo_dep, '{:,.2f}'.format(plan.amount_residual or 0.0)))"/>
                     </div>
                   </t>
-                  <div t-if="grp['show_equivalent'] and grp['deposit_company']">
-                    <strong>Equivalente depositado:</strong>
-                    <span t-esc="('%s %s' % (simbolo_cia, '{:,.2f}'.format(grp['deposit_company'] or 0.0)))"/>
-                  </div>
                 </div>
 
                 <div class="note">

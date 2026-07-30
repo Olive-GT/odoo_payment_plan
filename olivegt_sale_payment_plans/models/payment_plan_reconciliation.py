@@ -428,19 +428,14 @@ class PaymentPlanReconciliation(models.Model):
                 'lines': lines,
                 'plans': plans,
                 'multi_plan': len(plans) > 1,
+                # Everything on the receipt is in the plan's currency: showing
+                # two currencies on one document is what confuses customers.
                 'deposit_currency': deposit_currency,
                 'deposit_total': deposit_total or allocated,
-                'deposit_company': deposit_company or allocated_company,
                 'allocated': allocated,
-                'allocated_company': allocated_company,
                 'unallocated': unallocated,
-                'unallocated_company': unallocated_company,
                 # A single installment with nothing pending needs no breakdown
                 'show_detail': len(lines) > 1 or bool(unallocated),
-                # A dollar plan paid with a quetzal deposit: the breakdown also
-                # carries the company-currency equivalent so the customer can
-                # tie the receipt back to what left their bank account.
-                'show_equivalent': main.currency_id != main.company_currency_id,
             })
         return groups
 
