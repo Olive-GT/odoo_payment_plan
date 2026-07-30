@@ -392,44 +392,50 @@ class PaymentPlanReconciliation(models.Model):
             # allocated so far: the customer paid X and their receipt must say
             # X. How we spread it across installments is our bookkeeping, and
             # belongs in the breakdown below, not in the amount.
+            #
+            # It is stated in the plan's currency, not the journal item's: a
+            # plan sold in dollars must produce a receipt in dollars even when
+            # the deposit was banked in quetzales.
+            #
+            # What was allocated is never recomputed: each allocation carries
+            # the rate that was captured for it, so ``amount`` is already the
+            # exact figure and summing it survives a deposit whose allocations
+            # were made at different rates. Only the part still sitting on the
+            # deposit has no rate of its own, so that -- and only that -- is
+            # converted, using the rate of the latest allocation.
             move_line = main.move_line_id
-            deposit_currency = move_line.currency_id or main.company_currency_id
-            deposit_total = abs(move_line.amount_currency) or abs(move_line.balance)
+            deposit_currency = main.currency_id or main.company_currency_id
 
-            # Whatever is not on an installment yet is shown as pending, so the
-            # figures on the receipt always add up to the deposit.
             allocated = sum(lines.mapped('amount'))
-            if deposit_currency == main.currency_id:
-                allocated_in_deposit = allocated
-            elif deposit_currency == main.company_currency_id:
-                allocated_in_deposit = sum(lines.mapped('amount_company'))
-            else:
-                allocated_in_deposit = None
+            allocated_company = sum(lines.mapped('amount_company'))
+            deposit_company = abs(move_line.balance)
 
-            unallocated = 0.0
-            if allocated_in_deposit is not None and deposit_total:
-                unallocated = deposit_total - allocated_in_deposit
-                if float_compare(unallocated, 0.0,
-                                 precision_rounding=deposit_currency.rounding) <= 0:
-                    unallocated = 0.0
+            unallocated_company = deposit_company - allocated_company
+            if float_compare(unallocated_company, 0.0,
+                             precision_rounding=main.company_currency_id.rounding) <= 0:
+                unallocated_company = 0.0
+
+            rate = lines[-1].exchange_rate or 1.0
+            if rate <= 0:
+                rate = 1.0
+            unallocated = unallocated_company / rate
+
+            # Built from the parts, so the breakdown always adds up to the total
+            deposit_total = allocated + unallocated
 
             groups.append({
                 'main': main,
                 'lines': lines,
                 'plans': plans,
                 'multi_plan': len(plans) > 1,
+                # Everything on the receipt is in the plan's currency: showing
+                # two currencies on one document is what confuses customers.
                 'deposit_currency': deposit_currency,
                 'deposit_total': deposit_total or allocated,
                 'allocated': allocated,
-                'allocated_company': sum(lines.mapped('amount_company')),
                 'unallocated': unallocated,
                 # A single installment with nothing pending needs no breakdown
                 'show_detail': len(lines) > 1 or bool(unallocated),
-                # When the plan is in another currency, the installment amounts
-                # alone would not add up to the deposit on paper, so the
-                # breakdown also carries the equivalent in the deposit currency.
-                'show_equivalent': (deposit_currency == main.company_currency_id
-                                    and main.currency_id != main.company_currency_id),
             })
         return groups
 
