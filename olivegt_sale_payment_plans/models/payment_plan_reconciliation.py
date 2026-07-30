@@ -392,26 +392,38 @@ class PaymentPlanReconciliation(models.Model):
             # allocated so far: the customer paid X and their receipt must say
             # X. How we spread it across installments is our bookkeeping, and
             # belongs in the breakdown below, not in the amount.
+            #
+            # It is stated in the plan's currency, not the journal item's: a
+            # plan sold in dollars must produce a receipt in dollars even when
+            # the deposit was banked in quetzales. The conversion uses the rate
+            # the allocation itself was made at (amount = amount_company /
+            # exchange_rate), so the figures agree with the reconciliation
+            # instead of with a rate picked at print time.
             move_line = main.move_line_id
-            deposit_currency = move_line.currency_id or main.company_currency_id
-            deposit_total = abs(move_line.amount_currency) or abs(move_line.balance)
+            deposit_currency = main.currency_id or main.company_currency_id
+            rate = main.exchange_rate or 1.0
+            if rate <= 0:
+                rate = 1.0
+
+            deposit_company = abs(move_line.balance)
+            deposit_total = deposit_company / rate
 
             # Whatever is not on an installment yet is shown as pending, so the
             # figures on the receipt always add up to the deposit.
             allocated = sum(lines.mapped('amount'))
-            if deposit_currency == main.currency_id:
-                allocated_in_deposit = allocated
-            elif deposit_currency == main.company_currency_id:
-                allocated_in_deposit = sum(lines.mapped('amount_company'))
-            else:
-                allocated_in_deposit = None
+            allocated_company = sum(lines.mapped('amount_company'))
 
             unallocated = 0.0
-            if allocated_in_deposit is not None and deposit_total:
-                unallocated = deposit_total - allocated_in_deposit
+            unallocated_company = 0.0
+            if deposit_total:
+                unallocated = deposit_total - allocated
                 if float_compare(unallocated, 0.0,
                                  precision_rounding=deposit_currency.rounding) <= 0:
                     unallocated = 0.0
+                unallocated_company = deposit_company - allocated_company
+                if float_compare(unallocated_company, 0.0,
+                                 precision_rounding=main.company_currency_id.rounding) <= 0:
+                    unallocated_company = 0.0
 
             groups.append({
                 'main': main,
@@ -420,16 +432,17 @@ class PaymentPlanReconciliation(models.Model):
                 'multi_plan': len(plans) > 1,
                 'deposit_currency': deposit_currency,
                 'deposit_total': deposit_total or allocated,
+                'deposit_company': deposit_company or allocated_company,
                 'allocated': allocated,
-                'allocated_company': sum(lines.mapped('amount_company')),
+                'allocated_company': allocated_company,
                 'unallocated': unallocated,
+                'unallocated_company': unallocated_company,
                 # A single installment with nothing pending needs no breakdown
                 'show_detail': len(lines) > 1 or bool(unallocated),
-                # When the plan is in another currency, the installment amounts
-                # alone would not add up to the deposit on paper, so the
-                # breakdown also carries the equivalent in the deposit currency.
-                'show_equivalent': (deposit_currency == main.company_currency_id
-                                    and main.currency_id != main.company_currency_id),
+                # A dollar plan paid with a quetzal deposit: the breakdown also
+                # carries the company-currency equivalent so the customer can
+                # tie the receipt back to what left their bank account.
+                'show_equivalent': main.currency_id != main.company_currency_id,
             })
         return groups
 

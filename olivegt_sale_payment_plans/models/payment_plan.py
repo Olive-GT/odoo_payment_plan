@@ -102,8 +102,13 @@ class PaymentPlan(models.Model):
         Only deposits that already touched this plan are listed: an unrelated
         payment sitting in the customer's account may belong to another project
         and showing it here would suggest credit that is not theirs on this
-        plan. Everything is in company currency, which is what the deposit and
-        ``payment_plan_available_amount`` are expressed in.
+        plan.
+
+        Figures come out in the plan's currency, so a statement for a plan sold
+        in dollars stays in dollars even though the deposit and
+        ``payment_plan_available_amount`` are stored in company currency. The
+        conversion uses the rate each allocation was made at, which is the same
+        pivot the reconciliation uses (amount = amount_company / exchange_rate).
         """
         self.ensure_one()
         company_currency = self.company_id.currency_id
@@ -111,19 +116,24 @@ class PaymentPlan(models.Model):
 
         rows = []
         for move_line in recs.move_line_id:
-            available = move_line.payment_plan_available_amount or 0.0
-            if float_compare(available, 0.0,
+            available_company = move_line.payment_plan_available_amount or 0.0
+            if float_compare(available_company, 0.0,
                              precision_rounding=company_currency.rounding) <= 0:
                 continue
-            applied_here = sum(
-                recs.filtered(lambda r: r.move_line_id == move_line).mapped('amount_company')
-            )
-            deposit = abs(move_line.balance)
+
+            here = recs.filtered(lambda r: r.move_line_id == move_line)
+            rate = here[0].exchange_rate or 1.0
+            if rate <= 0:
+                rate = 1.0
+
+            applied_here = sum(here.mapped('amount'))
+            deposit = abs(move_line.balance) / rate
+            available = available_company / rate
             # The same deposit may have been split with another plan. Without
             # showing that share, the row would not add up on paper.
             applied_other = deposit - applied_here - available
             if float_compare(applied_other, 0.0,
-                             precision_rounding=company_currency.rounding) <= 0:
+                             precision_rounding=self.currency_id.rounding) <= 0:
                 applied_other = 0.0
 
             rows.append({
