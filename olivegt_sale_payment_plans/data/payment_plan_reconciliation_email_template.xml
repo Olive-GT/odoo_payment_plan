@@ -5,6 +5,13 @@
             <field name="name">Payment Plan Reconciliation Receipt</field>
             <field name="model_id" ref="model_payment_plan_reconciliation"/>
             <field name="subject">Recibo de pago</field>
+            <!-- El remitente sale de la compania del registro, no del usuario que
+                 envia. Sin esto el composer de Odoo lo recalcula con el correo del
+                 autor y los recibos salen firmados por quien aprieta el boton
+                 (p.ej. recibos de Aura Cinco marcados con la direccion de PALE).
+                 El dominio resultante es ademas lo que enruta al servidor SMTP
+                 correcto via from_filter. -->
+            <field name="email_from">{{ object.company_id.email_formatted or user.email_formatted }}</field>
             <field name="body_html" type="html">
                 <p>Estimado usuario,</p>
                 <p>Adjunto encontrará el recibo del pago realizado. Adicionalmente compartimos el estado de cuenta.</p>
