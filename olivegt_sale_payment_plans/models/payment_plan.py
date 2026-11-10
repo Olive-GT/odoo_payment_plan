@@ -82,11 +82,21 @@ class PaymentPlan(models.Model):
                 vals['name'] = self._next_payment_plan_sequence(company) or _('New')
         return super().create(vals_list)
     
-    @api.depends('line_ids.amount', 'line_ids.paid', 'line_ids.interest_amount')
+    @api.depends('line_ids.amount', 'line_ids.paid', 'line_ids.interest_amount',
+                 'line_ids.allocated_amount')
     def _compute_amounts(self):
         for plan in self:
             plan.total_amount = sum(plan.line_ids.mapped('amount'))
-            plan.amount_paid = sum(plan.line_ids.filtered(lambda l: l.paid).mapped('amount'))
+            # Una cuota pagada cuenta completa. Una que no lo esta cuenta lo
+            # que ya se le aplico (abonos parciales, como un anticipo al pago
+            # final); antes esos abonos se ignoraban y el saldo quedaba como si
+            # el cliente no hubiera pagado nada de esa cuota. Se topa en el
+            # monto de la cuota porque total_amount no incluye intereses.
+            plan.amount_paid = sum(
+                line.amount if line.paid
+                else min(max(line.allocated_amount, 0.0), line.amount)
+                for line in plan.line_ids
+            )
             plan.amount_residual = plan.total_amount - plan.amount_paid
             plan.total_interest = sum(plan.line_ids.mapped('interest_amount'))
             plan.total_with_interest = plan.total_amount + plan.total_interest
